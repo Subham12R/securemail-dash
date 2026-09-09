@@ -2,11 +2,11 @@
 
 **Status:** Draft for review  
 **Date:** 2026-09-09  
-**Scope:** Initial dashboard metrics placeholders and date-range filter control
+**Scope:** Initial dashboard metrics, date-range filter, and graph overview placeholders
 
 ## 1. Objective
 
-Add the first metrics section and a date-range filter control to the existing dashboard page without changing the current sidebar, breadcrumb, or route structure.
+Add the first metrics section, date-range filter, and graph overview to the existing dashboard page without changing the current sidebar, breadcrumb, or route structure.
 
 The initial dashboard shows exactly four metric cards in one row on desktop:
 
@@ -19,7 +19,7 @@ The main page remains a read-only overview. No analysis submission, history navi
 
 ## 2. Acceptance check
 
-A dashboard visitor can open the initial page, see the date-range control beside the breadcrumb, and see four consistently sized metric cards beneath it. The cards render typed preview data, retain clear loading/empty states, and do not present missing data as a safe or zero-risk result.
+A dashboard visitor can open the initial page, see the date-range control beside the breadcrumb, four consistently sized metric cards, and two charts in one desktop row. The cards and charts render typed preview data, retain clear loading/empty states, and do not present missing data as a safe or zero-risk result.
 
 ## 3. Data contract
 
@@ -76,7 +76,8 @@ The browser may format values, but it must not invent risk policy, flagged-sessi
 - Use semantic warning styling for Flagged sessions and Average risk score, pairing color with text or an icon.
 - The date-range filter uses an accessible RichButton trigger and React Aria range calendar popover.
 - Date selection updates the trigger label but does not fetch or recalculate metrics in this placeholder slice.
-- Do not add charts, animated metric changes, live API controls, or a new component library.
+- Use shadcn-style chart composition with a local `ChartContainer` and Recharts.
+- Do not add animated metric changes, live API controls, or a new component library.
 
 Suggested content structure:
 
@@ -94,7 +95,17 @@ Dashboard > Overview
 - Keep the control keyboard accessible and close the popover after a complete range is selected.
 - The selected range is local UI state only; the metrics remain explicitly marked as preview data.
 
-## 7. UI states
+## 7. Graph overview
+
+- Place the graph overview directly below the four metric cards.
+- Use two chart cards in the same row at desktop widths and stack them on narrow screens.
+- The left card is a horizontal bar chart titled `Risk distribution` with informational, low, medium, high, and critical categories.
+- The right card is a pie chart titled `Cryptographic posture` with secure, needs review, and at risk categories.
+- Use typed preview fixtures; chart values are not live backend data yet.
+- Include visible titles, descriptive subtitles, tooltips, and a text legend for the pie chart.
+- Keep chart animation disabled so preview values do not imply live updates.
+
+## 8. UI states
 
 ### Preview/fixture state
 
@@ -120,18 +131,19 @@ Dashboard > Overview
 - Add a concise status message explaining that metrics could not be loaded.
 - Do not display stale values as current without an explicit last-updated label.
 
-## 8. Component/data boundaries
+## 9. Component/data boundaries
 
 - `HomePage` owns page composition only.
 - A small metrics component owns card layout and presentation.
 - A typed fixture or future fetch adapter owns the `DashboardMetrics` data shape.
 - `RichButton` owns button variants; `DateRangeFilter` owns calendar state and range formatting.
+- `ChartContainer` owns responsive chart sizing; `OverviewCharts` owns chart composition and preview data.
 - Formatting helpers may convert ratios to percentages and numbers to locale strings.
 - Business rules remain in backend/API contracts, not in card copy or CSS.
 
 No authentication, API key, metric mutation, retry loop, or persistence work is part of the placeholder implementation.
 
-## 9. Accessibility requirements
+## 10. Accessibility requirements
 
 - Use a section heading or accessible label for the metrics group.
 - Each card must expose a readable label and value to assistive technology.
@@ -140,8 +152,9 @@ No authentication, API key, metric mutation, retry loop, or persistence work is 
 - Maintain readable contrast and responsive text sizing.
 - The date-range trigger exposes its dialog relationship and selected range label.
 - Calendar navigation, date cells, and popover dismissal work with keyboard input.
+- Chart cards expose accessible labels; the pie chart repeats category/value meaning in a text legend.
 
-## 10. Verification
+## 11. Verification
 
 - `npm run lint` passes without new warnings.
 - `npm run build` completes successfully.
@@ -150,12 +163,15 @@ No authentication, API key, metric mutation, retry loop, or persistence work is 
 - A narrow viewport stacks the cards without clipping.
 - Preview, loading, null average-risk, unavailable flagged count, unavailable evidence count, and degraded states do not crash or show fabricated values.
 - The date-range trigger opens the calendar, updates after a range selection, and can be dismissed with Escape or outside interaction.
-- `npm ls react-aria-components @internationalized/date` resolves the requested dependencies.
+- The desktop layout renders both chart cards in one row; narrow layouts stack them without clipping.
+- Risk bars and posture slices render with visible labels/tooltips/legend.
+- `npm ls react-aria-components @internationalized/date recharts` resolves the requested dependencies.
 
-## 11. Deferred work
+## 12. Deferred work
 
 - Extend or adapt `/api/v1/analyses/stats` to return authoritative flagged-session and evidence-archive metrics.
-- Apply the selected date range to the live stats query and backend filtering.
+- Apply the selected date range to live stats and chart queries.
+- Replace preview chart values with backend risk distribution and cryptographic posture aggregates.
 - Live fetching from the stats endpoint.
 - Authenticated API proxy and environment configuration.
 - Recent analyses table and detailed risk views.
