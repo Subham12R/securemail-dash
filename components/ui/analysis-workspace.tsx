@@ -138,7 +138,13 @@ function queueDescription(item: CaptureQueueItem | undefined, hasFailed: boolean
   return "Select captures, then queue the batch.";
 }
 
-function QueuePanel({ queueItems }: { queueItems: CaptureQueueItem[] }) {
+function QueuePanel({
+  queueItems,
+  onRemoveRow,
+}: {
+  queueItems: CaptureQueueItem[];
+  onRemoveRow: (key: string) => void;
+}) {
   const processedCount = queueItems.filter((item) => ["complete", "empty"].includes(item.phase)).length;
   const activeItem = queueItems.find((item) =>
     ["uploading", "queued", "extracting", "analyzing"].includes(item.phase),
@@ -223,7 +229,7 @@ function QueuePanel({ queueItems }: { queueItems: CaptureQueueItem[] }) {
         </div>
 
         {taskRows.length > 0 ? (
-          <TaskRows rows={taskRows} />
+          <TaskRows rows={taskRows} onRemoveRow={onRemoveRow} />
         ) : (
           <div className="flex min-h-32 items-center justify-center rounded-lg border border-dashed border-zinc-200 px-4 text-center text-xs text-zinc-500">
             No captures queued
@@ -245,6 +251,7 @@ export default function AnalysisWorkspace({
     canQueue,
     setAttachments,
     removeAttachment,
+    removeQueueItem,
     queueFiles,
     latestAnalysis,
   } = useCaptureQueue();
@@ -321,7 +328,7 @@ export default function AnalysisWorkspace({
             </CardFooter>
           </Card>
 
-          <QueuePanel queueItems={queueItems} />
+          <QueuePanel queueItems={queueItems} onRemoveRow={removeQueueItem} />
         </div>
       </section>
 

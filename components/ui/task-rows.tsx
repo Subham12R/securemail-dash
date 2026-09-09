@@ -1,5 +1,6 @@
 "use client";
 
+import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { MorphingText } from "@/components/ui/morphing-text";
 
@@ -139,10 +140,12 @@ export default function TaskRows({
   rows,
   className,
   onToggleRow,
+  onRemoveRow,
 }: {
   rows: TaskRow[];
   className?: string;
   onToggleRow?: (key: string, open: boolean) => void;
+  onRemoveRow?: (key: string) => void;
 }) {
   const [manualOpen, setManualOpen] = useState<Record<string, boolean>>({});
 
@@ -193,6 +196,17 @@ export default function TaskRows({
                 <path d="m6 9 6 6 6-6" />
               </svg>
             </button>
+            {onRemoveRow && row.status !== "running" ? (
+              <button
+                type="button"
+                aria-label={`Delete ${row.label} from queue`}
+                title="Delete from queue"
+                onClick={() => onRemoveRow(row.key)}
+                className="grid size-9 shrink-0 place-items-center rounded-lg text-zinc-400 outline-none transition-colors hover:bg-red-50 hover:text-red-600 focus-visible:ring-2 focus-visible:ring-red-600"
+              >
+                <Trash2 aria-hidden="true" className="size-4" />
+              </button>
+            ) : null}
 
             {typeof row.progress === "number" && Number.isFinite(row.progress) ? (
               <div className="px-3 pb-2" role="progressbar" aria-label={`${row.label} progress`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={row.progress}>

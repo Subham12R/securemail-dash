@@ -283,6 +283,7 @@ type CaptureQueueContextValue = {
   canQueue: boolean;
   setAttachments: (items: AttachmentUploadItem[]) => void;
   removeAttachment: (item: AttachmentUploadItem) => void;
+  removeQueueItem: (id: string) => void;
   queueFiles: () => Promise<void>;
   latestAnalysis: AnalysisRecord | null;
 };
@@ -568,10 +569,15 @@ export function CaptureQueueProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const removeAttachment = useCallback((item: AttachmentUploadItem) => {
-    setAttachmentList((current) => current.filter((entry) => entry.id !== item.id));
-    setQueueItems((current) => current.filter((entry) => entry.id !== item.id));
+  const removeQueueItem = useCallback((id: string) => {
+    setAttachmentList((current) => current.filter((entry) => entry.id !== id));
+    setQueueItems((current) => current.filter((entry) => entry.id !== id));
   }, []);
+
+  const removeAttachment = useCallback(
+    (item: AttachmentUploadItem) => removeQueueItem(item.id),
+    [removeQueueItem],
+  );
 
   const queueFiles = useCallback(async () => {
     const candidates = attachmentsRef.current.filter((attachment) => {
@@ -616,6 +622,7 @@ export function CaptureQueueProvider({ children }: { children: ReactNode }) {
       canQueue,
       setAttachments,
       removeAttachment,
+      removeQueueItem,
       queueFiles,
       latestAnalysis,
     }),
@@ -627,6 +634,7 @@ export function CaptureQueueProvider({ children }: { children: ReactNode }) {
       queueFiles,
       queueItems,
       removeAttachment,
+      removeQueueItem,
       setAttachments,
     ],
   );
