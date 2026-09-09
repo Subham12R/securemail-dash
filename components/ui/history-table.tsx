@@ -3,14 +3,13 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { getLocalTimeZone } from "@internationalized/date";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Link2 } from "lucide-react";
 import {
   Card,
   CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { MorphingText } from "@/components/ui/morphing-text";
 import TableToolbar, { type TableFilter } from "@/components/ui/table-toolbar";
@@ -49,6 +48,27 @@ function statusColor(status: string): RichButtonColor {
 
 function formatVerdict(verdict: string) {
   return verdict.charAt(0).toUpperCase() + verdict.slice(1);
+}
+
+function formatSource(record: AnalysisRecord) {
+  if (record.is_synthetic) return "Synthetic";
+
+  const source = record.source_label?.trim().toLowerCase() ?? "";
+  const identifiers = `${record.capture_id ?? ""} ${record.session_id}`.toLowerCase();
+
+  if (source.includes("pcap") || source.includes("capture") || identifiers.includes("pcap")) {
+    return "Analysed PCAP capture";
+  }
+  if (
+    source.includes("email") ||
+    source.includes("mail") ||
+    source.includes("client") ||
+    record.client_id
+  ) {
+    return "Email client";
+  }
+
+  return "Not supplied";
 }
 
 function RiskScore({ score }: { score: number }) {
@@ -121,6 +141,7 @@ export default function HistoryTable({
 }) {
   const [query, setQuery] = useState("");
   const [verdict, setVerdict] = useState("All verdicts");
+  const [source, setSource] = useState("All sources");
   const [dateRange, setDateRange] = useState<SelectedDateRange | null>(null);
   const totalPages = Math.max(1, Math.ceil(total / limit));
   const firstRecord = total === 0 ? 0 : (page - 1) * limit + 1;
@@ -131,6 +152,12 @@ export default function HistoryTable({
       label: "Verdict",
       value: verdict,
       options: ["All verdicts", ...Array.from(new Set(records.map((record) => formatVerdict(record.final_verdict)))).sort()],
+    },
+    {
+      name: "source",
+      label: "Source",
+      value: source,
+      options: ["All sources", "Analysed PCAP capture", "Email client"],
     },
   ];
   const filteredRecords = useMemo(() => {
@@ -143,19 +170,20 @@ export default function HistoryTable({
       const identifier = `${record.client_id ?? record.session_id} ${record.request_id}`.toLowerCase();
       const matchesQuery = !normalizedQuery || identifier.includes(normalizedQuery);
       const matchesVerdict = verdict === "All verdicts" || formatVerdict(record.final_verdict) === verdict;
+      const matchesSource = source === "All sources" || formatSource(record) === source;
       const recordTime = new Date(record.timestamp).getTime();
       const matchesDate = start === undefined || end === undefined || (
         Number.isFinite(recordTime) && recordTime >= start && recordTime < end + 86_400_000
       );
-      return matchesQuery && matchesVerdict && matchesDate;
+      return matchesQuery && matchesVerdict && matchesSource && matchesDate;
     });
-  }, [dateRange, query, records, verdict]);
+  }, [dateRange, query, records, source, verdict]);
 
   return (
     <section aria-labelledby="history-heading" className="p-6">
       <Card>
         <CardHeader>
-          <CardTitle id="history-heading">Analysis history</CardTitle>
+          <h2 id="history-heading" className="font-medium tracking-tighter text-zinc-900">Analysis history</h2>
           <CardDescription>
             Persisted analysis records from the SecureMail API
           </CardDescription>
@@ -166,6 +194,7 @@ export default function HistoryTable({
           onQueryChange={setQuery}
           onFilterChange={(name, value) => {
             if (name === "verdict") setVerdict(value);
+            if (name === "source") setSource(value);
           }}
           onRangeChange={(nextRange) => setDateRange(nextRange)}
           showExport
@@ -177,7 +206,7 @@ export default function HistoryTable({
             tabIndex={0}
             aria-label="Analysis history table"
           >
-            <table className="w-full min-w-[860px] border-collapse text-left text-sm">
+            <table className="w-full min-w-[980px] border-collapse text-left text-sm">
               <caption className="sr-only">
                 Paginated SecureMail analysis history
               </caption>
@@ -188,7 +217,11 @@ export default function HistoryTable({
                   <th scope="col" className="px-5 py-3">Request ID</th>
                   <th scope="col" className="px-5 py-3">Risk score</th>
                   <th scope="col" className="px-5 py-3">Verdict</th>
-                  <th scope="col" className="px-5 py-3">IP</th>
+                  <th scope="col" className="px-5 py-3">Source</th>
+                  <th scope="col" className="px-5 py-3">
+                    <span className="sr-only">Network details</span>
+                    <Link2 aria-hidden="true" className="size-4 text-zinc-500" />
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100">
@@ -230,12 +263,18 @@ export default function HistoryTable({
                             <span><MorphingText>{verdict}</MorphingText></span>
                           </RichButton>
                         </td>
+                        <td className="px-5 py-4 text-xs text-zinc-600">
+                          {formatSource(record)}
+                        </td>
                         <td className="px-5 py-4">
                           <Link
                             href={`/inbox?requestId=${encodeURIComponent(record.request_id)}&tab=network`}
-                            className="font-medium text-sky-700 underline decoration-sky-300 underline-offset-2 transition-colors hover:text-sky-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-700"
+                            aria-label={`View network details for ${record.client_id ?? record.session_id}`}
+                            title="View network details"
+                            className="inline-flex rounded-sm text-sky-700 transition-colors hover:text-sky-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-700"
                           >
-                            IP
+                            <Link2 aria-hidden="true" className="size-4" />
+                            <span className="sr-only">View network details</span>
                           </Link>
                         </td>
                       </tr>
@@ -243,7 +282,7 @@ export default function HistoryTable({
                   })
                 ) : (
                   <tr>
-                    <td colSpan={6} className="px-5 py-14 text-center text-sm text-zinc-500">
+                    <td colSpan={7} className="px-5 py-14 text-center text-sm text-zinc-500">
                       No analysis records match the current filters.
                     </td>
                   </tr>
