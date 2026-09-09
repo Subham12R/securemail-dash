@@ -30,6 +30,9 @@ const filters: Array<{ value: InboxFilter; label: string }> = [
   { value: "healthy", label: "Healthy" },
 ];
 
+const desktopGridClass =
+  "sm:grid-cols-[minmax(0,1.3fr)_16rem_minmax(0,1.5fr)_8rem]";
+
 function formatTime(value: string | null) {
   if (!value) return "—";
   const date = new Date(value);
@@ -59,7 +62,7 @@ function TriageBadge({ item }: { item: InboxListItem }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-[11px] font-semibold",
+        "inline-flex items-center justify-center gap-1.5 rounded-full border px-2 py-1 text-[11px] font-semibold sm:justify-self-center",
         flagged
           ? "border-rose-200 bg-rose-50 text-rose-700"
           : item.triage_state === "healthy"
@@ -193,12 +196,14 @@ export default function InboxList({
 
         {!isLoading && !error && items.length > 0 ? (
           <>
-            <div className="hidden grid-cols-[minmax(0,1.3fr)_8rem_minmax(0,1.5fr)_6rem_2.5rem] gap-3 border-b border-zinc-200 bg-zinc-50 px-5 py-2 text-[11px] font-medium text-zinc-500 sm:grid">
+            <div className={cn(
+              "hidden gap-3 border-b border-zinc-200 bg-zinc-50 px-5 py-2 pr-14 text-[11px] font-medium text-zinc-500 sm:grid",
+              desktopGridClass,
+            )}>
               <span>To</span>
-              <span>Status</span>
+              <span className="text-center">Status</span>
               <span>Subject</span>
-              <span>Received</span>
-              <span className="sr-only">Actions</span>
+              <span className="text-right">Received</span>
             </div>
             <ul aria-label="Inbox messages" className="divide-y divide-zinc-200">
               {items.map((item) => {
@@ -210,7 +215,8 @@ export default function InboxList({
                       aria-pressed={selectedId === item.mail_item_id}
                       onClick={(event) => onSelect(item.mail_item_id, event.currentTarget)}
                       className={cn(
-                        "grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-2 border-l-2 px-4 py-4 pr-14 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-sky-600 sm:grid-cols-[minmax(0,1.3fr)_8rem_minmax(0,1.5fr)_6rem] sm:items-center sm:gap-3 sm:px-5 sm:py-3.5 sm:pr-3",
+                        "grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-2 border-l-2 px-4 py-4 pr-14 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-sky-600 sm:items-center sm:gap-3 sm:px-5 sm:py-3.5 sm:pr-14",
+                        desktopGridClass,
                         selectedId === item.mail_item_id
                           ? "border-l-sky-600 bg-sky-50"
                           : "border-l-transparent hover:bg-zinc-50",
@@ -238,7 +244,7 @@ export default function InboxList({
                           {item.preview ?? "Preview unavailable"}
                         </span>
                       </span>
-                      <time dateTime={item.observed_at ?? undefined} className="whitespace-nowrap pl-12 text-xs text-zinc-500 sm:pl-0">
+                      <time dateTime={item.observed_at ?? undefined} className="whitespace-nowrap pl-12 text-xs text-zinc-500 sm:pl-0 sm:text-right">
                         {formatTime(item.observed_at)}
                       </time>
                     </button>
