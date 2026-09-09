@@ -163,9 +163,11 @@ git commit -m "feat: expose inbox fixture routes"
 - Create: `components/ui/inbox-detail.tsx`
 - Create: `app/inbox/loading.tsx`
 - Modify: `app/inbox/page.tsx`
+- Modify: `components/ui/dashboard-topbar.tsx`
 
 **Interfaces:**
 - `InboxWorkspace` owns list fetch, selected ID, detail fetch, local filter, retry, and responsive list/detail mode.
+- `InboxWorkspace` accepts `initialItemId?: string` and selects that ID when it exists in the loaded list.
 - `InboxList` receives normalized rows, counts, filter, selected ID, and selection callback.
 - `InboxDetail` receives normalized detail, loading/error state, retry callback, and back callback.
 
@@ -199,7 +201,7 @@ Add a visible `Preview data` marker. Use `MorphingText` only for changing counts
 
 - [ ] **Step 5: Wire `/inbox` to the workspace**
 
-Replace the Coming Soon import in `app/inbox/page.tsx` with the Inbox workspace while preserving the global topbar/breadcrumb. Apply the dark workspace styling only to Inbox in this task.
+Replace the Coming Soon import in `app/inbox/page.tsx` with the Inbox workspace. Read the optional Next.js 16 `searchParams` promise, pass `itemId` as `initialItemId`, and preserve the global breadcrumb. Extend `DashboardTopbar` with an optional `tone: "light" | "dark"` prop defaulting to `"light"`; pass `tone="dark"` for Inbox. Apply dark workspace styling only to Inbox in this task.
 
 - [ ] **Step 6: Run static verification**
 
@@ -223,6 +225,7 @@ git commit -m "feat: add fixture-backed inbox workspace"
 
 **Files:**
 - Modify: `components/ui/sidebar.tsx`
+- Modify: `components/ui/dashboard-topbar.tsx`
 - Create: `app/analytics/flagged/page.tsx`
 - Create: `app/analytics/flagged/loading.tsx`
 - Create: `components/ui/flagged-analysis-view.tsx`
@@ -235,7 +238,7 @@ git commit -m "feat: add fixture-backed inbox workspace"
 
 - [ ] **Step 1: Add the grouped navigation**
 
-Replace the single Analytics item with an Analysis group. Preserve Dashboard, Inbox, History, and Settings links. Use pathname equality/prefix matching so `/analytics/flagged` marks Flagged Emails active and `/analytics` marks All Analysis active. Keep collapsed-sidebar accessible labels and keyboard focus.
+Replace the single Analytics item with an Analysis group. Preserve Dashboard, Inbox, History, and Settings links. Use pathname equality/prefix matching so `/analytics/flagged` marks Flagged Emails active and `/analytics` marks All Analysis active. On `/inbox` and `/analytics*`, apply the dark sidebar classes from the reference; retain the existing light sidebar classes elsewhere. Keep collapsed-sidebar accessible labels and keyboard focus.
 
 - [ ] **Step 2: Implement the flagged view from the normalized source**
 
@@ -245,7 +248,7 @@ Render a dense analysis table with sender/subject, protocol, view-check chips, r
 
 - [ ] **Step 3: Preserve All Analysis naming and behavior**
 
-Update the Analytics topbar label/breadcrumb to `All Analysis` without changing its queue, upload, polling, or persisted result logic. Keep any existing API error and empty-state copy intact.
+Update the Analytics topbar label/breadcrumb to `All Analysis`, pass `tone="dark"`, and add the same dark tone to the flagged page without changing the queue, upload, polling, or persisted result logic. Keep any existing API error and empty-state copy intact.
 
 - [ ] **Step 4: Run static verification**
 
