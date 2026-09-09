@@ -2,7 +2,7 @@
 
 **Status:** Draft for review  
 **Date:** 2026-09-09  
-**Scope:** Initial dashboard metrics, date-range filter, and graph overview placeholders
+**Scope:** Initial dashboard metrics, date-range filter, graph overview, and recent analysis placeholders
 
 ## 1. Objective
 
@@ -104,6 +104,8 @@ Dashboard > Overview
 - Use typed preview fixtures; chart values are not live backend data yet.
 - Include visible titles, descriptive subtitles, tooltips, and a text legend for the pie chart.
 - Keep chart animation disabled so preview values do not imply live updates.
+- Follow the graph overview with a recent analysis table showing capture ID, date, protocols, risk score, and status.
+- Use typed preview fixtures; do not add row actions or live API fetching in this slice.
 
 ## 8. UI states
 
@@ -153,6 +155,7 @@ No authentication, API key, metric mutation, retry loop, or persistence work is 
 - The date-range trigger exposes its dialog relationship and selected range label.
 - Calendar navigation, date cells, and popover dismissal work with keyboard input.
 - Chart cards expose accessible labels; the pie chart repeats category/value meaning in a text legend.
+- The recent analysis table uses a semantic table, scoped headers, readable status text, and accessible risk progress bars.
 
 ## 11. Verification
 
@@ -165,6 +168,7 @@ No authentication, API key, metric mutation, retry loop, or persistence work is 
 - The date-range trigger opens the calendar, updates after a range selection, and can be dismissed with Escape or outside interaction.
 - The desktop layout renders both chart cards in one row; narrow layouts stack them without clipping.
 - Risk bars and posture slices render with visible labels/tooltips/legend.
+- The recent analysis table renders all requested columns and remains usable at narrow widths.
 - `npm ls react-aria-components @internationalized/date recharts` resolves the requested dependencies.
 
 ## 12. Deferred work
@@ -174,6 +178,5 @@ No authentication, API key, metric mutation, retry loop, or persistence work is 
 - Replace preview chart values with backend risk distribution and cryptographic posture aggregates.
 - Live fetching from the stats endpoint.
 - Authenticated API proxy and environment configuration.
-- Recent analyses table and detailed risk views.
 - Metric trend comparisons and time windows.
 - Server-side caching, polling, and refresh controls.
