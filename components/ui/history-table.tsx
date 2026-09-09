@@ -18,6 +18,7 @@ import {
   RichButton,
   type RichButtonColor,
 } from "@/components/ui/rich-button";
+import { formatAnalysisSource, historyDetailHref } from "@/lib/analysis-detail";
 import type { AnalysisRecord } from "@/lib/securemail-api";
 
 function formatTimestamp(timestamp: string) {
@@ -48,27 +49,6 @@ function statusColor(status: string): RichButtonColor {
 
 function formatVerdict(verdict: string) {
   return verdict.charAt(0).toUpperCase() + verdict.slice(1);
-}
-
-function formatSource(record: AnalysisRecord) {
-  if (record.is_synthetic) return "Synthetic";
-
-  const source = record.source_label?.trim().toLowerCase() ?? "";
-  const identifiers = `${record.capture_id ?? ""} ${record.session_id}`.toLowerCase();
-
-  if (source.includes("pcap") || source.includes("capture") || identifiers.includes("pcap")) {
-    return "Analysed PCAP capture";
-  }
-  if (
-    source.includes("email") ||
-    source.includes("mail") ||
-    source.includes("client") ||
-    record.client_id
-  ) {
-    return "Email client";
-  }
-
-  return "Not supplied";
 }
 
 function RiskScore({ score }: { score: number }) {
@@ -157,7 +137,13 @@ export default function HistoryTable({
       name: "source",
       label: "Source",
       value: source,
-      options: ["All sources", "Analysed PCAP capture", "Email client"],
+      options: [
+        "All sources",
+        "Analysed PCAP capture",
+        "Email client",
+        "Synthetic",
+        "Not supplied",
+      ],
     },
   ];
   const filteredRecords = useMemo(() => {
@@ -170,7 +156,7 @@ export default function HistoryTable({
       const identifier = `${record.client_id ?? record.session_id} ${record.request_id}`.toLowerCase();
       const matchesQuery = !normalizedQuery || identifier.includes(normalizedQuery);
       const matchesVerdict = verdict === "All verdicts" || formatVerdict(record.final_verdict) === verdict;
-      const matchesSource = source === "All sources" || formatSource(record) === source;
+      const matchesSource = source === "All sources" || formatAnalysisSource(record) === source;
       const recordTime = new Date(record.timestamp).getTime();
       const matchesDate = start === undefined || end === undefined || (
         Number.isFinite(recordTime) && recordTime >= start && recordTime < end + 86_400_000
@@ -219,7 +205,7 @@ export default function HistoryTable({
                   <th scope="col" className="px-5 py-3">Verdict</th>
                   <th scope="col" className="px-5 py-3">Source</th>
                   <th scope="col" className="px-5 py-3">
-                    <span className="sr-only">Network details</span>
+                    <span className="sr-only">Analysis details</span>
                     <Link2 aria-hidden="true" className="size-4 text-zinc-500" />
                   </th>
                 </tr>
@@ -228,6 +214,7 @@ export default function HistoryTable({
                 {filteredRecords.length > 0 ? (
                   filteredRecords.map((record) => {
                     const verdict = formatVerdict(record.final_verdict);
+                    const detailHref = historyDetailHref(record.request_id);
 
                     return (
                       <tr key={record.id} className="text-zinc-700">
@@ -264,18 +251,22 @@ export default function HistoryTable({
                           </RichButton>
                         </td>
                         <td className="px-5 py-4 text-xs text-zinc-600">
-                          {formatSource(record)}
+                          {formatAnalysisSource(record)}
                         </td>
                         <td className="px-5 py-4">
-                          <Link
-                            href={`/inbox?requestId=${encodeURIComponent(record.request_id)}&tab=network`}
-                            aria-label={`View network details for ${record.client_id ?? record.session_id}`}
-                            title="View network details"
-                            className="inline-flex rounded-sm text-sky-700 transition-colors hover:text-sky-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-700"
-                          >
-                            <Link2 aria-hidden="true" className="size-4" />
-                            <span className="sr-only">View network details</span>
-                          </Link>
+                          {detailHref ? (
+                            <Link
+                              href={detailHref}
+                              aria-label={`View analysis details for ${record.client_id ?? record.session_id}`}
+                              title="View analysis details"
+                              className="inline-flex rounded-sm text-sky-700 transition-colors hover:text-sky-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-700"
+                            >
+                              <Link2 aria-hidden="true" className="size-4" />
+                              <span className="sr-only">View analysis details</span>
+                            </Link>
+                          ) : (
+                            <span role="status" className="text-xs text-zinc-400">Not available</span>
+                          )}
                         </td>
                       </tr>
                     );
