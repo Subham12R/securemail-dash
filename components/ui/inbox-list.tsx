@@ -188,7 +188,7 @@ export default function InboxList({
                 {option.value === "flagged" ? <Flag aria-hidden="true" className="size-3.5" /> : null}
                 {option.value === "healthy" ? <ShieldCheck aria-hidden="true" className="size-3.5" /> : null}
                 <span>{option.label}</span>
-                <span className="tabular-nums opacity-75">{count}</span>
+                <span className="tabular-nums">{count}</span>
               </button>
             );
           })}
