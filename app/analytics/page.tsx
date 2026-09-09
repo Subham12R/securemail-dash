@@ -1,9 +1,24 @@
 import AnalysisWorkspace from "@/components/ui/analysis-workspace";
 import DashboardTopbar from "@/components/ui/dashboard-topbar";
-import { getDashboardApiData } from "@/lib/securemail-api";
+import {
+  getAnalysisByRequestId,
+  getDashboardApiData,
+} from "@/lib/securemail-api";
 
-export default async function AnalyticsPage() {
-  const dashboard = await getDashboardApiData();
+type AnalyticsPageProps = {
+  searchParams: Promise<{ requestId?: string | string[] }>;
+};
+
+export default async function AnalyticsPage({ searchParams }: AnalyticsPageProps) {
+  const params = await searchParams;
+  const requestId = Array.isArray(params.requestId) ? params.requestId[0] : params.requestId;
+  const [dashboard, selected] = await Promise.all([
+    getDashboardApiData(),
+    requestId ? getAnalysisByRequestId(requestId) : Promise.resolve(null),
+  ]);
+  const selectedAnalysis = selected?.record ?? null;
+  const analysis = requestId ? selectedAnalysis : dashboard.records[0] ?? null;
+  const apiError = requestId ? selected?.error ?? null : dashboard.error;
 
   return (
     <main
@@ -11,10 +26,7 @@ export default async function AnalyticsPage() {
       aria-label="All Analysis page"
     >
       <DashboardTopbar currentPage="All Analysis" tone="dark" />
-      <AnalysisWorkspace
-        analysis={dashboard.records[0] ?? null}
-        apiError={dashboard.error}
-      />
+      <AnalysisWorkspace analysis={analysis} apiError={apiError} />
     </main>
   );
 }

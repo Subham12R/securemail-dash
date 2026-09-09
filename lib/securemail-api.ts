@@ -64,6 +64,11 @@ export type AnalysisHistoryPage = {
   error: string | null;
 };
 
+export type AnalysisRecordLookup = {
+  record: AnalysisRecord | null;
+  error: string | null;
+};
+
 type JsonObject = Record<string, unknown>;
 
 function isObject(value: unknown): value is JsonObject {
@@ -100,52 +105,49 @@ function parseStats(value: unknown): AnalysisStats | null {
   };
 }
 
+function parseAnalysisRecord(value: unknown): AnalysisRecord | null {
+  if (
+    !isObject(value) ||
+    typeof value.id !== "number" ||
+    typeof value.request_id !== "string" ||
+    typeof value.session_id !== "string" ||
+    typeof value.timestamp !== "string" ||
+    typeof value.risk_score !== "number" ||
+    typeof value.final_verdict !== "string"
+  ) {
+    return null;
+  }
+
+  return {
+    id: value.id,
+    request_id: value.request_id,
+    session_id: value.session_id,
+    client_id: typeof value.client_id === "string" ? value.client_id : null,
+    capture_id: typeof value.capture_id === "string" ? value.capture_id : null,
+    protocol: typeof value.protocol === "string" ? value.protocol : null,
+    posture: typeof value.posture === "string" ? value.posture : null,
+    timestamp: value.timestamp,
+    evidence_ref_count:
+      typeof value.evidence_ref_count === "number" ? value.evidence_ref_count : 0,
+    risk_score: value.risk_score,
+    final_verdict: value.final_verdict,
+    rule_score: typeof value.rule_score === "number" ? value.rule_score : null,
+    rule_triggers_count:
+      typeof value.rule_triggers_count === "number" ? value.rule_triggers_count : 0,
+    trigger_details: Array.isArray(value.trigger_details) ? value.trigger_details : [],
+    ml_scores: isObject(value.ml_scores) ? value.ml_scores : {},
+    explanations: isObject(value.explanations) ? value.explanations : {},
+    model_bundle: isObject(value.model_bundle) ? value.model_bundle : {},
+    is_synthetic: value.is_synthetic === true,
+    source_label: typeof value.source_label === "string" ? value.source_label : null,
+  };
+}
+
 function parseRecords(value: unknown): AnalysisRecord[] {
   if (!isObject(value) || !Array.isArray(value.records)) return [];
-
   return value.records.flatMap((entry) => {
-    if (
-      !isObject(entry) ||
-      typeof entry.id !== "number" ||
-      typeof entry.request_id !== "string" ||
-      typeof entry.session_id !== "string" ||
-      typeof entry.timestamp !== "string" ||
-      typeof entry.risk_score !== "number" ||
-      typeof entry.final_verdict !== "string"
-    ) {
-      return [];
-    }
-
-    return [
-      {
-        id: entry.id,
-        request_id: entry.request_id,
-        session_id: entry.session_id,
-        client_id: typeof entry.client_id === "string" ? entry.client_id : null,
-        capture_id: typeof entry.capture_id === "string" ? entry.capture_id : null,
-        protocol: typeof entry.protocol === "string" ? entry.protocol : null,
-        posture: typeof entry.posture === "string" ? entry.posture : null,
-        timestamp: entry.timestamp,
-        evidence_ref_count: typeof entry.evidence_ref_count === "number" ? entry.evidence_ref_count : 0,
-        risk_score: entry.risk_score,
-        final_verdict: entry.final_verdict,
-        rule_score:
-          typeof entry.rule_score === "number" ? entry.rule_score : null,
-        rule_triggers_count:
-          typeof entry.rule_triggers_count === "number"
-            ? entry.rule_triggers_count
-            : 0,
-        trigger_details: Array.isArray(entry.trigger_details)
-          ? entry.trigger_details
-          : [],
-        ml_scores: isObject(entry.ml_scores) ? entry.ml_scores : {},
-        explanations: isObject(entry.explanations) ? entry.explanations : {},
-        model_bundle: isObject(entry.model_bundle) ? entry.model_bundle : {},
-        is_synthetic: entry.is_synthetic === true,
-        source_label:
-          typeof entry.source_label === "string" ? entry.source_label : null,
-      },
-    ];
+    const record = parseAnalysisRecord(entry);
+    return record ? [record] : [];
   });
 }
 
@@ -242,6 +244,27 @@ export async function getAnalysisHistory({
       skip: safeSkip,
       limit: safeLimit,
       records: [],
+      error: error instanceof Error ? error.message : "Unknown API error",
+    };
+  }
+}
+
+export async function getAnalysisByRequestId(
+  requestId: string,
+): Promise<AnalysisRecordLookup> {
+  const safeRequestId = requestId.trim();
+  if (!safeRequestId) {
+    return { record: null, error: "Analysis request ID is missing" };
+  }
+
+  try {
+    const payload = await getJson(`analyses/${encodeURIComponent(safeRequestId)}`);
+    const record = parseAnalysisRecord(payload);
+    if (!record) throw new Error("SecureMail API returned an invalid analysis record");
+    return { record, error: null };
+  } catch (error) {
+    return {
+      record: null,
       error: error instanceof Error ? error.message : "Unknown API error",
     };
   }
