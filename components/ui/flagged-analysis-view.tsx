@@ -41,7 +41,7 @@ function CheckChip({ check, label }: { check: ViewCheck; label: string }) {
 }
 
 function RiskScore({ score }: { score: number | null }) {
-  if (score === null) return <span className="text-xs text-slate-500">No data</span>;
+  if (score === null) return <span className="text-xs text-slate-400">No data</span>;
   const percentage = Math.max(0, Math.min(1, score)) * 100;
   return (
     <div className="flex min-w-36 items-center gap-3">
@@ -106,7 +106,7 @@ export default function FlaggedAnalysisView({
           <div className="overflow-x-auto rounded-lg border border-[#214365]" role="region" tabIndex={0} aria-label="Flagged email analysis table">
             <table className="w-full min-w-[980px] border-collapse text-left text-sm">
               <caption className="sr-only">Backend-flagged email analysis</caption>
-              <thead className="border-b border-[#214365] bg-[#0b213e] text-[11px] uppercase tracking-[0.12em] text-slate-500">
+              <thead className="border-b border-[#214365] bg-[#0b213e] text-[11px] uppercase tracking-[0.12em] text-slate-400">
                 <tr>
                   <th scope="col" className="px-4 py-3">Email</th>
                   <th scope="col" className="px-4 py-3">Checks</th>
@@ -124,7 +124,7 @@ export default function FlaggedAnalysisView({
                         <div className="min-w-0">
                           <p className="truncate font-medium text-white" title={item.subject ?? undefined}>{item.subject ?? "Subject unavailable"}</p>
                           <p className="mt-1 truncate text-xs text-slate-400" title={item.sender.address ?? undefined}>{item.sender.address ?? "Sender unavailable"}</p>
-                          <p className="mt-1 font-mono text-[10px] text-slate-500" title={item.mail_item_id}>{item.mail_item_id}</p>
+                          <p className="mt-1 font-mono text-[10px] text-slate-400" title={item.mail_item_id}>{item.mail_item_id}</p>
                         </div>
                       </div>
                     </th>
@@ -135,7 +135,7 @@ export default function FlaggedAnalysisView({
                         <CheckChip check={item.view_checks.tcp} label="TCP" />
                         <CheckChip check={item.view_checks.tls} label="TLS" />
                       </div>
-                      <p className="mt-2 inline-flex items-center gap-1 text-xs text-slate-500"><Network aria-hidden="true" className="size-3" />{item.protocol}</p>
+                      <p className="mt-2 inline-flex items-center gap-1 text-xs text-slate-400"><Network aria-hidden="true" className="size-3" />{item.protocol}</p>
                     </td>
                     <td className="px-4 py-4 align-top">
                       <p className="mb-2 text-xs font-medium text-rose-300">{item.analysis.risk_class ?? "Unavailable"}</p>
@@ -154,7 +154,7 @@ export default function FlaggedAnalysisView({
                         {item.analysis.request_id ? (
                           <Link
                             href={`/analytics?requestId=${encodeURIComponent(item.analysis.request_id)}`}
-                            className="text-[11px] text-slate-500 hover:text-slate-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300"
+                            className="text-[11px] text-slate-400 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300"
                           >
                             Analysis record
                           </Link>
