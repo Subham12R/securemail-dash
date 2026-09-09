@@ -323,7 +323,8 @@ function PcapRecordView({ viewModel }: { viewModel: AnalysisDetailViewModel }) {
     : null;
 
   return (
-    <div className="space-y-4">
+    <section aria-labelledby="history-analysis-detail-heading" className="space-y-4">
+      <h2 id="history-analysis-detail-heading" className="sr-only">Analysis record details</h2>
       <Card>
         <CardHeader>
           <CardTitle>Record summary</CardTitle>
@@ -417,7 +418,7 @@ function PcapRecordView({ viewModel }: { viewModel: AnalysisDetailViewModel }) {
           reason={viewModel.inbox.reason}
         />
       )}
-    </div>
+    </section>
   );
 }
 

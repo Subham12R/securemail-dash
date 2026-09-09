@@ -84,7 +84,7 @@ export default function HistoryAiPanel({
           </div>
         </dl>
 
-        <div aria-label="Example prompts" className="space-y-2">
+        <div role="group" aria-label="Example prompts" className="space-y-2">
           <p className="text-[11px] font-medium text-zinc-500">Example prompts</p>
           <div className="flex flex-wrap gap-2">
             <span className="rounded-full border border-zinc-200 bg-white px-2.5 py-1.5 text-xs text-zinc-700">Summarize this record</span>
