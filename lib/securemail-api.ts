@@ -311,8 +311,10 @@ async function getDashboardRecords(filter: string) {
 
 export async function getDashboardApiData({
   range,
+  includeRiskDistribution = true,
 }: {
   range?: "7d" | "30d";
+  includeRiskDistribution?: boolean;
 } = {}): Promise<DashboardApiData> {
   const cacheWindowStart =
     Math.floor(Date.now() / (LIVE_DATA_CACHE_SECONDS * 1000)) *
@@ -322,9 +324,12 @@ export async function getDashboardApiData({
     ? new Date(cacheWindowStart - (range === "7d" ? 7 : 30) * 86_400_000).toISOString()
     : null;
   const filter = from ? `&from=${encodeURIComponent(from)}` : "";
+  const recordsRequest = includeRiskDistribution
+    ? getDashboardRecords(filter)
+    : getJson(`analyses?limit=5${filter}`).then(parseRecords);
   const [statsResult, recordsResult, healthResult] = await Promise.allSettled([
     getJson(`analyses/stats${from ? `?from=${encodeURIComponent(from)}` : ""}`),
-    getDashboardRecords(filter),
+    recordsRequest,
     getJson("health"),
   ]);
 
@@ -333,7 +338,7 @@ export async function getDashboardApiData({
   const allRecords =
     recordsResult.status === "fulfilled" ? recordsResult.value : [];
   const records = allRecords.slice(0, 5);
-  const riskDistribution = recordsResult.status === "fulfilled"
+  const riskDistribution = includeRiskDistribution && recordsResult.status === "fulfilled"
     ? riskScoreDistribution(allRecords)
     : null;
   const health =

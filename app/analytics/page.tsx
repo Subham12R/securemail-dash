@@ -14,7 +14,7 @@ export default async function AnalyticsPage({ searchParams }: AnalyticsPageProps
   const params = await searchParams;
   const requestId = Array.isArray(params.requestId) ? params.requestId[0] : params.requestId;
   const [dashboard, selected] = await Promise.all([
-    getDashboardApiData(),
+    getDashboardApiData({ includeRiskDistribution: false }),
     requestId ? getAnalysisByRequestId(requestId) : Promise.resolve(null),
   ]);
   const selectedAnalysis = selected?.record ?? null;
