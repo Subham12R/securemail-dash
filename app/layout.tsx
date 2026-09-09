@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
-import { CaptureQueueProvider } from "@/components/providers/capture-queue-provider";
-import LiveDataRefreshProvider from "@/components/providers/live-data-refresh-provider";
-import Sidebar from "@/components/ui/sidebar";
+import { ThemeProvider } from "@/components/providers/theme-provider";
+import AppShell from "@/components/layout/app-shell";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,16 +25,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       <body className="flex h-screen w-full flex-col overflow-hidden bg-white">
-        <div className="flex min-h-0 min-w-0 flex-1">
-          <Sidebar />
-          <CaptureQueueProvider>
-            <LiveDataRefreshProvider />
-            {children}
-          </CaptureQueueProvider>
-        </div>
-        <Toaster position="top-right" richColors closeButton />
+        <ThemeProvider>
+          <AppShell>{children}</AppShell>
+          <Toaster position="top-right" richColors closeButton />
+        </ThemeProvider>
       </body>
     </html>
   );

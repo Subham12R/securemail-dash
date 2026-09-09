@@ -5,22 +5,58 @@ import {
   ChartLineIcon,
   HistoryIcon,
   HomeIcon,
+  LockIcon,
   LogOutIcon,
   MailIcon,
+  NetworkIcon,
   PanelLeftIcon,
   PanelRightIcon,
   SettingsIcon,
+  ShieldAlertIcon,
+  ShieldCheckIcon,
   UserIcon,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import ThemeToggle from "@/components/ui/theme-toggle";
 
-const primaryItems = [
+const overviewItems = [
   {
     name: "Dashboard",
     icon: <HomeIcon size={18} aria-hidden="true" />,
     href: "/",
+  },
+];
+
+const forensicItems = [
+  {
+    name: "Protocols",
+    icon: <NetworkIcon size={18} aria-hidden="true" />,
+    href: "/protocols",
+  },
+  {
+    name: "TLS Analysis",
+    icon: <LockIcon size={18} aria-hidden="true" />,
+    href: "/tls",
+  },
+  {
+    name: "Certificates",
+    icon: <ShieldCheckIcon size={18} aria-hidden="true" />,
+    href: "/certificates",
+  },
+  {
+    name: "Findings",
+    icon: <ShieldAlertIcon size={18} aria-hidden="true" />,
+    href: "/findings",
+  },
+];
+
+const investigationItems = [
+  {
+    name: "All Analysis",
+    icon: <ChartLineIcon size={18} aria-hidden="true" />,
+    href: "/analytics",
   },
   {
     name: "Inbox",
@@ -32,6 +68,9 @@ const primaryItems = [
     icon: <HistoryIcon size={18} aria-hidden="true" />,
     href: "/history",
   },
+];
+
+const systemItems = [
   {
     name: "Settings",
     icon: <SettingsIcon size={18} aria-hidden="true" />,
@@ -39,18 +78,9 @@ const primaryItems = [
   },
 ];
 
-const analysisItems = [
-  {
-    name: "All Analysis",
-    icon: <ChartLineIcon size={18} aria-hidden="true" />,
-    href: "/analytics",
-  },
-];
-
 function isActivePath(pathname: string, href: string) {
-  return href === "/analytics"
-    ? pathname === href
-    : pathname === href || pathname.startsWith(`${href}/`);
+  if (href === "/") return pathname === "/";
+  return pathname === href || pathname.startsWith(`${href}/`);
 }
 
 export default function Sidebar() {
@@ -107,10 +137,11 @@ export default function Sidebar() {
 
         <nav
           aria-label="Primary navigation"
-          className={`flex flex-1 flex-col items-start justify-start px-2 py-4 text-left ${muted}`}
+          className={`flex flex-1 flex-col items-start justify-start px-2 py-3 text-left ${muted}`}
         >
+          {/* Overview */}
           <div className="flex w-full flex-col gap-1">
-            {primaryItems.slice(0, 2).map((item) => (
+            {overviewItems.map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
@@ -125,14 +156,15 @@ export default function Sidebar() {
             ))}
           </div>
 
-          <div className="mt-6 w-full">
+          {/* Forensics Modules */}
+          <div className="mt-4 w-full">
             {collapsed ? null : (
-              <p className="mb-2 px-2 text-xs  font-semibold tracking-tighter text-zinc-600">
-                Analysis
+              <p className="mb-1.5 px-2 text-sm font-medium tracking-tighter text-zinc-500">
+                Forensics
               </p>
             )}
             <div className="flex w-full flex-col gap-1">
-              {analysisItems.map((item) => {
+              {forensicItems.map((item) => {
                 const active = isActivePath(pathname, item.href);
                 return (
                   <Link
@@ -155,24 +187,64 @@ export default function Sidebar() {
             </div>
           </div>
 
-          <div className="mt-1 flex w-full flex-col gap-1">
-            {primaryItems.slice(2).map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                aria-current={isActivePath(pathname, item.href) ? "page" : undefined}
-                aria-label={collapsed ? item.name : undefined}
-                title={collapsed ? item.name : undefined}
-                className={linkClasses(isActivePath(pathname, item.href))}
-              >
-                {item.icon}
-                {collapsed ? null : <span className="text-sm font-medium tracking-tighter text-current">{item.name}</span>}
-              </Link>
-            ))}
+          {/* Capture & Evidence */}
+          <div className="mt-4 w-full">
+            {collapsed ? null : (
+              <p className="mb-1.5 px-2 text-sm font-medium tracking-tighter text-zinc-500">
+                Capture & Evidence
+              </p>
+            )}
+            <div className="flex w-full flex-col gap-1">
+              {investigationItems.map((item) => {
+                const active = isActivePath(pathname, item.href);
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    aria-current={active ? "page" : undefined}
+                    aria-label={collapsed ? item.name : undefined}
+                    title={collapsed ? item.name : undefined}
+                    className={linkClasses(active)}
+                  >
+                    {item.icon}
+                    {collapsed ? null : (
+                      <span className="flex min-w-0 flex-1 items-center justify-between gap-2 text-sm font-medium tracking-tighter text-current">
+                        <span className="truncate">{item.name}</span>
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* System */}
+          <div className="mt-4 w-full">
+            <div className="flex w-full flex-col gap-1">
+              {systemItems.map((item) => (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  aria-current={isActivePath(pathname, item.href) ? "page" : undefined}
+                  aria-label={collapsed ? item.name : undefined}
+                  title={collapsed ? item.name : undefined}
+                  className={linkClasses(isActivePath(pathname, item.href))}
+                >
+                  {item.icon}
+                  {collapsed ? null : <span className="text-sm font-medium tracking-tighter text-current">{item.name}</span>}
+                </Link>
+              ))}
+            </div>
           </div>
         </nav>
 
-        <div className={`mt-auto flex w-full flex-col items-center justify-center border-t px-2 py-4 ${divider}`}>
+        <div className={`mt-auto flex w-full flex-col items-center justify-center border-t px-2 py-3 ${divider}`}>
+          <div className={`flex w-full items-center ${collapsed ? "justify-center" : "justify-between px-2 py-1.5"}`}>
+            {collapsed ? null : (
+              <span className="text-xs font-medium text-zinc-500">Theme</span>
+            )}
+            <ThemeToggle />
+          </div>
           <div
             className={`flex w-full items-center gap-2 rounded-md p-2 transition-colors ${
               "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
@@ -181,12 +253,13 @@ export default function Sidebar() {
             <UserIcon size={18} aria-hidden="true" />
             {collapsed ? null : <span className="text-sm font-medium tracking-tighter text-current">Profile</span>}
           </div>
-          <div
+          <Link
+            href="/login"
             className={`flex w-full items-center gap-2 rounded-md p-2 text-red-600 transition-colors hover:bg-red-500/10 hover:text-red-700 ${collapsed ? "justify-center" : "justify-start"}`}
           >
             <LogOutIcon size={18} aria-hidden="true" />
             {collapsed ? null : <span className="text-sm font-medium tracking-tighter text-current">Logout</span>}
-          </div>
+          </Link>
         </div>
       </aside>
       <button
