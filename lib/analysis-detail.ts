@@ -1,3 +1,4 @@
+import { riskBandForScore } from "./risk.ts";
 import type { InboxDetailResponse } from "@/lib/inbox-data";
 import type { AnalysisRecord } from "@/lib/securemail-api";
 
@@ -269,8 +270,9 @@ function buildSummaryText(
 ) {
   const protocol = humanizeLabel(record.protocol) ?? "This";
   const verdict = humanizeLabel(record.final_verdict) ?? "Not supplied";
+  const riskBand = humanizeLabel(riskBandForScore(record.risk_score));
   const sentences = [
-    `${protocol} analysis was assessed as ${verdict} with a ${formatScore(record.risk_score)} risk score.`,
+    `${protocol} analysis received a ${formatScore(record.risk_score)} risk score${riskBand ? ` (${riskBand} score band)` : ""} and a backend final verdict of ${verdict}.`,
   ];
 
   const posture = humanizeLabel(record.posture);

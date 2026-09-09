@@ -30,18 +30,16 @@ import {
   BarChartSkeleton,
   PieChartSkeleton,
 } from "@/components/ui/loading-skeleton";
-import type { PostureCount, VerdictCount } from "@/lib/securemail-api";
+import type { PostureCount } from "@/lib/securemail-api";
+import type { RiskScoreDistribution } from "@/lib/risk";
 
 const DEEP_BLUE = "#1e3a8a";
 
-const verdictColors: Record<string, string> = {
+const riskColors: Record<string, string> = {
   informational: DEEP_BLUE,
-  benign: "#22c55e",
   low: "#22c55e",
-  suspicious: "#f59e0b",
   medium: "#f59e0b",
   high: "#f97316",
-  malicious: "#ef4444",
   critical: "#dc2626",
 };
 
@@ -89,19 +87,19 @@ function colorFor(
 }
 
 export default function OverviewCharts({
-  verdictDistribution,
+  riskDistribution,
   postureDistribution,
 }: {
-  verdictDistribution: readonly VerdictCount[];
+  riskDistribution: readonly RiskScoreDistribution[];
   postureDistribution: readonly PostureCount[];
 }) {
-  const [hoveredVerdict, setHoveredVerdict] = useState<string | null>(null);
+  const [hoveredRisk, setHoveredRisk] = useState<string | null>(null);
   const [activePostureIndex, setActivePostureIndex] = useState<number | null>(null);
 
-  const verdictData = verdictDistribution.map((entry, index) => ({
-    verdict: formatLabel(entry.verdict),
+  const riskData = riskDistribution.map((entry, index) => ({
+    risk: formatLabel(entry.band),
     count: entry.count,
-    fill: colorFor(entry.verdict, verdictColors, index),
+    fill: colorFor(entry.band, riskColors, index),
   }));
   const postureData = postureDistribution.map((entry, index) => ({
     posture: formatLabel(entry.posture),
@@ -129,23 +127,23 @@ export default function OverviewCharts({
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Verdict distribution</CardTitle>
+            <CardTitle>Risk score distribution</CardTitle>
             <CardDescription>
-              Persisted analyses grouped by final backend verdict
+              Persisted analyses grouped by normalized risk score
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {verdictData.length > 0 ? (
+            {riskData.length > 0 ? (
               <ChartContainer
                 config={chartConfig}
                 role="img"
-                aria-label="Colorful bar chart showing analysis verdict distribution"
+                aria-label="Colorful bar chart showing analysis risk score distribution"
                 className="aspect-video max-h-[280px]"
               >
-                <BarChart accessibilityLayer data={verdictData}>
+                <BarChart accessibilityLayer data={riskData}>
                   <CartesianGrid vertical={false} />
                   <XAxis
-                    dataKey="verdict"
+                    dataKey="risk"
                     tickLine={false}
                     tickMargin={10}
                     axisLine={false}
@@ -162,14 +160,14 @@ export default function OverviewCharts({
                     animationDuration={750}
                     animationEasing="ease-out"
                   >
-                    {verdictData.map((entry) => (
+                    {riskData.map((entry) => (
                       <Cell
-                        key={entry.verdict}
+                        key={entry.risk}
                         fill={entry.fill}
-                        opacity={hoveredVerdict && hoveredVerdict !== entry.verdict ? 0.35 : 1}
+                        opacity={hoveredRisk && hoveredRisk !== entry.risk ? 0.35 : 1}
                         className="transition-opacity duration-200 cursor-pointer"
-                        onMouseEnter={() => setHoveredVerdict(entry.verdict)}
-                        onMouseLeave={() => setHoveredVerdict(null)}
+                        onMouseEnter={() => setHoveredRisk(entry.risk)}
+                        onMouseLeave={() => setHoveredRisk(null)}
                       />
                     ))}
                   </Bar>
@@ -185,12 +183,12 @@ export default function OverviewCharts({
             )}
           </CardContent>
           <CardFooter className="flex-wrap gap-x-4 gap-y-2 text-xs text-zinc-600">
-            {verdictData.length > 0
-              ? verdictData.map((entry) => (
+            {riskData.length > 0
+              ? riskData.map((entry) => (
                   <div
-                    key={entry.verdict}
+                    key={entry.risk}
                     className={`flex items-center gap-1.5 transition-opacity duration-150 ${
-                      hoveredVerdict && hoveredVerdict !== entry.verdict ? "opacity-40" : "opacity-100"
+                      hoveredRisk && hoveredRisk !== entry.risk ? "opacity-40" : "opacity-100"
                     }`}
                   >
                     <span
@@ -198,13 +196,13 @@ export default function OverviewCharts({
                       className="size-2 rounded-full"
                       style={{ backgroundColor: entry.fill }}
                     />
-                    <span>{entry.verdict}</span>
+                    <span>{entry.risk}</span>
                     <span className="font-medium text-zinc-900">
                       {entry.count}
                     </span>
                   </div>
                 ))
-              : "No verdict categories returned"}
+              : "No risk score bands returned"}
           </CardFooter>
         </Card>
 

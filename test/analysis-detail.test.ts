@@ -118,6 +118,24 @@ test("normalizes supported analysis output into human-readable metrics", () => {
   assert.equal(JSON.stringify(view).includes("not displayed"), false);
 });
 
+test("keeps the numeric score band distinct from a higher backend verdict", () => {
+  const view = buildAnalysisDetailViewModel(
+    record({
+      risk_score: 0.432,
+      final_verdict: "high",
+      trigger_details: [{
+        finding_id: "CERT-003",
+        severity: "high",
+        title: "Invalid certificate chain",
+      }],
+    }),
+    { state: "not_found", detail: null, reason: "No matching Inbox item was returned." },
+  );
+
+  assert.equal(view.summary_text.includes("Medium score band"), true);
+  assert.equal(view.summary_text.includes("backend final verdict of High"), true);
+});
+
 test("keeps absent supported metrics explicit without dumping unknown JSON", () => {
   const secret = "raw-secret-should-not-be-exposed";
   const view = buildAnalysisDetailViewModel(

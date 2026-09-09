@@ -19,7 +19,7 @@ import {
   type RichButtonColor,
 } from "@/components/ui/rich-button";
 import { formatAnalysisSource, historyDetailHref } from "@/lib/analysis-detail";
-import { riskScoreBarClass } from "@/lib/risk";
+import { riskBandForScore, riskScoreBarClass } from "@/lib/risk";
 import type { AnalysisRecord } from "@/lib/securemail-api";
 
 function formatTimestamp(timestamp: string) {
@@ -42,7 +42,10 @@ function statusColor(status: string): RichButtonColor {
     case "high":
       return "warning";
     case "benign":
+    case "low":
       return "primary";
+    case "medium":
+      return "warning";
     case "informational":
     case "unknown":
       return "info";
@@ -175,7 +178,7 @@ export default function HistoryTable({
         <CardHeader>
           <h2 id="history-heading" className="font-medium tracking-tighter text-zinc-900">Analysis history</h2>
           <CardDescription>
-            Persisted analysis records from the SecureMail API
+            Risk bands follow the numeric score; final verdicts remain backend-authoritative when rules raise severity.
           </CardDescription>
         </CardHeader>
         <TableToolbar
@@ -206,7 +209,8 @@ export default function HistoryTable({
                   <th scope="col" className="px-5 py-3">Capture / session ID</th>
                   <th scope="col" className="px-5 py-3">Request ID</th>
                   <th scope="col" className="px-5 py-3">Risk score</th>
-                  <th scope="col" className="px-5 py-3">Verdict</th>
+                  <th scope="col" className="px-5 py-3">Risk band</th>
+                  <th scope="col" className="px-5 py-3">Final verdict</th>
                   <th scope="col" className="px-5 py-3">Source</th>
                   <th scope="col" className="px-5 py-3">
                     <span className="sr-only">Analysis details</span>
@@ -218,6 +222,7 @@ export default function HistoryTable({
                 {filteredRecords.length > 0 ? (
                   filteredRecords.map((record, index) => {
                     const verdict = formatVerdict(record.final_verdict);
+                    const riskBand = riskBandForScore(record.risk_score);
                     const detailHref = historyDetailHref(record.request_id);
 
                     return (
@@ -247,6 +252,20 @@ export default function HistoryTable({
                         </td>
                         <td className="px-5 py-4">
                           <RiskScore score={record.risk_score} />
+                        </td>
+                        <td className="px-5 py-4">
+                          {riskBand ? (
+                            <RichButton
+                              asChild
+                              size="sm"
+                              color={statusColor(riskBand)}
+                              className="pointer-events-none"
+                            >
+                              <span><MorphingText>{formatVerdict(riskBand)}</MorphingText></span>
+                            </RichButton>
+                          ) : (
+                            <span className="text-xs text-zinc-500">Not supplied</span>
+                          )}
                         </td>
                         <td className="px-5 py-4">
                           <RichButton
@@ -281,7 +300,7 @@ export default function HistoryTable({
                   })
                 ) : (
                   <tr>
-                    <td colSpan={7} className="px-5 py-14 text-center text-sm text-zinc-500">
+                    <td colSpan={8} className="px-5 py-14 text-center text-sm text-zinc-500">
                       No analysis records match the current filters.
                     </td>
                   </tr>

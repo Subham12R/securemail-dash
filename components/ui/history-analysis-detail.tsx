@@ -21,7 +21,7 @@ import HistoryAiPanel from "@/components/ui/history-ai-panel";
 import InboxDetailPanels from "@/components/ui/inbox-detail-panels";
 import { MorphingText } from "@/components/ui/morphing-text";
 import { RichButton, type RichButtonColor } from "@/components/ui/rich-button";
-import { riskScoreBarClass } from "@/lib/risk";
+import { riskBandForScore, riskScoreBarClass } from "@/lib/risk";
 import {
   analysisFieldLabel,
   type AnalysisDetailViewModel,
@@ -58,7 +58,10 @@ function statusColor(value: string): RichButtonColor {
       return "warning";
     case "benign":
     case "complete":
+    case "low":
       return "primary";
+    case "medium":
+      return "warning";
     case "informational":
     case "unknown":
       return "info";
@@ -332,6 +335,7 @@ function RecordHeader({ viewModel }: { viewModel: AnalysisDetailViewModel }) {
     .map((recipient) => recipient.address ?? recipient.name)
     .filter(Boolean)
     .join(", ") || "Not supplied";
+  const riskBand = riskBandForScore(viewModel.summary.risk_score);
 
   return (
     <header className="rounded-xl border border-zinc-200 bg-white p-5 shadow-[inset_0_0_2px_1px_rgba(0,0,0,0.04)] sm:p-6">
@@ -382,6 +386,7 @@ function RecordHeader({ viewModel }: { viewModel: AnalysisDetailViewModel }) {
             ["Capture ID", displayValue(viewModel.summary.capture_id)],
             ["Protocol", displayValue(viewModel.summary.protocol)],
             ["Posture", displayValue(viewModel.summary.posture)],
+            ["Risk band", formatVerdict(riskBand ?? "Not supplied")],
             ["Observed", formatTimestamp(viewModel.summary.timestamp)],
           ]}
         />
@@ -393,7 +398,12 @@ function RecordHeader({ viewModel }: { viewModel: AnalysisDetailViewModel }) {
             ) : (
               <AlertTriangle aria-hidden="true" className="size-4 text-amber-600" />
             )}
+            <span className="text-zinc-500">Final verdict</span>
             <StatusBadge label={formatVerdict(viewModel.summary.final_verdict)} />
+          </div>
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-zinc-500">Risk band</span>
+            <StatusBadge label={formatVerdict(riskBand ?? "Not supplied")} />
           </div>
           <RiskScore score={viewModel.summary.risk_score} />
           {item ? (
@@ -457,6 +467,7 @@ function PcapRecordView({ viewModel }: { viewModel: AnalysisDetailViewModel }) {
               ["Client ID", displayValue(summary.client_id)],
               ["Protocol", displayValue(summary.protocol)],
               ["Posture", displayValue(summary.posture)],
+              ["Risk band", formatVerdict(riskBandForScore(summary.risk_score) ?? "Not supplied")],
               ["Observed", formatTimestamp(summary.timestamp)],
             ]}
           />
@@ -497,9 +508,9 @@ export default function HistoryAnalysisDetail({
   return (
     <div className="min-h-0 px-4 py-4 sm:px-6 sm:py-6">
       <div
-        className={`mx-auto grid w-full max-w-[1280px] min-h-0 gap-4 lg:gap-5 ${
+        className={`mx-auto grid w-full max-w-[1280px] min-h-0 items-start gap-4 lg:gap-5 ${
           assistantOpen
-            ? "lg:grid-cols-[minmax(0,1fr)_24rem]"
+            ? "lg:grid-cols-[minmax(0,1fr)_20.5rem]"
             : "lg:grid-cols-[minmax(0,1fr)_3rem]"
         }`}
       >

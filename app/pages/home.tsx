@@ -11,6 +11,7 @@ import RecentAnalysisTable, {
 } from "@/components/ui/recent-analysis-table";
 import FooterWatermark from "@/components/ui/footer";
 import { getDashboardApiData } from "@/lib/securemail-api";
+import { riskBandForScore } from "@/lib/risk";
 
 import { ViewTransition } from "react";
 import { AnimatedNumber } from "@/components/ui/animated-number";
@@ -60,6 +61,7 @@ export default async function HomePage({ range }: { range: "all" | "7d" | "30d" 
   ];
   const recentAnalyses: RecentAnalysis[] = dashboard.records.map((record) => ({
     requestId: record.request_id,
+    riskBand: riskBandForScore(record.risk_score),
     captureId: record.capture_id ?? record.client_id ?? record.session_id,
     sessionId: record.session_id,
     date: record.timestamp,
@@ -122,7 +124,7 @@ export default async function HomePage({ range }: { range: "all" | "7d" | "30d" 
 
         <div className="animate-reveal" style={{ animationDelay: "240ms" }}>
           <OverviewCharts
-            verdictDistribution={stats?.verdict_distribution ?? []}
+            riskDistribution={dashboard.risk_distribution ?? []}
             postureDistribution={stats?.cryptographic_posture_distribution ?? []}
           />
         </div>

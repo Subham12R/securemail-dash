@@ -14,7 +14,7 @@ import { Link2 } from "lucide-react";
 import { MorphingText } from "@/components/ui/morphing-text";
 import TableToolbar, { type TableFilter } from "@/components/ui/table-toolbar";
 import type { SelectedDateRange } from "@/components/ui/date-range-filter";
-import { riskScoreBarClass } from "@/lib/risk";
+import { riskScoreBarClass, type RiskBand } from "@/lib/risk";
 import { historyDetailHref } from "@/lib/analysis-detail";
 import {
   RichButton,
@@ -23,6 +23,7 @@ import {
 
 export type RecentAnalysis = {
   requestId: string | null;
+  riskBand: RiskBand | null;
   captureId: string;
   sessionId: string;
   date: string | null;
@@ -30,6 +31,10 @@ export type RecentAnalysis = {
   riskScore: number;
   status: string;
 };
+
+function formatVerdict(value: string) {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
 
 function statusColor(status: string): RichButtonColor {
   switch (status.toLowerCase()) {
@@ -41,7 +46,10 @@ function statusColor(status: string): RichButtonColor {
       return "warning";
     case "benign":
     case "complete":
+    case "low":
       return "primary";
+    case "medium":
+      return "warning";
     case "informational":
     case "unknown":
       return "info";
@@ -127,7 +135,7 @@ export default function RecentAnalysisTable({
         <CardHeader>
           <CardTitle id="recent-analysis-heading">Recent analysis</CardTitle>
           <CardDescription>
-            Latest persisted records from the SecureMail API
+            Risk bands follow the numeric score; final verdicts remain backend-authoritative when rules raise severity.
           </CardDescription>
         </CardHeader>
         <TableToolbar
@@ -154,7 +162,8 @@ export default function RecentAnalysisTable({
                   <th scope="col" className="px-5 py-3">Date</th>
                   <th scope="col" className="px-5 py-3">Protocols</th>
                   <th scope="col" className="px-5 py-3">Risk score</th>
-                  <th scope="col" className="px-5 py-3">Verdict</th>
+                  <th scope="col" className="px-5 py-3">Risk band</th>
+                  <th scope="col" className="px-5 py-3">Final verdict</th>
                   <th scope="col" className="px-5 py-3"><span className="sr-only">Details</span><Link2 aria-hidden="true" className="size-4 text-zinc-500" /></th>
                 </tr>
               </thead>
@@ -204,6 +213,20 @@ export default function RecentAnalysisTable({
                         <RiskScore score={analysis.riskScore} />
                       </td>
                       <td className="px-5 py-4">
+                        {analysis.riskBand ? (
+                          <RichButton
+                            asChild
+                            size="sm"
+                            color={statusColor(analysis.riskBand)}
+                            className="pointer-events-none"
+                          >
+                            <span><MorphingText>{formatVerdict(analysis.riskBand)}</MorphingText></span>
+                          </RichButton>
+                        ) : (
+                          <span className="text-xs text-zinc-500">Not supplied</span>
+                        )}
+                      </td>
+                      <td className="px-5 py-4">
                         <RichButton
                           asChild
                           size="sm"
@@ -233,7 +256,7 @@ export default function RecentAnalysisTable({
                   })
                 ) : (
                   <tr>
-                    <td colSpan={6} className="px-5 py-10 text-center text-sm text-zinc-500">
+                    <td colSpan={7} className="px-5 py-10 text-center text-sm text-zinc-500">
                       No analysis records match the current filters.
                     </td>
                   </tr>
