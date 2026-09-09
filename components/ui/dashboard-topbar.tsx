@@ -6,31 +6,45 @@ type DashboardTopbarProps = {
   currentPage: string;
   showDateRange?: boolean;
   range?: DateRange;
+  tone?: "light" | "dark";
 };
 
 export default function DashboardTopbar({
   currentPage,
   showDateRange = false,
   range,
+  tone = "light",
 }: DashboardTopbarProps) {
+  const dark = tone === "dark";
+
   return (
-    <header className="sticky top-0 z-20 flex min-h-16 flex-wrap items-center justify-between gap-3 border-b border-zinc-200 bg-white/95 py-3 pl-20 pr-6 backdrop-blur">
+    <header
+      className={`sticky top-0 z-20 flex min-h-16 flex-wrap items-center justify-between gap-3 border-b py-3 pl-20 pr-6 backdrop-blur ${
+        dark
+          ? "border-[#173858] bg-[#08182c]/95 text-slate-100"
+          : "border-zinc-200 bg-white/95"
+      }`}
+    >
       <nav
         aria-label="Breadcrumb"
         className="flex items-center gap-3 text-sm font-medium"
       >
         <Link
           href="/"
-          className="text-zinc-500 transition-colors hover:text-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+          className={`transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 ${
+            dark
+              ? "text-slate-400 hover:text-white focus-visible:outline-sky-300"
+              : "text-zinc-500 hover:text-zinc-900 focus-visible:outline-zinc-900"
+          }`}
         >
           Dashboard
         </Link>
         <ChevronRight
           aria-hidden="true"
-          className="size-4 text-zinc-400"
+          className={`size-4 ${dark ? "text-slate-600" : "text-zinc-400"}`}
           strokeWidth={1.75}
         />
-        <span aria-current="page" className="text-zinc-900">
+        <span aria-current="page" className={dark ? "text-white" : "text-zinc-900"}>
           {currentPage}
         </span>
       </nav>
