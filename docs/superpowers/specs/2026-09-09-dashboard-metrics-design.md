@@ -2,11 +2,11 @@
 
 **Status:** Draft for review  
 **Date:** 2026-09-09  
-**Scope:** Initial dashboard metrics placeholders
+**Scope:** Initial dashboard metrics placeholders and date-range filter control
 
 ## 1. Objective
 
-Add the first metrics section to the existing dashboard page without changing the current sidebar, breadcrumb, or route structure.
+Add the first metrics section and a date-range filter control to the existing dashboard page without changing the current sidebar, breadcrumb, or route structure.
 
 The initial dashboard shows exactly four metric cards in one row on desktop:
 
@@ -15,11 +15,11 @@ The initial dashboard shows exactly four metric cards in one row on desktop:
 3. **Average risk score**
 4. **Evidence archived**
 
-The main page remains a read-only overview. No analysis submission, history navigation, or remediation action is included in this slice.
+The main page remains a read-only overview. No analysis submission, history navigation, or remediation action is included in this slice. The date range is visual filter state only until live metrics fetching is implemented.
 
 ## 2. Acceptance check
 
-A dashboard visitor can open the initial page and see four consistently sized metric cards beneath the existing breadcrumb. The cards render typed placeholder data, retain clear loading/empty states, and do not present missing data as a safe or zero-risk result.
+A dashboard visitor can open the initial page, see the date-range control beside the breadcrumb, and see four consistently sized metric cards beneath it. The cards render typed preview data, retain clear loading/empty states, and do not present missing data as a safe or zero-risk result.
 
 ## 3. Data contract
 
@@ -68,12 +68,15 @@ The browser may format values, but it must not invent risk policy, flagged-sessi
 
 - Preserve the existing collapsible sidebar and external sidebar toggle.
 - Preserve the existing `Dashboard > Overview` breadcrumb.
+- Place the date-range filter in the breadcrumb bar, aligned to the right.
 - Place the metrics section directly below the breadcrumb bar.
 - Use a four-column grid at desktop widths with equal card widths and a consistent gap.
 - Stack cards at narrower widths; do not introduce horizontal scrolling.
 - Keep the visual language minimal: white cards, subtle border, small label, prominent value, and optional supporting text.
 - Use semantic warning styling for Flagged sessions and Average risk score, pairing color with text or an icon.
-- Do not add charts, animation, filters, API controls, or a new component library.
+- The date-range filter uses an accessible RichButton trigger and React Aria range calendar popover.
+- Date selection updates the trigger label but does not fetch or recalculate metrics in this placeholder slice.
+- Do not add charts, animated metric changes, live API controls, or a new component library.
 
 Suggested content structure:
 
@@ -83,7 +86,15 @@ Dashboard > Overview
 [ Sessions analysed ] [ Flagged sessions ] [ Average risk score ] [ Evidence archived ]
 ```
 
-## 6. UI states
+## 6. Date-range filter
+
+- Use a reusable `RichButton` with `children`, `color`, `size`, `className`, and `asChild` props.
+- Open a controlled React Aria `RangeCalendar` in an accessible popover.
+- Use `CalendarDate` values from `@internationalized/date`; display the selected range in the trigger.
+- Keep the control keyboard accessible and close the popover after a complete range is selected.
+- The selected range is local UI state only; the metrics remain explicitly marked as preview data.
+
+## 7. UI states
 
 ### Preview/fixture state
 
@@ -96,6 +107,7 @@ Dashboard > Overview
 - Preserve the four-card layout.
 - Show neutral skeletons or `—` values.
 - Do not animate fake metric changes.
+- The date-range trigger remains available while metrics are loading.
 
 ### Empty state
 
@@ -108,25 +120,28 @@ Dashboard > Overview
 - Add a concise status message explaining that metrics could not be loaded.
 - Do not display stale values as current without an explicit last-updated label.
 
-## 7. Component/data boundaries
+## 8. Component/data boundaries
 
 - `HomePage` owns page composition only.
 - A small metrics component owns card layout and presentation.
 - A typed fixture or future fetch adapter owns the `DashboardMetrics` data shape.
+- `RichButton` owns button variants; `DateRangeFilter` owns calendar state and range formatting.
 - Formatting helpers may convert ratios to percentages and numbers to locale strings.
 - Business rules remain in backend/API contracts, not in card copy or CSS.
 
-No authentication, API key, mutation, retry loop, or persistence work is part of the placeholder implementation.
+No authentication, API key, metric mutation, retry loop, or persistence work is part of the placeholder implementation.
 
-## 8. Accessibility requirements
+## 9. Accessibility requirements
 
 - Use a section heading or accessible label for the metrics group.
 - Each card must expose a readable label and value to assistive technology.
 - Do not rely on color alone to identify flagged sessions or risk.
 - Preserve visible focus styles for any future interactive elements; metric cards are non-interactive in this slice.
 - Maintain readable contrast and responsive text sizing.
+- The date-range trigger exposes its dialog relationship and selected range label.
+- Calendar navigation, date cells, and popover dismissal work with keyboard input.
 
-## 9. Verification
+## 10. Verification
 
 - `npm run lint` passes without new warnings.
 - `npm run build` completes successfully.
@@ -134,10 +149,13 @@ No authentication, API key, mutation, retry loop, or persistence work is part of
 - The desktop layout renders exactly four cards in one row.
 - A narrow viewport stacks the cards without clipping.
 - Preview, loading, null average-risk, unavailable flagged count, unavailable evidence count, and degraded states do not crash or show fabricated values.
+- The date-range trigger opens the calendar, updates after a range selection, and can be dismissed with Escape or outside interaction.
+- `npm ls react-aria-components @internationalized/date` resolves the requested dependencies.
 
-## 10. Deferred work
+## 11. Deferred work
 
 - Extend or adapt `/api/v1/analyses/stats` to return authoritative flagged-session and evidence-archive metrics.
+- Apply the selected date range to the live stats query and backend filtering.
 - Live fetching from the stats endpoint.
 - Authenticated API proxy and environment configuration.
 - Recent analyses table and detailed risk views.
