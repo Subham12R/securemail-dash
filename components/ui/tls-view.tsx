@@ -8,14 +8,21 @@ import TlsVersionChart from "@/components/ui/tls-version-chart";
 import CipherSuiteTable from "@/components/ui/cipher-suite-table";
 import TlsSecurityAssessment from "@/components/ui/tls-security-assessment";
 
+import type { TmpVaultEmail } from "@/lib/tmpvault-api";
+
 type TabKey = "versions" | "ciphers" | "assessment";
 
-export default function TlsView({ records }: { records: readonly AnalysisRecord[] }) {
+type Props = {
+  records: readonly AnalysisRecord[];
+  tmpVaultEmails?: readonly TmpVaultEmail[];
+};
+
+export default function TlsView({ records, tmpVaultEmails = [] }: Props) {
   const [activeTab, setActiveTab] = useState<TabKey>("versions");
-  const summary = buildTlsAnalysis(records);
+  const summary = buildTlsAnalysis(records, tmpVaultEmails);
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+    <div className="space-y-6 p-6">
       {/* Title Header */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark-soc:text-white">

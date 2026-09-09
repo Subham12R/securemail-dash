@@ -26,7 +26,10 @@ function confirmsRequest(
 ) {
   return (
     detail.analysis_ref.request_id === requestId ||
-    detail.item.analysis.request_id === requestId
+    detail.item.analysis.request_id === requestId ||
+    detail.item.mail_item_id === requestId ||
+    detail.item.session_id === requestId ||
+    detail.item.capture_id === requestId
   );
 }
 
@@ -42,7 +45,11 @@ export async function findInboxDetailByRequestId(
   try {
     const page = await source.list({ skip: 0, limit: 200 });
     const item = page.items.find(
-      (entry) => entry.analysis.request_id === safeRequestId,
+      (entry) =>
+        entry.analysis.request_id === safeRequestId ||
+        entry.mail_item_id === safeRequestId ||
+        entry.session_id === safeRequestId ||
+        entry.capture_id === safeRequestId,
     );
     if (!item) return notFound();
 

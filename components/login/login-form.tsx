@@ -2,13 +2,15 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Eye, EyeOff, Loader2, Lock, Mail, ShieldCheck } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Loader2, Lock, Mail, ShieldCheck, User as UserIcon } from "lucide-react";
 import { toast } from "sonner";
 import { validateWorkEmail } from "@/lib/login-validation";
 
 export default function LoginForm() {
   const router = useRouter();
+  const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
+  const [displayName, setDisplayName] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,24 +33,32 @@ export default function LoginForm() {
 
     setIsSubmitting(true);
     try {
-      const res = await fetch("/api/auth/login", {
+      const endpoint = mode === "register" ? "/api/auth/register" : "/api/auth/login";
+      const payload =
+        mode === "register"
+          ? { email: email.trim(), password, display_name: displayName.trim() || undefined }
+          : { email: email.trim(), password };
+
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), password }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json().catch(() => null);
 
       if (!res.ok || !data?.ok) {
-        setError(data?.error || "Invalid credentials or enterprise domain.");
+        setError(data?.error || (mode === "register" ? "Registration failed." : "Invalid credentials."));
         setIsSubmitting(false);
         return;
       }
 
       toast.success(
-        data.profile?.display_name
-          ? `Welcome back, ${data.profile.display_name}!`
-          : "Signed in successfully!",
+        mode === "register"
+          ? `Account created! Welcome, ${data.profile?.display_name || "Analyst"}.`
+          : data.profile?.display_name
+            ? `Welcome back, ${data.profile.display_name}!`
+            : "Signed in successfully!",
       );
       router.push("/");
       router.refresh();
@@ -58,35 +68,13 @@ export default function LoginForm() {
     }
   };
 
-  const handleQuickDemo = async () => {
-    setEmail("analyst@company.com");
-    setPassword("enterprise-demo-2026");
-    setError(null);
-    setIsSubmitting(true);
-
-    try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "analyst@company.com", password: "enterprise-demo-2026" }),
-      });
-      const data = await res.json().catch(() => null);
-      if (res.ok && data?.ok) {
-        toast.success("Welcome back!");
-        router.push("/");
-        router.refresh();
-        return;
-      }
-    } catch {
-      // Fallback to dashboard navigation for demo test
+  const handleFillDemo = (targetEmail = "0day@company.com", targetPass = "0day@SIH26") => {
+    setEmail(targetEmail);
+    setPassword(targetPass);
+    if (mode === "register") {
+      setDisplayName("0day");
     }
-
-    // Direct demo access fallback
-    setTimeout(() => {
-      toast.success("Signed in to demo session");
-      router.push("/");
-      router.refresh();
-    }, 600);
+    setError(null);
   };
 
   return (
@@ -102,16 +90,76 @@ export default function LoginForm() {
         </div>
       </div>
 
+      {/* Mode Switcher Tabs */}
+      <div className="mb-6 flex rounded-lg bg-zinc-100 p-1">
+        <button
+          type="button"
+          onClick={() => {
+            setMode("login");
+            setError(null);
+          }}
+          className={`flex-1 rounded-md py-1.5 text-xs font-semibold transition-all ${
+            mode === "login"
+              ? "bg-white text-zinc-900 shadow-sm"
+              : "text-zinc-600 hover:text-zinc-900"
+          }`}
+        >
+          Sign in
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setMode("register");
+            setError(null);
+          }}
+          className={`flex-1 rounded-md py-1.5 text-xs font-semibold transition-all ${
+            mode === "register"
+              ? "bg-white text-zinc-900 shadow-sm"
+              : "text-zinc-600 hover:text-zinc-900"
+          }`}
+        >
+          Register
+        </button>
+      </div>
+
       <div className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight text-zinc-900 sm:text-3xl">
-          Sign in
+          {mode === "register" ? "Create an account" : "Sign in"}
         </h1>
         <p className="mt-2 text-sm text-zinc-600">
-          Enter your work email and password to access the dashboard.
+          {mode === "register"
+            ? "Enter your work email to register your enterprise account."
+            : "Enter your work email and password to access the dashboard."}
         </p>
       </div>
 
       <form onSubmit={handleSubmit} noValidate className="space-y-4">
+        {/* Full Name / Display Name (Register mode only) */}
+        {mode === "register" && (
+          <div>
+            <label
+              htmlFor="display-name"
+              className="block text-xs font-semibold uppercase tracking-wider text-zinc-700"
+            >
+              Full name / Call-sign
+            </label>
+            <div className="relative mt-1.5">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-400">
+                <UserIcon className="h-4 w-4" aria-hidden="true" />
+              </div>
+              <input
+                id="display-name"
+                name="displayName"
+                type="text"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="0day Analyst"
+                className="block w-full rounded-lg border border-zinc-300 bg-white py-2.5 pl-9 pr-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900/10 transition-colors"
+              />
+            </div>
+          </div>
+        )}
+
         {/* Work Email Field */}
         <div>
           <label
@@ -136,7 +184,7 @@ export default function LoginForm() {
                 setEmail(e.target.value);
                 if (error) setError(null);
               }}
-              placeholder="name@company.com"
+              placeholder="0day@company.com"
               aria-invalid={Boolean(error)}
               aria-describedby={error ? "auth-error" : "email-helper"}
               className={`block w-full rounded-lg border bg-white py-2.5 pl-9 pr-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 transition-colors ${
@@ -167,7 +215,7 @@ export default function LoginForm() {
               id="password"
               name="password"
               type={showPassword ? "text" : "password"}
-              autoComplete="current-password"
+              autoComplete={mode === "register" ? "new-password" : "current-password"}
               required
               value={password}
               onChange={(e) => {
@@ -205,7 +253,9 @@ export default function LoginForm() {
           </div>
         ) : (
           <p id="email-helper" className="text-xs text-zinc-500">
-            Requires authorized enterprise organization credentials.
+            {mode === "register"
+              ? "Requires authorized organization domain (@company.com)."
+              : "Requires authorized enterprise organization credentials."}
           </p>
         )}
 
@@ -218,11 +268,11 @@ export default function LoginForm() {
           {isSubmitting ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-              <span>Authenticating...</span>
+              <span>{mode === "register" ? "Registering account..." : "Authenticating..."}</span>
             </>
           ) : (
             <>
-              <span>Sign in</span>
+              <span>{mode === "register" ? "Create enterprise account" : "Sign in"}</span>
               <ArrowRight
                 className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
                 aria-hidden="true"
@@ -232,15 +282,18 @@ export default function LoginForm() {
         </button>
       </form>
 
-      {/* Quick Demo Access */}
-      <div className="mt-6 border-t border-zinc-200 pt-4">
+      {/* Enterprise Account Quick Fill */}
+      <div className="mt-6 border-t border-zinc-200 pt-4 text-center">
         <button
           type="button"
-          onClick={handleQuickDemo}
+          onClick={() => handleFillDemo("0day@company.com", "0day@SIH26")}
           disabled={isSubmitting}
-          className="w-full text-center text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-zinc-600 hover:text-zinc-900 transition-colors"
         >
-          Fast Demo: <span className="underline underline-offset-2">Enter Workspace as Demo Analyst</span>
+          <span>Fill credentials:</span>
+          <code className="rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-[11px] text-zinc-800 border border-zinc-200">
+            0day@company.com
+          </code>
         </button>
       </div>
     </div>

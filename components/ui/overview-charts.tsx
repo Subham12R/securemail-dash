@@ -230,6 +230,7 @@ export default function OverviewCharts({
                       dataKey="count"
                       nameKey="posture"
                       innerRadius={68}
+                      stroke="var(--chart-surface)"
                       strokeWidth={3}
                       isAnimationActive={true}
                       animationDuration={850}

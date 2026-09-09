@@ -7,16 +7,23 @@ import CertificateKpiTiles from "@/components/ui/certificate-kpi-tiles";
 import CertificateCardsGrid from "@/components/ui/certificate-cards-grid";
 import CertificateChainModal from "@/components/ui/certificate-chain-modal";
 
+import type { TmpVaultEmail } from "@/lib/tmpvault-api";
+
 type TabKey = "overview" | "list" | "chain";
 
-export default function CertificatesView({ records }: { records: readonly AnalysisRecord[] }) {
+type Props = {
+  records: readonly AnalysisRecord[];
+  tmpVaultEmails?: readonly TmpVaultEmail[];
+};
+
+export default function CertificatesView({ records, tmpVaultEmails = [] }: Props) {
   const [activeTab, setActiveTab] = useState<TabKey>("overview");
   const [selectedCert, setSelectedCert] = useState<CertificateItem | null>(null);
 
-  const summary = buildCertificatesSummary(records);
+  const summary = buildCertificatesSummary(records, tmpVaultEmails);
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+    <div className="space-y-6 p-6">
       {/* Title Header */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark-soc:text-white">

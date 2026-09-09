@@ -2,6 +2,7 @@ import { ViewTransition } from "react";
 import DashboardTopbar from "@/components/ui/dashboard-topbar";
 import CertificatesView from "@/components/ui/certificates-view";
 import { getAnalysisHistory } from "@/lib/securemail-api";
+import { fetchTmpVaultEmails } from "@/lib/tmpvault-api";
 
 export const metadata = {
   title: "Certificates | SecureMailScope",
@@ -9,7 +10,10 @@ export const metadata = {
 };
 
 export default async function CertificatesPage() {
-  const history = await getAnalysisHistory({ skip: 0, limit: 100 });
+  const [history, tmpVaultEmails] = await Promise.all([
+    getAnalysisHistory({ skip: 0, limit: 100 }),
+    fetchTmpVaultEmails(),
+  ]);
 
   return (
     <ViewTransition enter="page-enter" exit="page-exit" default="none">
@@ -18,7 +22,7 @@ export default async function CertificatesPage() {
         aria-label="Certificates analysis"
       >
         <DashboardTopbar currentPage="Certificates" showRefresh />
-        <CertificatesView records={history.records} />
+        <CertificatesView records={history.records} tmpVaultEmails={tmpVaultEmails} />
       </main>
     </ViewTransition>
   );

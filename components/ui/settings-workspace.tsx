@@ -26,7 +26,7 @@ export function SettingsWorkspace() {
   const [activeTab, setActiveTab] = useState<SettingsTab>("usage");
 
   return (
-    <div className="mx-auto max-w-6xl p-6 lg:p-10 space-y-8 animate-reveal">
+    <div className="space-y-8 p-6 animate-reveal">
       {/* Page Heading */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-zinc-900">

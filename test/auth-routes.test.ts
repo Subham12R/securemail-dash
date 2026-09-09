@@ -12,6 +12,10 @@ test("formatAuthError formats known backend errors into user-friendly messages",
     "Invalid email or password. Please check your credentials.",
   );
   assert.equal(
+    formatAuthError("user_already_exists"),
+    "An enterprise account with this email already exists.",
+  );
+  assert.equal(
     formatAuthError("authentication_required"),
     "Authentication session expired. Please sign in again.",
   );

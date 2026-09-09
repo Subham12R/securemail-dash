@@ -2,6 +2,7 @@ import { ViewTransition } from "react";
 import DashboardTopbar from "@/components/ui/dashboard-topbar";
 import TlsView from "@/components/ui/tls-view";
 import { getAnalysisHistory } from "@/lib/securemail-api";
+import { fetchTmpVaultEmails } from "@/lib/tmpvault-api";
 
 export const metadata = {
   title: "TLS Analysis | SecureMailScope",
@@ -9,7 +10,10 @@ export const metadata = {
 };
 
 export default async function TlsPage() {
-  const history = await getAnalysisHistory({ skip: 0, limit: 100 });
+  const [history, tmpVaultEmails] = await Promise.all([
+    getAnalysisHistory({ skip: 0, limit: 100 }),
+    fetchTmpVaultEmails(),
+  ]);
 
   return (
     <ViewTransition enter="page-enter" exit="page-exit" default="none">
@@ -18,7 +22,7 @@ export default async function TlsPage() {
         aria-label="TLS analysis"
       >
         <DashboardTopbar currentPage="TLS Analysis" showRefresh />
-        <TlsView records={history.records} />
+        <TlsView records={history.records} tmpVaultEmails={tmpVaultEmails} />
       </main>
     </ViewTransition>
   );

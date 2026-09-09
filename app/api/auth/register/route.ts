@@ -15,6 +15,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const email = body?.email;
     const password = body?.password;
+    const displayName = body?.display_name;
 
     if (!email || typeof email !== "string" || !password || typeof password !== "string") {
       return NextResponse.json(
@@ -28,20 +29,24 @@ export async function POST(request: Request) {
 
     for (const baseUrl of candidates) {
       try {
-        const upstream = await fetch(`${baseUrl}/auth/login`, {
+        const upstream = await fetch(`${baseUrl}/auth/register`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
           },
-          body: JSON.stringify({ email: email.trim(), password }),
+          body: JSON.stringify({
+            email: email.trim(),
+            password,
+            display_name: typeof displayName === "string" ? displayName.trim() : undefined,
+          }),
           cache: "no-store",
           signal: AbortSignal.timeout(5000),
         });
 
         const data = await upstream.json().catch(() => null);
 
-        // If upstream failed due to enterprise domain rejection on remote VPS, fallback to local backend candidate
+        // If upstream failed due to enterprise domain rejection on remote VPS or endpoint missing, fallback to local backend candidate
         if (
           !upstream.ok &&
           candidates.length > 1 &&
@@ -65,7 +70,7 @@ export async function POST(request: Request) {
 
         if (!accessToken) {
           return NextResponse.json(
-            { ok: false, error: "Authentication response did not return an access token." },
+            { ok: false, error: "Registration response did not return an access token." },
             { status: 502 },
           );
         }
@@ -92,8 +97,8 @@ export async function POST(request: Request) {
     );
   } catch {
     return NextResponse.json(
-      { ok: false, error: "Unable to connect to authentication server." },
-      { status: 502 },
+      { ok: false, error: "Invalid request payload." },
+      { status: 400 },
     );
   }
 }

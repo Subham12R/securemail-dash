@@ -272,6 +272,17 @@ export async function getAnalysisByRequestId(
     if (!record) throw new Error("SecureMail API returned an invalid analysis record");
     return { record, error: null };
   } catch (error) {
+    try {
+      const history = await getAnalysisHistory({ skip: 0, limit: 100 });
+      const matched = history.records.find(
+        (r) => r.session_id === safeRequestId || r.request_id === safeRequestId,
+      );
+      if (matched) {
+        return { record: matched, error: null };
+      }
+    } catch {
+      // Fallback failed
+    }
     return {
       record: null,
       error: error instanceof Error ? error.message : "Unknown API error",

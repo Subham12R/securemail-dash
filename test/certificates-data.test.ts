@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { buildCertificatesSummary } from "../lib/certificates-data.ts";
 import type { AnalysisRecord } from "../lib/securemail-api.ts";
+import type { TmpVaultEmail } from "../lib/tmpvault-api.ts";
 
 function createMockRecord(partial: Partial<AnalysisRecord>): AnalysisRecord {
   return {
@@ -28,24 +29,57 @@ function createMockRecord(partial: Partial<AnalysisRecord>): AnalysisRecord {
   };
 }
 
-test("buildCertificatesSummary extracts status counts and certificate chains", () => {
-  const records = [
-    createMockRecord({ id: 1, trigger_details: ["Expired certificate observed"] }),
-    createMockRecord({ id: 2 }),
+test("buildCertificatesSummary extracts real certificates from tmpvault email payload", () => {
+  const records = [createMockRecord({ id: 1 })];
+  const tmpVaultEmails: TmpVaultEmail[] = [
+    {
+      id: "email-1",
+      from: "sender@example.com",
+      to: ["rcpt@tmpvault.com"],
+      subject: "Test email",
+      risk_score: 33,
+      risk_level: "low",
+      analysis: {
+        TLS: {
+          Secure: true,
+          Version: "TLS 1.3",
+          VersionStatus: "current",
+          CipherSuite: "TLS_AES_128_GCM_SHA256",
+          CipherStrength: "strong",
+          ForwardSecrecy: true,
+          CertificatePinning: false,
+          Warnings: ["TLS certificate chain is not trusted/complete"],
+          Certificate: {
+            Present: true,
+            Subject: "CN=vmi3425950,O=SecureMailServer",
+            Issuer: "CN=vmi3425950,O=SecureMailServer",
+            NotBefore: "2026-09-09T14:48:36Z",
+            NotAfter: "2027-09-09T14:48:36Z",
+            Valid: true,
+            Expired: false,
+            ExpiresInDays: 364,
+            ChainValid: false,
+            HostnameMismatch: false,
+            KeyAlgorithm: "ECDSA",
+            KeyLengthBits: 256,
+            SignatureAlgorithm: "SHA256-ECDSA",
+            DNSNames: ["vmi3425950", "localhost"],
+          },
+        },
+      },
+    },
   ];
 
-  const summary = buildCertificatesSummary(records);
-  assert.equal(summary.totalCertificates, 4);
-  assert.equal(summary.validCount, 3);
-  assert.equal(summary.expiredCount, 1);
-  assert.equal(summary.expiringSoonCount, 0);
-  assert.equal(summary.invalidCount, 0);
+  const summary = buildCertificatesSummary(records, tmpVaultEmails);
+  assert.equal(summary.totalCertificates, 1);
+  assert.equal(summary.invalidCount, 1);
+  assert.equal(summary.validCount, 0);
 
-  const expiredCert = summary.certificates.find(c => c.status === "EXPIRED");
-  assert.ok(expiredCert);
-  assert.equal(expiredCert.isExpired, true);
-  assert.ok(expiredCert.chain.length === 3);
-  assert.equal(expiredCert.chain[0].level, "root");
-  assert.equal(expiredCert.chain[1].level, "intermediate");
-  assert.equal(expiredCert.chain[2].level, "leaf");
+  const cert = summary.certificates[0];
+  assert.equal(cert.domain, "vmi3425950, localhost");
+  assert.equal(cert.status, "INVALID");
+  assert.equal(cert.keyAlgorithm, "ECDSA 256 bit");
+  assert.equal(cert.chain.length, 2);
+  assert.equal(cert.chain[0].level, "root");
+  assert.equal(cert.chain[1].level, "leaf");
 });

@@ -6,12 +6,19 @@ import { buildFindingsSummary, type FindingSeverity, type FindingStatus } from "
 import FindingsKpiSummary from "@/components/ui/findings-kpi-summary";
 import FindingCard from "@/components/ui/finding-card";
 
+import type { TmpVaultEmail } from "@/lib/tmpvault-api";
+
 type TabFilter = "ALL" | FindingSeverity;
 
 const STORAGE_KEY = "securemailscope:finding_status";
 
-export default function FindingsView({ records }: { records: readonly AnalysisRecord[] }) {
-  const summary = useMemo(() => buildFindingsSummary(records), [records]);
+type Props = {
+  records: readonly AnalysisRecord[];
+  tmpVaultEmails?: readonly TmpVaultEmail[];
+};
+
+export default function FindingsView({ records, tmpVaultEmails = [] }: Props) {
+  const summary = useMemo(() => buildFindingsSummary(records, tmpVaultEmails), [records, tmpVaultEmails]);
   const [statuses, setStatuses] = useState<Record<string, FindingStatus>>({});
   const [selectedSeverity, setSelectedSeverity] = useState<TabFilter>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
@@ -94,7 +101,7 @@ export default function FindingsView({ records }: { records: readonly AnalysisRe
   const lowCount = summary.findings.filter((f) => f.severity === "LOW").length;
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+    <div className="space-y-6 p-6">
       {/* Title Header & Search Bar */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>

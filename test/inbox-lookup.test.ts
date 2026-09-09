@@ -85,3 +85,31 @@ test("returns safe unavailable states for missing detail and source failures", a
   assert.equal(failed.state, "unavailable");
   assert.equal(failed.reason?.includes("raw upstream"), false);
 });
+
+test("resolves Inbox item by mail_item_id and session_id", async () => {
+  const resultByItemId = await findInboxDetailByRequestId(
+    fixture,
+    "inbox-item-flagged-1",
+  );
+  assert.equal(resultByItemId.state, "available");
+  assert.equal(resultByItemId.detail?.item.mail_item_id, "inbox-item-flagged-1");
+
+  const resultBySessionId = await findInboxDetailByRequestId(
+    fixture,
+    "inbox-item-flagged-1-session",
+  );
+  assert.equal(resultBySessionId.state, "available");
+  assert.equal(resultBySessionId.detail?.item.session_id, "inbox-item-flagged-1-session");
+});
+
+test("converts Inbox detail to complete forensic AnalysisRecord", async () => {
+  const { convertInboxDetailToAnalysisRecord } = await import("../lib/inbox-converter.ts");
+  const detail = await fixture.detail("inbox-item-flagged-1");
+  assert.ok(detail);
+  const record = convertInboxDetailToAnalysisRecord(detail, "fallback-id");
+  assert.equal(record.request_id, "req-inbox-flagged-1");
+  assert.equal(record.protocol, "SMTP");
+  assert.ok(record.risk_score > 0);
+  assert.ok(record.ml_scores.xgboost);
+});
+

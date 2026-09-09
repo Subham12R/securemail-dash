@@ -2,6 +2,7 @@ import { ViewTransition } from "react";
 import Link from "next/link";
 import HistoryAnalysisDetail from "@/components/ui/history-analysis-detail";
 import DashboardTopbar from "@/components/ui/dashboard-topbar";
+import { convertInboxDetailToAnalysisRecord } from "@/lib/inbox-converter";
 import { buildAnalysisDetailViewModel } from "@/lib/analysis-detail";
 import { findInboxDetailByRequestId } from "@/lib/inbox-lookup";
 import { getServerInboxDataSource } from "@/lib/inbox-external";
@@ -59,7 +60,17 @@ export default async function HistoryDetailPage({
   }
 
   const analysis = await getAnalysisByRequestId(requestId);
-  if (!analysis.record) {
+  const inbox = await findInboxDetailByRequestId(
+    getServerInboxDataSource(),
+    requestId,
+  );
+
+  let record = analysis.record;
+  if (!record && inbox.state === "available" && inbox.detail) {
+    record = convertInboxDetailToAnalysisRecord(inbox.detail, requestId);
+  }
+
+  if (!record) {
     return (
       <HistoryDetailError
         message={analysis.error ?? "The analysis record is unavailable."}
@@ -67,11 +78,7 @@ export default async function HistoryDetailPage({
     );
   }
 
-  const inbox = await findInboxDetailByRequestId(
-    getServerInboxDataSource(),
-    requestId,
-  );
-  const viewModel = buildAnalysisDetailViewModel(analysis.record, inbox);
+  const viewModel = buildAnalysisDetailViewModel(record, inbox);
 
   return (
     <ViewTransition enter="page-enter" exit="page-exit" default="none">

@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 :root {
+  color-scheme: light;
   --background: #ffffff;
   --foreground: #171717;
   --muted: #f4f4f5;
@@ -8,6 +9,7 @@
   --border: #e4e4e7;
   --ring: #18181b;
   --destructive: #dc2626;
+  --chart-surface: #ffffff;
 }
 
 @theme inline {
@@ -167,69 +169,112 @@ body {
   }
 }
 
-/* ==========================================================================
-   Dark SOC Forensics Theme
-   ========================================================================== */
+/* Dark zinc theme */
 .dark-soc {
+  color-scheme: dark;
   --background: #1a1a1a;
-  --foreground: #000e1c;
-  --muted: #151515;
-  --muted-foreground: #94a3b8;
-  --border: #2a2a2a;
-  --ring: #38bdf8;
-  --destructive: #ef4444;
-}
-/* Dark SOC Forensics Theme */
-.dark-soc,
-.dark-soc body,
-.dark-soc main {
-  background-color: #111111 !important;
-  color: #ffffff !important;
+  --foreground: #fafafa;
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;
+  --border: #3f3f46;
+  --ring: #a1a1aa;
+  --destructive: #f87171;
+  --chart-surface: #202020;
 }
 
-.dark-soc .bg-white {
-  background-color: #111c38 !important;
+.dark-soc,
+.dark-soc body,
+.dark-soc body.bg-white,
+.dark-soc main,
+.dark-soc main.bg-white {
+  background-color: #1a1a1a !important;
+  color: #fafafa !important;
+}
+
+.dark-soc .bg-white,
+.dark-soc [class*="dark-soc:bg-[#111C38]"] {
+  background-color: #202020 !important;
+}
+
+.dark-soc .bg-white\/95,
+.dark-soc .bg-white\/90 {
+  background-color: rgb(32 32 32 / 0.95) !important;
 }
 
 .dark-soc .bg-zinc-50,
-.dark-soc .bg-zinc-100 {
-  background-color: #0d1735 !important;
+.dark-soc .bg-zinc-50\/50,
+.dark-soc .bg-zinc-50\/60,
+.dark-soc .bg-zinc-50\/70,
+.dark-soc .bg-zinc-50\/80,
+.dark-soc .bg-zinc-100,
+.dark-soc .bg-zinc-100\/70,
+.dark-soc [class*="dark-soc:bg-[#0D1735]"],
+.dark-soc [class*="dark-soc:bg-[#1E2D56]"] {
+  background-color: #27272a !important;
+}
+
+.dark-soc .bg-zinc-200,
+.dark-soc .bg-zinc-200\/80 {
+  background-color: #3f3f46 !important;
+}
+
+.dark-soc .bg-zinc-300 {
+  background-color: #52525b !important;
+}
+
+.dark-soc [class*="dark-soc:bg-[#111111]"] {
+  background-color: #1a1a1a !important;
+}
+
+.dark-soc [class*="dark-soc:bg-[#09223B]"] {
+  background-color: #1d2929 !important;
 }
 
 .dark-soc .border-zinc-100,
 .dark-soc .border-zinc-200,
 .dark-soc .border-neutral-200,
-.dark-soc .border-zinc-300 {
-  border-color: #1e2d56 !important;
+.dark-soc .border-zinc-300,
+.dark-soc [class*="dark-soc:border-[#1E2D56]"] {
+  border-color: #3f3f46 !important;
+}
+
+.dark-soc .divide-zinc-100 > :not(:last-child),
+.dark-soc .divide-zinc-200 > :not(:last-child),
+.dark-soc [class*="dark-soc:divide-[#1E2D56]"] > :not(:last-child) {
+  border-color: #3f3f46 !important;
 }
 
 .dark-soc .text-zinc-900,
 .dark-soc .text-zinc-800 {
-  color: #f8fafc !important;
+  color: #fafafa !important;
 }
 
 .dark-soc .text-zinc-700,
 .dark-soc .text-zinc-600 {
-  color: #cbd5e1 !important;
+  color: #d4d4d8 !important;
 }
 
 .dark-soc .text-zinc-500,
 .dark-soc .text-zinc-400 {
-  color: #94a3b8 !important;
+  color: #a1a1aa !important;
 }
 
 .dark-soc .hover\:bg-zinc-50:hover,
 .dark-soc .hover\:bg-zinc-100:hover,
-.dark-soc .hover\:bg-zinc-50\/80:hover {
-  background-color: #1a274c !important;
+.dark-soc .hover\:bg-zinc-50\/80:hover,
+.dark-soc [class*="dark-soc:hover:bg-[#1A274C]"]:hover,
+.dark-soc [class*="dark-soc:hover:bg-[#152244]"]:hover,
+.dark-soc [class*="dark-soc:hover:bg-[#1E2D56]"]:hover,
+.dark-soc [class*="dark-soc:hover:bg-[#2A3F75]"]:hover {
+  background-color: #333333 !important;
 }
 
 .dark-soc thead {
-  background-color: #1a1a1a !important;
-  border-color: #2a2a2a !important;
+  background-color: #202020 !important;
+  border-color: #3f3f46 !important;
 }
 
 .dark-soc tr:hover {
-  background-color: #152244 !important;
+  background-color: #27272a !important;
 }
 

@@ -1,4 +1,5 @@
 import type { AnalysisRecord } from "./securemail-api.ts";
+import type { TmpVaultEmail } from "./tmpvault-api.ts";
 
 export type TlsVersionMetric = {
   version: string;
@@ -39,105 +40,10 @@ export type TlsAnalysisSummary = {
   cipherSuites: CipherSuiteItem[];
 };
 
-function extractSessionTlsDetails(record: AnalysisRecord) {
-  const posture = (record.posture ?? "").toLowerCase();
-  const triggersText = Array.isArray(record.trigger_details)
-    ? JSON.stringify(record.trigger_details).toLowerCase()
-    : "";
-  const explanationsText = record.explanations
-    ? JSON.stringify(record.explanations).toLowerCase()
-    : "";
-  const combined = `${posture} ${triggersText} ${explanationsText}`;
-
-  // Version detection
-  let version = "TLS 1.3";
-  let isDeprecated = false;
-  if (combined.includes("tls 1.0") || combined.includes("tls_1_0") || combined.includes("tls1.0") || posture === "deprecated") {
-    version = "TLS 1.0";
-    isDeprecated = true;
-  } else if (combined.includes("tls 1.1") || combined.includes("tls_1_1") || combined.includes("tls1.1")) {
-    version = "TLS 1.1";
-    isDeprecated = true;
-  } else if (combined.includes("tls 1.2") || combined.includes("tls_1_2") || combined.includes("tls1.2") || posture === "adequate" || posture === "legacy") {
-    version = "TLS 1.2";
-  } else if (posture === "plaintext") {
-    version = "Plaintext";
-  }
-
-  // Key exchange & PFS
-  let keyExchange = "ECDHE";
-  let hasPfs = true;
-  if (
-    combined.includes("rsa key exchange") ||
-    combined.includes("without forward secrecy") ||
-    combined.includes("missing forward secrecy") ||
-    posture === "deprecated" ||
-    posture === "weak" ||
-    record.risk_score > 0.65
-  ) {
-    keyExchange = "RSA";
-    hasPfs = false;
-  } else if (combined.includes("dhe") || combined.includes("diffie-hellman")) {
-    keyExchange = "DHE";
-    hasPfs = true;
-  }
-
-  // Cipher suite
-  let cipherSuiteName = "TLS_AES_256_GCM_SHA384";
-  let encryption = "AES-256-GCM";
-  let mac = "AEAD";
-  let rating: "Strong" | "Adequate" | "Weak" | "Deprecated" = "Strong";
-
-  if (version === "TLS 1.0" || posture === "deprecated") {
-    cipherSuiteName = "TLS_RSA_WITH_3DES_EDE_CBC_SHA";
-    encryption = "3DES-EDE-CBC";
-    mac = "SHA-1";
-    rating = "Deprecated";
-  } else if (keyExchange === "RSA" || posture === "weak") {
-    cipherSuiteName = "TLS_RSA_WITH_AES_128_CBC_SHA256";
-    encryption = "AES-128-CBC";
-    mac = "SHA-256";
-    rating = "Weak";
-  } else if (version === "TLS 1.2") {
-    if (record.id % 2 === 0) {
-      cipherSuiteName = "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256";
-      encryption = "AES-128-GCM";
-      rating = "Adequate";
-    } else {
-      cipherSuiteName = "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384";
-      encryption = "AES-256-GCM";
-      rating = "Strong";
-    }
-  } else {
-    // TLS 1.3
-    if (record.id % 3 === 0) {
-      cipherSuiteName = "TLS_CHACHA20_POLY1305_SHA256";
-      encryption = "CHACHA20-POLY1305";
-      mac = "AEAD";
-      rating = "Strong";
-    } else {
-      cipherSuiteName = "TLS_AES_256_GCM_SHA384";
-      encryption = "AES-256-GCM";
-      mac = "AEAD";
-      rating = "Strong";
-    }
-  }
-
-  return {
-    version,
-    isDeprecated,
-    keyExchange,
-    hasPfs,
-    cipherSuiteName,
-    encryption,
-    mac,
-    rating,
-    isPlaintext: version === "Plaintext",
-  };
-}
-
-export function buildTlsAnalysis(records: readonly AnalysisRecord[]): TlsAnalysisSummary {
-  const total = records.length || 1;
+export function buildTlsAnalysis(
+  records: readonly AnalysisRecord[],
+  tmpVaultEmails: readonly TmpVaultEmail[] = []
+): TlsAnalysisSummary {
   const versionCounts: Record<string, { count: number; isDeprecated: boolean }> = {
     "TLS 1.3": { count: 0, isDeprecated: false },
     "TLS 1.2": { count: 0, isDeprecated: false },
@@ -157,54 +63,125 @@ export function buildTlsAnalysis(records: readonly AnalysisRecord[]): TlsAnalysi
   let strongCount = 0;
   let weakCount = 0;
 
-  for (const record of records) {
-    const details = extractSessionTlsDetails(record);
-    if (details.isPlaintext) continue;
+  // 1. Ingest real TLS streams from tmpvault emails
+  for (const email of tmpVaultEmails) {
+    const rawTls = email.analysis?.TLS;
+    if (!rawTls) continue;
 
     tlsCount++;
-    if (details.hasPfs) {
-      pfsCount++;
-    } else {
-      noPfsCount++;
-    }
+    const version = rawTls.Version || "TLS 1.3";
+    const cipherName = rawTls.CipherSuite || "TLS_AES_128_GCM_SHA256";
+    const isPfs = rawTls.ForwardSecrecy ?? true;
+    const isStrong = rawTls.CipherStrength === "strong" || cipherName.includes("GCM") || cipherName.includes("POLY1305");
 
-    if (details.rating === "Strong" || details.rating === "Adequate") {
-      strongCount++;
-    } else {
-      weakCount++;
-    }
+    if (isPfs) pfsCount++; else noPfsCount++;
+    if (isStrong) strongCount++; else weakCount++;
 
     // Version
-    if (!versionCounts[details.version]) {
-      versionCounts[details.version] = { count: 0, isDeprecated: details.isDeprecated };
+    if (!versionCounts[version]) {
+      versionCounts[version] = { count: 0, isDeprecated: version === "TLS 1.0" || version === "TLS 1.1" };
     }
-    versionCounts[details.version].count++;
+    versionCounts[version].count++;
 
-    // Key exchange
-    if (!keyExchangeCounts[details.keyExchange]) {
-      keyExchangeCounts[details.keyExchange] = {
-        count: 0,
-        status: details.hasPfs ? "modern" : "legacy",
-        label: details.hasPfs ? "Modern" : "Legacy",
-      };
-    }
-    keyExchangeCounts[details.keyExchange].count++;
+    // Key exchange (ECDHE in TLS 1.3)
+    const kx = isPfs ? "ECDHE" : "RSA";
+    keyExchangeCounts[kx].count++;
 
-    // Cipher suite item
-    const existing = cipherMap.get(details.cipherSuiteName);
+    const sessionId = email.ai?.response?.result?.session_id || email.id;
+    const existing = cipherMap.get(cipherName);
     if (existing) {
       existing.sessionCount++;
-      if (existing.sessionIds.length < 5) {
-        existing.sessionIds.push(record.session_id);
-      }
+      if (existing.sessionIds.length < 5) existing.sessionIds.push(sessionId);
     } else {
-      cipherMap.set(details.cipherSuiteName, {
-        name: details.cipherSuiteName,
-        protocol: details.version,
-        keyExchange: details.keyExchange,
-        encryption: details.encryption,
-        mac: details.mac,
-        rating: details.rating,
+      cipherMap.set(cipherName, {
+        name: cipherName,
+        protocol: version,
+        keyExchange: kx,
+        encryption: cipherName.includes("256") ? "AES-256-GCM" : "AES-128-GCM",
+        mac: "AEAD",
+        rating: isStrong ? "Strong" : "Weak",
+        sessionCount: 1,
+        sessionIds: [sessionId],
+      });
+    }
+  }
+
+  // 2. Ingest sessions from AnalysisRecord[]
+  for (const record of records) {
+    const posture = (record.posture ?? "").toLowerCase();
+    const triggers = Array.isArray(record.trigger_details) ? JSON.stringify(record.trigger_details).toLowerCase() : "";
+    const explanations = record.explanations ? JSON.stringify(record.explanations).toLowerCase() : "";
+    const combined = `${posture} ${triggers} ${explanations}`;
+
+    if (posture === "plaintext") continue;
+
+    tlsCount++;
+    let version = "TLS 1.3";
+    let isDeprecated = false;
+    if (combined.includes("tls 1.0") || combined.includes("tls1.0") || posture === "deprecated") {
+      version = "TLS 1.0";
+      isDeprecated = true;
+    } else if (combined.includes("tls 1.1") || combined.includes("tls1.1")) {
+      version = "TLS 1.1";
+      isDeprecated = true;
+    } else if (combined.includes("tls 1.2") || combined.includes("tls1.2") || posture === "adequate" || posture === "legacy") {
+      version = "TLS 1.2";
+    }
+
+    let hasPfs = true;
+    let keyExchange = "ECDHE";
+    if (combined.includes("rsa key exchange") || combined.includes("without forward secrecy") || posture === "deprecated" || posture === "weak" || record.risk_score > 0.65) {
+      hasPfs = false;
+      keyExchange = "RSA";
+    }
+
+    if (hasPfs) pfsCount++; else noPfsCount++;
+
+    let cipherSuiteName = "TLS_AES_256_GCM_SHA384";
+    let encryption = "AES-256-GCM";
+    let mac = "AEAD";
+    let rating: "Strong" | "Adequate" | "Weak" | "Deprecated" = "Strong";
+
+    if (version === "TLS 1.0" || posture === "deprecated") {
+      cipherSuiteName = "TLS_RSA_WITH_3DES_EDE_CBC_SHA";
+      encryption = "3DES-EDE-CBC";
+      mac = "SHA-1";
+      rating = "Deprecated";
+    } else if (keyExchange === "RSA" || posture === "weak") {
+      cipherSuiteName = "TLS_RSA_WITH_AES_128_CBC_SHA256";
+      encryption = "AES-128-CBC";
+      mac = "SHA-256";
+      rating = "Weak";
+    } else if (version === "TLS 1.2") {
+      cipherSuiteName = "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256";
+      encryption = "AES-128-GCM";
+      rating = "Adequate";
+    }
+
+    if (rating === "Strong" || rating === "Adequate") strongCount++; else weakCount++;
+
+    if (!versionCounts[version]) {
+      versionCounts[version] = { count: 0, isDeprecated };
+    }
+    versionCounts[version].count++;
+
+    if (!keyExchangeCounts[keyExchange]) {
+      keyExchangeCounts[keyExchange] = { count: 0, status: hasPfs ? "modern" : "legacy", label: hasPfs ? "Modern" : "Legacy" };
+    }
+    keyExchangeCounts[keyExchange].count++;
+
+    const existing = cipherMap.get(cipherSuiteName);
+    if (existing) {
+      existing.sessionCount++;
+      if (existing.sessionIds.length < 5) existing.sessionIds.push(record.session_id);
+    } else {
+      cipherMap.set(cipherSuiteName, {
+        name: cipherSuiteName,
+        protocol: version,
+        keyExchange,
+        encryption,
+        mac,
+        rating,
         sessionCount: 1,
         sessionIds: [record.session_id],
       });
@@ -232,7 +209,7 @@ export function buildTlsAnalysis(records: readonly AnalysisRecord[]): TlsAnalysi
 
   return {
     tlsSessionsCount: tlsCount,
-    totalSessionsCount: total,
+    totalSessionsCount: records.length + tmpVaultEmails.length,
     pfsCount,
     noPfsCount,
     pfsPercentage: tlsCount > 0 ? Math.round((pfsCount / tlsCount) * 100) : 0,

@@ -30,9 +30,8 @@ function createMockRecord(partial: Partial<AnalysisRecord>): AnalysisRecord {
 
 test("buildFindingsSummary aggregates severity and counts correctly", () => {
   const records = [
-    createMockRecord({ id: 1, posture: "deprecated", risk_score: 0.85 }),
-    createMockRecord({ id: 2, posture: "weak", risk_score: 0.65 }),
-    createMockRecord({ id: 3, final_verdict: "suspicious" }),
+    createMockRecord({ id: 1, trigger_details: [{ finding_id: "STLS-001" }] }),
+    createMockRecord({ id: 2, final_verdict: "suspicious" }),
   ];
 
   const summary = buildFindingsSummary(records);
@@ -40,8 +39,12 @@ test("buildFindingsSummary aggregates severity and counts correctly", () => {
   assert.ok(summary.openCount > 0);
   assert.ok(summary.highCriticalCount > 0);
 
-  const depTls = summary.findings.find(f => f.id === "find-dep-tls");
-  assert.ok(depTls);
-  assert.equal(depTls.severity, "HIGH");
-  assert.ok(depTls.affectedSessionsCount > 0);
+  const stls = summary.findings.find(f => f.id === "find-stls-001");
+  assert.ok(stls);
+  assert.equal(stls.severity, "HIGH");
+  assert.ok(stls.affectedSessionsCount > 0);
+
+  const certChain = summary.findings.find(f => f.id === "find-cert-003");
+  assert.ok(certChain);
+  assert.equal(certChain.severity, "HIGH");
 });
