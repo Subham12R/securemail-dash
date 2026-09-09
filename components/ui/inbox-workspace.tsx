@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { X } from "lucide-react";
 import InboxDetail from "@/components/ui/inbox-detail";
 import InboxList from "@/components/ui/inbox-list";
 import {
@@ -11,7 +12,6 @@ import {
   type InboxFilter,
   type InboxListResponse,
 } from "@/lib/inbox-data";
-import { cn } from "@/lib/utils";
 
 type InboxWorkspaceProps = {
   initialItemId?: string;
@@ -52,11 +52,14 @@ export default function InboxWorkspace({ initialItemId }: InboxWorkspaceProps) {
   const [listRetry, setListRetry] = useState(0);
   const [filter, setFilter] = useState<InboxFilter>("all");
   const [selectedId, setSelectedId] = useState<string | null>(initialItemId ?? null);
-  const [mobileDetailOpen, setMobileDetailOpen] = useState(Boolean(initialItemId));
+  const [sheetOpen, setSheetOpen] = useState(Boolean(initialItemId));
   const [detail, setDetail] = useState<InboxDetailResponse | null>(null);
   const [detailStatus, setDetailStatus] = useState<RequestStatus>(initialItemId ? "loading" : "idle");
   const [detailError, setDetailError] = useState<string | null>(null);
   const [detailRetry, setDetailRetry] = useState(0);
+  const sheetRef = useRef<HTMLDialogElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -83,12 +86,16 @@ export default function InboxWorkspace({ initialItemId }: InboxWorkspaceProps) {
           if (initialItemId && nextList.items.some((item) => item.mail_item_id === initialItemId)) return initialItemId;
           return nextList.items[0]?.mail_item_id ?? null;
         });
+        if (initialItemId && !nextList.items.some((item) => item.mail_item_id === initialItemId)) {
+          setSheetOpen(false);
+        }
       } catch (error) {
         if (controller.signal.aborted) return;
         setList(null);
         setListStatus("error");
         setListError(error instanceof Error ? error.message : "The Inbox source is unavailable.");
         setSelectedId(null);
+        setSheetOpen(false);
         setDetail(null);
         setDetailStatus("idle");
         setDetailError(null);
@@ -127,20 +134,38 @@ export default function InboxWorkspace({ initialItemId }: InboxWorkspaceProps) {
     return () => controller.abort();
   }, [detailRetry, listRetry, selectedId]);
 
+  useEffect(() => {
+    const sheet = sheetRef.current;
+    if (!sheet) return;
+
+    if (sheetOpen) {
+      if (!sheet.open) sheet.showModal();
+      const frame = window.requestAnimationFrame(() => closeButtonRef.current?.focus());
+      return () => window.cancelAnimationFrame(frame);
+    }
+
+    if (sheet.open) {
+      sheet.close();
+      const frame = window.requestAnimationFrame(() => triggerRef.current?.focus());
+      return () => window.cancelAnimationFrame(frame);
+    }
+  }, [sheetOpen]);
+
   const visibleItems = useMemo(
     () => filterInboxItems(list?.items ?? [], filter),
     [filter, list?.items],
   );
   const counts = list?.counts ?? emptyCounts;
 
-  const selectItem = (itemId: string) => {
+  const selectItem = (itemId: string, trigger: HTMLButtonElement) => {
+    triggerRef.current = trigger;
     if (itemId !== selectedId) {
       setDetail(null);
       setDetailStatus("loading");
       setDetailError(null);
       setSelectedId(itemId);
     }
-    setMobileDetailOpen(true);
+    setSheetOpen(true);
   };
 
   const changeFilter = (nextFilter: InboxFilter) => {
@@ -150,14 +175,18 @@ export default function InboxWorkspace({ initialItemId }: InboxWorkspaceProps) {
 
     const nextId = nextItems[0]?.mail_item_id ?? null;
     setSelectedId(nextId);
+    setSheetOpen(false);
     setDetail(null);
     setDetailError(null);
     setDetailStatus(nextId ? "loading" : "idle");
   };
 
+  const closeSheet = () => setSheetOpen(false);
+
   const retryList = () => {
     setListStatus("loading");
     setListError(null);
+    setSheetOpen(false);
     setDetail(null);
     setDetailStatus("idle");
     setDetailError(null);
@@ -172,8 +201,8 @@ export default function InboxWorkspace({ initialItemId }: InboxWorkspaceProps) {
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-[#061426] lg:flex-row">
-      <div className={cn("min-h-0 flex-1", mobileDetailOpen ? "hidden lg:flex" : "flex")}>
+    <div className="relative flex min-h-0 flex-1 bg-white">
+      <div className="min-h-0 min-w-0 flex-1">
         <InboxList
           items={visibleItems}
           counts={counts}
@@ -186,16 +215,48 @@ export default function InboxWorkspace({ initialItemId }: InboxWorkspaceProps) {
           onRetry={retryList}
         />
       </div>
-      <div className={cn("min-h-0 flex-1 overflow-y-auto", mobileDetailOpen ? "flex" : "hidden lg:flex")}>
-        <InboxDetail
-          key={selectedId ?? "no-selection"}
-          detail={detail}
-          status={detailStatus}
-          error={detailError}
-          onRetry={retryDetail}
-          onBack={() => setMobileDetailOpen(false)}
-        />
-      </div>
+
+      {selectedId ? (
+        <dialog
+          ref={sheetRef}
+          aria-label="Inspect message"
+          className="inbox-detail-sheet"
+          onCancel={(event) => {
+            event.preventDefault();
+            closeSheet();
+          }}
+          onClick={(event) => {
+            if (event.target === event.currentTarget) closeSheet();
+          }}
+        >
+          <div className="flex h-full min-h-0 flex-col bg-white">
+            <div className="flex shrink-0 items-center justify-between border-b border-zinc-200 px-4 py-2">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+                Message inspection
+              </span>
+              <button
+                ref={closeButtonRef}
+                type="button"
+                onClick={closeSheet}
+                aria-label="Close message inspection"
+                className="inline-flex size-8 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+              >
+                <X aria-hidden="true" className="size-4" />
+              </button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <InboxDetail
+                key={selectedId}
+                detail={detail}
+                status={detailStatus}
+                error={detailError}
+                onRetry={retryDetail}
+                onBack={closeSheet}
+              />
+            </div>
+          </div>
+        </dialog>
+      ) : null}
     </div>
   );
 }

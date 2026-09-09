@@ -11,10 +11,10 @@ export default async function InboxPage({ searchParams }: InboxPageProps) {
 
   return (
     <main
-      className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-[#061426]"
+      className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white"
       aria-label="Inbox page"
     >
-      <DashboardTopbar currentPage="Inbox" tone="dark" />
+      <DashboardTopbar currentPage="Inbox" />
       <InboxWorkspace initialItemId={itemId} />
     </main>
   );

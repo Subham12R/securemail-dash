@@ -63,7 +63,7 @@ export default function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [flaggedCount, setFlaggedCount] = useState<number | null>(null);
-  const dark = pathname === "/inbox" || pathname.startsWith("/analytics");
+  const showFlaggedCount = pathname === "/inbox" || pathname.startsWith("/analytics");
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 767px)");
@@ -76,7 +76,7 @@ export default function Sidebar() {
   }, []);
 
   useEffect(() => {
-    if (!dark) return;
+    if (!showFlaggedCount) return;
     const controller = new AbortController();
 
     void (async () => {
@@ -104,25 +104,17 @@ export default function Sidebar() {
     })();
 
     return () => controller.abort();
-  }, [dark]);
+  }, [showFlaggedCount]);
 
   const width = collapsed ? "w-16" : "w-64";
-  const surface = dark
-    ? "border-[#173858] bg-[#07182c] text-slate-200"
-    : "border-zinc-200 bg-zinc-50 text-zinc-800";
-  const divider = dark ? "border-[#173858]" : "border-zinc-200";
-  const muted = dark ? "text-slate-400" : "text-zinc-600";
+  const surface = "border-zinc-200 bg-zinc-50 text-zinc-800";
+  const divider = "border-zinc-200";
+  const muted = "text-zinc-600";
   const linkClasses = (active: boolean) =>
-    `flex w-full items-center gap-2 rounded-md p-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 ${
-      dark ? "focus-visible:outline-sky-300" : "focus-visible:outline-zinc-900"
-    } ${
+    `flex w-full items-center gap-2 rounded-md p-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 ${
       active
-        ? dark
-          ? "bg-[#0d3d70] text-white"
-          : "bg-zinc-100 text-zinc-900"
-        : dark
-          ? "text-slate-400 hover:bg-[#0b213e] hover:text-white"
-          : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
+        ? "bg-zinc-100 text-zinc-900"
+        : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
     } ${collapsed ? "justify-center" : "justify-start"}`;
 
   return (
@@ -173,7 +165,7 @@ export default function Sidebar() {
 
           <div className="mt-6 w-full">
             {collapsed ? null : (
-              <p className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+              <p className="mb-2 px-2 text-xs  font-semibold tracking-tighter text-zinc-600">
                 Analysis
               </p>
             )}
@@ -226,14 +218,14 @@ export default function Sidebar() {
         <div className={`mt-auto flex w-full flex-col items-center justify-center border-t px-2 py-4 ${divider}`}>
           <div
             className={`flex w-full items-center gap-2 rounded-md p-2 transition-colors ${
-              dark ? "text-slate-400 hover:bg-[#0b213e] hover:text-white" : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
+              "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
             } ${collapsed ? "justify-center" : "justify-start"}`}
           >
             <UserIcon size={18} aria-hidden="true" />
             {collapsed ? null : <span className="text-sm font-medium tracking-tighter text-current">Profile</span>}
           </div>
           <div
-            className={`flex w-full items-center gap-2 rounded-md p-2 text-red-500 transition-colors hover:bg-red-500/10 hover:text-red-400 ${collapsed ? "justify-center" : "justify-start"}`}
+            className={`flex w-full items-center gap-2 rounded-md p-2 text-red-600 transition-colors hover:bg-red-500/10 hover:text-red-700 ${collapsed ? "justify-center" : "justify-start"}`}
           >
             <LogOutIcon size={18} aria-hidden="true" />
             {collapsed ? null : <span className="text-sm font-medium tracking-tighter text-current">Logout</span>}
@@ -248,9 +240,7 @@ export default function Sidebar() {
         title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         onClick={() => setCollapsed((value) => !value)}
         className={`absolute left-full top-3 z-50 ml-2 inline-flex size-9 cursor-pointer items-center justify-center rounded-md transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 ${
-          dark
-            ? "text-slate-400 hover:bg-[#0b213e] hover:text-white focus-visible:outline-sky-300"
-            : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 focus-visible:outline-zinc-900"
+          "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 focus-visible:outline-zinc-900"
         }`}
       >
         {collapsed ? (

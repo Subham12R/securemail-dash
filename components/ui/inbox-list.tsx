@@ -25,7 +25,7 @@ type InboxListProps = {
   isLoading: boolean;
   error: string | null;
   onFilterChange: (filter: InboxFilter) => void;
-  onSelect: (itemId: string) => void;
+  onSelect: (itemId: string, trigger: HTMLButtonElement) => void;
   onRetry: () => void;
 };
 
@@ -69,10 +69,10 @@ function CheckChip({ check, label }: { check: ViewCheck; label: string }) {
           : CircleSlash2;
   const tone =
     state === "pass"
-      ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-300"
+      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
       : state === "flagged"
-        ? "border-rose-400/20 bg-rose-400/10 text-rose-300"
-        : "border-slate-500/30 bg-slate-500/10 text-slate-400";
+        ? "border-rose-200 bg-rose-50 text-rose-700"
+        : "border-zinc-200 bg-zinc-50 text-zinc-600";
 
   return (
     <span
@@ -97,10 +97,10 @@ function TriageBadge({ item }: { item: InboxListItem }) {
       className={cn(
         "inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-[11px] font-semibold",
         flagged
-          ? "border-rose-400/25 bg-rose-500/15 text-rose-300"
+          ? "border-rose-200 bg-rose-50 text-rose-700"
           : item.triage_state === "healthy"
-            ? "border-emerald-400/25 bg-emerald-500/15 text-emerald-300"
-            : "border-slate-500/30 bg-slate-500/15 text-slate-300",
+            ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+            : "border-zinc-200 bg-zinc-50 text-zinc-600",
       )}
     >
       <Icon aria-hidden="true" className="size-3.5" />
@@ -117,12 +117,12 @@ function TriageBadge({ item }: { item: InboxListItem }) {
 
 function ListSkeleton() {
   return (
-    <ul aria-label="Loading Inbox messages" className="divide-y divide-[#173858]">
+    <ul aria-label="Loading Inbox messages" className="divide-y divide-zinc-200">
       {Array.from({ length: 7 }, (_, index) => (
         <li key={index} className="space-y-3 px-5 py-5">
-          <div className="h-3 w-2/5 animate-pulse rounded bg-slate-700/60" />
-          <div className="h-3 w-4/5 animate-pulse rounded bg-slate-800" />
-          <div className="h-3 w-3/5 animate-pulse rounded bg-slate-800" />
+          <div className="h-3 w-2/5 animate-pulse rounded bg-zinc-200" />
+          <div className="h-3 w-4/5 animate-pulse rounded bg-zinc-200" />
+          <div className="h-3 w-3/5 animate-pulse rounded bg-zinc-200" />
         </li>
       ))}
     </ul>
@@ -143,27 +143,24 @@ export default function InboxList({
   return (
     <section
       aria-labelledby="inbox-list-heading"
-      className="flex min-h-0 min-w-0 flex-1 flex-col border-r border-[#173858] bg-[#07182c] lg:max-w-[51%]"
+      className="flex min-h-0 min-w-0 flex-1 flex-col border-r border-zinc-200 bg-white"
     >
-      <header className="shrink-0 border-b border-[#173858] px-5 pb-4 pt-5">
+      <header className="shrink-0 border-b border-zinc-200 px-5 pb-4 pt-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <h1 id="inbox-list-heading" className="text-2xl font-semibold tracking-tight text-white">
+              <h1 id="inbox-list-heading" className="text-2xl font-semibold tracking-tight text-zinc-900">
                 Inbox
               </h1>
-              <span className="rounded border border-sky-400/30 bg-sky-400/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.14em] text-sky-300">
-                Preview data
-              </span>
             </div>
-            <p className="mt-1 text-sm text-slate-300">
+            <p className="mt-1 text-sm text-zinc-600">
               <MorphingText>{counts.all}</MorphingText> emails ·{" "}
-              <span className="text-rose-300">
+              <span className="text-rose-700">
                 <MorphingText>{counts.flagged}</MorphingText> flagged
               </span>
             </p>
           </div>
-          <Mail aria-hidden="true" className="mt-1 size-5 text-slate-500" />
+          <Mail aria-hidden="true" className="mt-1 size-5 text-zinc-400" />
         </div>
 
         <fieldset className="mt-5 flex flex-wrap gap-2">
@@ -178,14 +175,14 @@ export default function InboxList({
                 aria-pressed={active}
                 onClick={() => onFilterChange(option.value)}
                 className={cn(
-                  "inline-flex items-center gap-2 rounded-md border px-3 py-2 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300",
+                  "inline-flex items-center gap-2 rounded-md border px-3 py-2 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-700",
                   active
                     ? option.value === "flagged"
-                      ? "border-rose-400/50 bg-rose-500/15 text-rose-200"
+                      ? "border-rose-300 bg-rose-50 text-rose-700"
                       : option.value === "healthy"
-                        ? "border-emerald-400/50 bg-emerald-500/15 text-emerald-200"
-                        : "border-sky-400/60 bg-sky-500/20 text-white"
-                    : "border-[#214365] bg-[#0b213e] text-slate-400 hover:border-slate-500 hover:text-white",
+                        ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+                        : "border-sky-500 bg-sky-50 text-sky-800"
+                    : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:border-zinc-400 hover:text-zinc-900",
                 )}
               >
                 {option.value === "flagged" ? <Flag aria-hidden="true" className="size-3.5" /> : null}
@@ -202,13 +199,13 @@ export default function InboxList({
         {isLoading ? <ListSkeleton /> : null}
 
         {!isLoading && error ? (
-          <div role="alert" className="m-5 rounded-lg border border-rose-400/30 bg-rose-500/10 p-4 text-sm text-rose-200">
+          <div role="alert" className="m-5 rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
             <p className="font-medium">Inbox unavailable</p>
-            <p className="mt-1 text-rose-200/75">{error}</p>
+            <p className="mt-1 text-rose-700">{error}</p>
             <button
               type="button"
               onClick={onRetry}
-              className="mt-4 rounded-md border border-rose-300/40 px-3 py-2 text-xs font-medium text-rose-100 transition-colors hover:bg-rose-400/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-200"
+              className="mt-4 rounded-md border border-rose-300 px-3 py-2 text-xs font-medium text-rose-800 transition-colors hover:bg-rose-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-700"
             >
               Retry
             </button>
@@ -216,45 +213,45 @@ export default function InboxList({
         ) : null}
 
         {!isLoading && !error && items.length === 0 ? (
-          <p className="px-5 py-12 text-center text-sm text-slate-400">
+          <p className="px-5 py-12 text-center text-sm text-zinc-600">
             No messages match this filter.
           </p>
         ) : null}
 
         {!isLoading && !error && items.length > 0 ? (
-          <ul aria-label="Inbox messages" className="divide-y divide-[#173858]">
+          <ul aria-label="Inbox messages" className="divide-y divide-zinc-200">
             {items.map((item) => (
               <li key={item.mail_item_id}>
                 <button
                   type="button"
                   aria-pressed={selectedId === item.mail_item_id}
-                  onClick={() => onSelect(item.mail_item_id)}
+                  onClick={(event) => onSelect(item.mail_item_id, event.currentTarget)}
                   className={cn(
-                    "block w-full border-l-2 px-4 py-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-sky-300",
+                    "block w-full border-l-2 px-4 py-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-sky-600",
                     selectedId === item.mail_item_id
-                      ? "border-l-sky-400 bg-[#0d3d70]"
-                      : "border-l-transparent hover:bg-[#0b213e]",
+                      ? "border-l-sky-600 bg-sky-50"
+                      : "border-l-transparent hover:bg-zinc-50",
                   )}
                 >
                   <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-2">
                     <div className="flex min-w-0 items-center gap-2">
                       {item.triage_state === "flagged" ? (
-                        <Flag aria-hidden="true" className="size-4 shrink-0 text-rose-400" />
+                        <Flag aria-hidden="true" className="size-4 shrink-0 text-rose-600" />
                       ) : (
-                        <Mail aria-hidden="true" className="size-4 shrink-0 text-slate-300" />
+                        <Mail aria-hidden="true" className="size-4 shrink-0 text-zinc-400" />
                       )}
-                      <span className="truncate text-xs font-medium text-slate-200" title={item.sender.address ?? "Sender unavailable"}>
+                      <span className="truncate text-xs font-medium text-zinc-700" title={item.sender.address ?? "Sender unavailable"}>
                         {item.sender.address ?? "Sender unavailable"}
                       </span>
                     </div>
-                    <time dateTime={item.observed_at ?? undefined} className="whitespace-nowrap text-[11px] text-slate-300">
+                    <time dateTime={item.observed_at ?? undefined} className="whitespace-nowrap text-[11px] text-zinc-500">
                       {formatTime(item.observed_at)}
                     </time>
                     <div className="min-w-0 pl-6">
-                      <p className="truncate text-sm font-medium text-white" title={item.subject ?? "Subject unavailable"}>
+                      <p className="truncate text-sm font-medium text-zinc-900" title={item.subject ?? "Subject unavailable"}>
                         {item.subject ?? "Subject unavailable"}
                       </p>
-                      <p className="mt-1 truncate text-xs text-slate-300" title={item.preview ?? "Preview unavailable"}>
+                      <p className="mt-1 truncate text-xs text-zinc-600" title={item.preview ?? "Preview unavailable"}>
                         {item.preview ?? "Preview unavailable"}
                       </p>
                     </div>
@@ -262,7 +259,7 @@ export default function InboxList({
                   </div>
 
                   <div className="mt-3 flex flex-wrap items-center gap-1.5 pl-6">
-                    <span className="rounded border border-sky-400/20 bg-sky-400/10 px-1.5 py-0.5 text-[10px] font-medium text-sky-300">
+                    <span className="rounded border border-sky-200 bg-sky-50 px-1.5 py-0.5 text-[10px] font-medium text-sky-700">
                       {item.protocol}
                     </span>
                     {checkLabels.map(({ key, label }) => (

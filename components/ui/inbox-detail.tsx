@@ -77,8 +77,8 @@ function SectionState({ section }: { section: Section<unknown> }) {
       className={cn(
         "flex items-start gap-3 rounded-lg border p-4",
         redacted
-          ? "border-amber-400/30 bg-amber-400/10 text-amber-100"
-          : "border-slate-500/30 bg-slate-800/40 text-slate-300",
+          ? "border-amber-200 bg-amber-50 text-amber-800"
+          : "border-zinc-200 bg-zinc-50 text-zinc-700",
       )}
     >
       {redacted ? (
@@ -107,8 +107,8 @@ function DataList({
     <dl className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
       {entries.map(([label, value]) => (
         <div key={label} className="min-w-0">
-          <dt className="text-[11px] uppercase tracking-[0.12em] text-slate-400">{label}</dt>
-          <dd className="mt-1 break-words text-sm text-slate-200">{value}</dd>
+          <dt className="text-[11px] uppercase tracking-[0.12em] text-zinc-500">{label}</dt>
+          <dd className="mt-1 break-words text-sm text-zinc-800">{value}</dd>
         </div>
       ))}
     </dl>
@@ -118,8 +118,8 @@ function DataList({
 function PanelHeading({ icon: Icon, title }: { icon: typeof Mail; title: string }) {
   return (
     <div className="mb-4 flex items-center gap-2">
-      <Icon aria-hidden="true" className="size-4 text-sky-300" />
-      <h3 className="text-sm font-semibold text-slate-100">{title}</h3>
+      <Icon aria-hidden="true" className="size-4 text-sky-600" />
+      <h3 className="text-sm font-semibold text-zinc-900">{title}</h3>
     </div>
   );
 }
@@ -130,7 +130,7 @@ function EmailPanel({ section }: { section: Section<EmailDetails> }) {
 
   return (
     <div className="space-y-5">
-      <div className="rounded-lg border border-[#214365] bg-[#0b213e] p-5">
+      <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-5">
         <PanelHeading icon={Mail} title="Email envelope" />
         <DataList
           entries={[
@@ -144,7 +144,7 @@ function EmailPanel({ section }: { section: Section<EmailDetails> }) {
           ]}
         />
       </div>
-      <p className="text-xs leading-5 text-slate-500">
+      <p className="text-xs leading-5 text-zinc-600">
         Message metadata is displayed from the selected capture item. It is not a mailbox mutation or delivery action.
       </p>
     </div>
@@ -158,10 +158,10 @@ function AuthBadge({ label, value }: { label: string; value: string }) {
       className={cn(
         "inline-flex items-center gap-1.5 rounded border px-2 py-1 text-xs font-medium",
         passed
-          ? "border-emerald-400/25 bg-emerald-500/10 text-emerald-300"
+          ? "border-emerald-200 bg-emerald-50 text-emerald-700"
           : value === "fail"
-            ? "border-rose-400/25 bg-rose-500/10 text-rose-300"
-            : "border-slate-500/30 bg-slate-500/10 text-slate-400",
+            ? "border-rose-200 bg-rose-50 text-rose-700"
+            : "border-zinc-200 bg-zinc-50 text-zinc-600",
       )}
     >
       {passed ? <Check aria-hidden="true" className="size-3" /> : <AlertTriangle aria-hidden="true" className="size-3" />}
@@ -176,21 +176,21 @@ function HeadersPanel({ section }: { section: Section<HeaderDetails> }) {
 
   return (
     <div className="space-y-5">
-      <div className="rounded-lg border border-[#214365] bg-[#0b213e] p-5">
+      <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-5">
         <PanelHeading icon={FileText} title="Allowlisted headers" />
-        <dl className="divide-y divide-[#214365]">
+        <dl className="divide-y divide-zinc-200">
           {headers.fields.map((field) => (
             <div key={field.name} className="grid gap-1 py-3 sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-4">
-              <dt className="text-xs font-medium text-slate-400">{field.name}</dt>
-              <dd className={cn("break-words text-sm", field.flagged ? "text-rose-300" : "text-slate-200")}>
+              <dt className="text-xs font-medium text-zinc-600">{field.name}</dt>
+              <dd className={cn("break-words text-sm", field.flagged ? "text-rose-700" : "text-zinc-800")}>
                 {field.value}
-                {field.flagged ? <span className="ml-2 text-[10px] uppercase tracking-wider text-rose-400">suspicious</span> : null}
+                {field.flagged ? <span className="ml-2 text-[10px] uppercase tracking-wider text-rose-600">suspicious</span> : null}
               </dd>
             </div>
           ))}
         </dl>
       </div>
-      <div className="rounded-lg border border-[#214365] bg-[#0b213e] p-5">
+      <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-5">
         <PanelHeading icon={ShieldCheck} title="Authentication results" />
         <div className="flex flex-wrap gap-2">
           <AuthBadge label="SPF" value={headers.authentication.spf} />
@@ -207,12 +207,12 @@ function ContentPanel({ section }: { section: Section<ContentDetails> }) {
   const content = section.data;
 
   return (
-    <div className="rounded-lg border border-[#214365] bg-[#0b213e] p-5">
+    <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-5">
       <PanelHeading icon={FileText} title="Sanitized message content" />
-      <pre className="max-w-prose whitespace-pre-wrap break-words font-sans text-sm leading-6 text-slate-200">
+      <pre className="max-w-prose whitespace-pre-wrap break-words font-sans text-sm leading-6 text-zinc-800">
         {content.text}
       </pre>
-      <div className="mt-5 flex flex-wrap gap-2 text-xs text-slate-500">
+      <div className="mt-5 flex flex-wrap gap-2 text-xs text-zinc-600">
         <span>Format: {content.format}</span>
         <span>·</span>
         <span>{content.truncated ? "Content truncated" : "Complete bounded projection"}</span>
@@ -233,7 +233,7 @@ function NetworkPanel({ section }: { section: Section<NetworkDetails> }) {
 
   return (
     <div className="space-y-5">
-      <div className="rounded-lg border border-[#214365] bg-[#0b213e] p-5">
+      <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-5">
         <PanelHeading icon={Network} title="TCP stream analysis" />
         <DataList
           entries={[
@@ -250,18 +250,18 @@ function NetworkPanel({ section }: { section: Section<NetworkDetails> }) {
           ]}
         />
       </div>
-      <div className="rounded-lg border border-[#214365] bg-[#0b213e] p-5">
+      <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-5">
         <PanelHeading icon={Network} title="TCP flags" />
         <div className="grid gap-2 sm:grid-cols-2">
           {Object.entries(network.tcp_flags).map(([name, state]) => (
-            <div key={name} className="flex items-center justify-between rounded border border-[#214365] px-3 py-2 text-xs">
-              <span className="text-slate-400">{name}</span>
-              <span className={state === "present" ? "text-emerald-300" : "text-slate-500"}>{state}</span>
+            <div key={name} className="flex items-center justify-between rounded border border-zinc-200 px-3 py-2 text-xs">
+              <span className="text-zinc-600">{name}</span>
+              <span className={state === "present" ? "text-emerald-700" : "text-zinc-600"}>{state}</span>
             </div>
           ))}
         </div>
       </div>
-      <p className="text-xs text-slate-500">Evidence references: {network.evidence_refs.join(", ") || "Not observed"}</p>
+      <p className="text-xs text-zinc-600">Evidence references: {network.evidence_refs.join(", ") || "Not observed"}</p>
     </div>
   );
 }
@@ -272,7 +272,7 @@ function TlsPanel({ section }: { section: Section<TlsDetails> }) {
 
   return (
     <div className="space-y-5">
-      <div className="rounded-lg border border-[#214365] bg-[#0b213e] p-5">
+      <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-5">
         <PanelHeading icon={KeyRound} title="TLS negotiation" />
         <DataList
           entries={[
@@ -287,7 +287,7 @@ function TlsPanel({ section }: { section: Section<TlsDetails> }) {
           ]}
         />
       </div>
-      <div className="rounded-lg border border-[#214365] bg-[#0b213e] p-5">
+      <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-5">
         <PanelHeading icon={LockKeyhole} title="Certificate posture" />
         <DataList
           entries={[
@@ -308,11 +308,11 @@ function TlsPanel({ section }: { section: Section<TlsDetails> }) {
 function DetailSkeleton() {
   return (
     <div aria-label="Loading selected message" className="space-y-5 p-6">
-      <div className="h-4 w-24 animate-pulse rounded bg-slate-700" />
-      <div className="h-8 w-3/4 animate-pulse rounded bg-slate-800" />
-      <div className="h-4 w-1/2 animate-pulse rounded bg-slate-800" />
-      <div className="mt-8 h-10 animate-pulse rounded bg-slate-800" />
-      <div className="h-56 animate-pulse rounded-lg bg-slate-800" />
+      <div className="h-4 w-24 animate-pulse rounded bg-zinc-200" />
+      <div className="h-8 w-3/4 animate-pulse rounded bg-zinc-200" />
+      <div className="h-4 w-1/2 animate-pulse rounded bg-zinc-200" />
+      <div className="mt-8 h-10 animate-pulse rounded bg-zinc-200" />
+      <div className="h-56 animate-pulse rounded-lg bg-zinc-200" />
     </div>
   );
 }
@@ -346,21 +346,21 @@ export default function InboxDetail({
   if (status === "error") {
     return (
       <section className="flex min-h-full flex-col justify-center p-6" aria-label="Selected message error">
-        <div role="alert" className="rounded-lg border border-rose-400/30 bg-rose-500/10 p-5 text-rose-200">
+        <div role="alert" className="rounded-lg border border-rose-200 bg-rose-50 p-5 text-rose-800">
           <p className="font-medium">Message detail unavailable</p>
-          <p className="mt-1 text-sm text-rose-200/75">{error ?? "The source did not return this message."}</p>
+          <p className="mt-1 text-sm text-rose-700">{error ?? "The source did not return this message."}</p>
           <div className="mt-5 flex flex-wrap gap-2">
             <button
               type="button"
               onClick={onRetry}
-              className="rounded-md border border-rose-300/40 px-3 py-2 text-xs font-medium text-rose-100 transition-colors hover:bg-rose-400/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-200"
+              className="rounded-md border border-rose-300 px-3 py-2 text-xs font-medium text-rose-800 transition-colors hover:bg-rose-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-700"
             >
               Retry
             </button>
             <button
               type="button"
               onClick={onBack}
-              className="rounded-md border border-slate-500/40 px-3 py-2 text-xs font-medium text-slate-300 transition-colors hover:bg-slate-500/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-200"
+              className="rounded-md border border-zinc-300 px-3 py-2 text-xs font-medium text-zinc-700 transition-colors hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
             >
               Back to messages
             </button>
@@ -374,9 +374,9 @@ export default function InboxDetail({
     return (
       <section className="flex min-h-full items-center justify-center p-6 text-center" aria-label="No message selected">
         <div>
-          <Mail aria-hidden="true" className="mx-auto size-7 text-slate-600" />
-          <h2 className="mt-4 text-lg font-medium text-slate-200">Select a message</h2>
-          <p className="mt-1 max-w-xs text-sm text-slate-500">Choose an Inbox row to inspect its safe message and network data.</p>
+          <Mail aria-hidden="true" className="mx-auto size-7 text-zinc-400" />
+          <h2 className="mt-4 text-lg font-medium text-zinc-900">Select a message</h2>
+          <p className="mt-1 max-w-xs text-sm text-zinc-600">Choose an Inbox row to inspect its safe message and network data.</p>
         </div>
       </section>
     );
@@ -403,24 +403,24 @@ export default function InboxDetail({
   };
 
   return (
-    <section aria-labelledby="selected-message-heading" className="min-h-full bg-[#061426]">
-      <header className="border-b border-[#173858] px-6 pb-5 pt-5">
+    <section aria-labelledby="selected-message-heading" className="min-h-full bg-white">
+      <header className="border-b border-zinc-200 px-6 pb-5 pt-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em]">
-              {flagged ? <Flag aria-hidden="true" className="size-4 text-rose-400" /> : <ShieldCheck aria-hidden="true" className="size-4 text-emerald-400" />}
-              <span className={flagged ? "text-rose-300" : "text-emerald-300"}>{flagged ? "Flagged" : "Healthy"}</span>
-              <span className="text-slate-400">·</span>
-              <span className="text-slate-300">{item.protocol}</span>
+              {flagged ? <Flag aria-hidden="true" className="size-4 text-rose-600" /> : <ShieldCheck aria-hidden="true" className="size-4 text-emerald-600" />}
+              <span className={flagged ? "text-rose-700" : "text-emerald-700"}>{flagged ? "Flagged" : "Healthy"}</span>
+              <span className="text-zinc-400">·</span>
+              <span className="text-zinc-600">{item.protocol}</span>
             </div>
-            <h2 id="selected-message-heading" className="mt-2 max-w-3xl text-xl font-semibold tracking-tight text-white">
+            <h2 id="selected-message-heading" className="mt-2 max-w-3xl text-xl font-semibold tracking-tight text-zinc-900">
               {item.subject ?? "Subject unavailable"}
             </h2>
           </div>
           {analysisHref ? (
             <Link
               href={analysisHref}
-              className="inline-flex shrink-0 items-center gap-2 rounded-md border border-sky-400/30 bg-sky-400/10 px-3 py-2 text-xs font-medium text-sky-200 transition-colors hover:border-sky-300/60 hover:bg-sky-400/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300"
+              className="inline-flex shrink-0 items-center gap-2 rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-xs font-medium text-sky-700 transition-colors hover:border-sky-400 hover:bg-sky-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-700"
             >
               Open analysis
               <ExternalLink aria-hidden="true" className="size-3.5" />
@@ -429,23 +429,23 @@ export default function InboxDetail({
         </div>
 
         <dl className="mt-5 grid gap-x-8 gap-y-2 text-sm sm:grid-cols-2">
-          <div className="flex min-w-0 gap-3"><dt className="w-12 shrink-0 text-slate-400">From:</dt><dd className="truncate text-slate-200" title={item.sender.address ?? undefined}>{item.sender.address ?? "Not observed"}</dd></div>
-          <div className="flex min-w-0 gap-3"><dt className="w-12 shrink-0 text-slate-400">To:</dt><dd className="truncate text-slate-200">{item.recipients.map((recipient) => recipient.address ?? "Not observed").join(", ") || "Not observed"}</dd></div>
-          <div className="flex min-w-0 gap-3"><dt className="w-12 shrink-0 text-slate-400">Time:</dt><dd className="text-slate-200">{formatDate(item.observed_at)}</dd></div>
-          <div className="flex min-w-0 gap-3"><dt className="w-12 shrink-0 text-slate-400">Item:</dt><dd className="truncate font-mono text-xs text-slate-400" title={item.mail_item_id}>{item.mail_item_id}</dd></div>
+          <div className="flex min-w-0 gap-3"><dt className="w-12 shrink-0 text-zinc-600">From:</dt><dd className="truncate text-zinc-800" title={item.sender.address ?? undefined}>{item.sender.address ?? "Not observed"}</dd></div>
+          <div className="flex min-w-0 gap-3"><dt className="w-12 shrink-0 text-zinc-600">To:</dt><dd className="truncate text-zinc-800">{item.recipients.map((recipient) => recipient.address ?? "Not observed").join(", ") || "Not observed"}</dd></div>
+          <div className="flex min-w-0 gap-3"><dt className="w-12 shrink-0 text-zinc-600">Time:</dt><dd className="text-zinc-800">{formatDate(item.observed_at)}</dd></div>
+          <div className="flex min-w-0 gap-3"><dt className="w-12 shrink-0 text-zinc-600">Item:</dt><dd className="truncate font-mono text-xs text-zinc-600" title={item.mail_item_id}>{item.mail_item_id}</dd></div>
         </dl>
 
         <button
           type="button"
           onClick={onBack}
-          className="mt-5 inline-flex items-center gap-2 text-xs font-medium text-slate-400 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300 lg:hidden"
+          className="mt-5 inline-flex items-center gap-2 text-xs font-medium text-zinc-600 transition-colors hover:text-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-700 lg:hidden"
         >
           <ArrowLeft aria-hidden="true" className="size-3.5" />
           Back to messages
         </button>
       </header>
 
-      <div className="border-b border-[#173858] px-4 pt-3 sm:px-6">
+      <div className="border-b border-zinc-200 px-4 pt-3 sm:px-6">
         <div role="tablist" aria-label="Message detail sections" className="flex min-w-max gap-1 overflow-x-auto">
           {tabs.map(({ key, label, icon: Icon }) => {
             const active = activeTab === key;
@@ -461,8 +461,8 @@ export default function InboxDetail({
                 onClick={() => selectTab(key)}
                 onKeyDown={handleTabKeyDown}
                 className={cn(
-                  "inline-flex items-center gap-2 border-b-2 px-3 py-3 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-sky-300",
-                  active ? "border-sky-400 text-white" : "border-transparent text-slate-300 hover:border-slate-600 hover:text-white",
+                  "inline-flex items-center gap-2 border-b-2 px-3 py-3 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-sky-700",
+                  active ? "border-sky-600 text-zinc-900" : "border-transparent text-zinc-600 hover:border-zinc-400 hover:text-zinc-900",
                 )}
               >
                 <Icon aria-hidden="true" className="size-3.5" />
@@ -478,7 +478,7 @@ export default function InboxDetail({
         role="tabpanel"
         aria-labelledby={`inbox-tab-${activeTab}`}
         tabIndex={0}
-        className="p-6 focus-visible:outline-2 focus-visible:outline-sky-300"
+        className="p-6 focus-visible:outline-2 focus-visible:outline-sky-700"
       >
         {renderPanel(activeTab, detail)}
       </div>

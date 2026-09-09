@@ -36,10 +36,10 @@ export default async function FlaggedEmailsPage() {
 
   return (
     <main
-      className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-[#061426]"
+      className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white"
       aria-label="Flagged Emails page"
     >
-      <DashboardTopbar currentPage="Flagged Emails" tone="dark" />
+      <DashboardTopbar currentPage="Flagged Emails" />
       <FlaggedAnalysisView items={data.items} counts={data.counts} error={data.error} />
     </main>
   );
