@@ -15,6 +15,7 @@ import {
 
 type InboxWorkspaceProps = {
   initialItemId?: string;
+  initialFilter: InboxFilter;
 };
 
 type RequestStatus = "idle" | "loading" | "success" | "error";
@@ -45,12 +46,12 @@ async function responseError(response: Response, fallback: string) {
   return fallback;
 }
 
-export default function InboxWorkspace({ initialItemId }: InboxWorkspaceProps) {
+export default function InboxWorkspace({ initialItemId, initialFilter }: InboxWorkspaceProps) {
   const [list, setList] = useState<InboxListResponse | null>(null);
   const [listStatus, setListStatus] = useState<RequestStatus>("loading");
   const [listError, setListError] = useState<string | null>(null);
   const [listRetry, setListRetry] = useState(0);
-  const [filter, setFilter] = useState<InboxFilter>("all");
+  const [filter, setFilter] = useState<InboxFilter>(initialFilter);
   const [selectedId, setSelectedId] = useState<string | null>(initialItemId ?? null);
   const [sheetOpen, setSheetOpen] = useState(Boolean(initialItemId));
   const [detail, setDetail] = useState<InboxDetailResponse | null>(null);

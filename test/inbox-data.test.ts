@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   filterInboxItems,
+  getInboxFilterFromQuery,
   getInboxDataSource,
   parseInboxListResponse,
   type InboxListResponse,
@@ -30,6 +31,12 @@ test("fixture detail contains every reference tab and a separate analysis link",
   assert.equal(detail.network.state, "available");
   assert.equal(detail.tls.state, "available");
   assert.equal(detail.analysis_ref.request_id, "req-inbox-flagged-1");
+});
+
+test("inbox filter links accept only supported filters", () => {
+  assert.equal(getInboxFilterFromQuery("flagged"), "flagged");
+  assert.equal(getInboxFilterFromQuery("healthy"), "healthy");
+  assert.equal(getInboxFilterFromQuery("unexpected"), "all");
 });
 
 test("local inbox filters use backend-provided triage state", async () => {

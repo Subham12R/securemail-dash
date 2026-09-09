@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import {
   ChartLineIcon,
-  FlagIcon,
   HistoryIcon,
   HomeIcon,
   LogOutIcon,
@@ -42,11 +41,6 @@ const primaryItems = [
 
 const analysisItems = [
   {
-    name: "Flagged Emails",
-    icon: <FlagIcon size={18} aria-hidden="true" />,
-    href: "/analytics/flagged",
-  },
-  {
     name: "All Analysis",
     icon: <ChartLineIcon size={18} aria-hidden="true" />,
     href: "/analytics",
@@ -62,8 +56,6 @@ function isActivePath(pathname: string, href: string) {
 export default function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
-  const [flaggedCount, setFlaggedCount] = useState<number | null>(null);
-  const showFlaggedCount = pathname === "/inbox" || pathname.startsWith("/analytics");
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 767px)");
@@ -74,37 +66,6 @@ export default function Sidebar() {
 
     return () => mediaQuery.removeEventListener("change", updateForViewport);
   }, []);
-
-  useEffect(() => {
-    if (!showFlaggedCount) return;
-    const controller = new AbortController();
-
-    void (async () => {
-      try {
-        const response = await fetch("/api/inbox?skip=0&limit=1", {
-          cache: "no-store",
-          signal: controller.signal,
-        });
-        if (!response.ok) return;
-        const payload: unknown = await response.json();
-        if (
-          typeof payload === "object" &&
-          payload !== null &&
-          "counts" in payload &&
-          typeof payload.counts === "object" &&
-          payload.counts !== null &&
-          "flagged" in payload.counts &&
-          typeof payload.counts.flagged === "number"
-        ) {
-          setFlaggedCount(payload.counts.flagged);
-        }
-      } catch {
-        // The Inbox page owns the visible error state; the nav badge is optional.
-      }
-    })();
-
-    return () => controller.abort();
-  }, [showFlaggedCount]);
 
   const width = collapsed ? "w-16" : "w-64";
   const surface = "border-zinc-200 bg-zinc-50 text-zinc-800";
@@ -185,11 +146,6 @@ export default function Sidebar() {
                     {collapsed ? null : (
                       <span className="flex min-w-0 flex-1 items-center justify-between gap-2 text-sm font-medium tracking-tighter text-current">
                         <span className="truncate">{item.name}</span>
-                        {item.name === "Flagged Emails" && flaggedCount !== null ? (
-                          <span className="rounded-full bg-rose-500 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white">
-                            {flaggedCount}
-                          </span>
-                        ) : null}
                       </span>
                     )}
                   </Link>

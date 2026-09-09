@@ -292,6 +292,10 @@ export function parseInboxDetailResponse(value: unknown): InboxDetailResponse {
   return value as unknown as InboxDetailResponse;
 }
 
+export function getInboxFilterFromQuery(value: unknown): InboxFilter {
+  return value === "flagged" || value === "healthy" || value === "all" ? value : "all";
+}
+
 export function filterInboxItems(
   items: readonly InboxListItem[],
   filter: InboxFilter,
