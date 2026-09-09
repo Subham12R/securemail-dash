@@ -33,15 +33,13 @@ export function generateInitialGreeting(viewModel: AnalysisDetailViewModel): AiA
   const findingsCount = viewModel.model.rule_findings.length;
   const missingCount = viewModel.model.missing_fields.length;
 
-  const reply = `Session evaluated from **${viewModel.source_label}** (\`${viewModel.summary.session_id}\`).
+  const reply = `Session evaluated from **${viewModel.source_label}**.
 
-- **Verdict:** \`${verdict.toUpperCase()}\`
-- **Risk Score:** **${riskPct}**
-- **Observed Protocol:** \`${protocol}\`
-- **Cryptographic Posture:** \`${posture}\`
-
-${findingsCount > 0 ? `Flagged **${findingsCount} security rule findings**.` : "No deterministic rule violations flagged."}
-${missingCount > 0 ? `Note: **${missingCount} telemetry fields** absent in capture.` : ""}
+- **Session:** \`${viewModel.summary.session_id}\`
+- **Verdict:** \`${verdict.toUpperCase()}\` (${riskPct} risk)
+- **Protocol:** \`${protocol}\` · Posture: \`${posture}\`
+${findingsCount > 0 ? `- **Findings:** ${findingsCount} security rule findings flagged.` : "- **Findings:** No deterministic rule violations flagged."}
+${missingCount > 0 ? `- **Coverage:** ${missingCount} telemetry fields unobserved.` : ""}
 
 How can I help investigate this session?`;
 

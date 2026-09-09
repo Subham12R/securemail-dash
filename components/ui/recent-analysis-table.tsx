@@ -11,19 +11,16 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Link2 } from "lucide-react";
-import { MorphingText } from "@/components/ui/morphing-text";
 import TableToolbar, { type TableFilter } from "@/components/ui/table-toolbar";
 import type { SelectedDateRange } from "@/components/ui/date-range-filter";
-import { riskScoreBarClass, type RiskBand } from "@/lib/risk";
+import AnalysisStatusText from "@/components/ui/analysis-status-text";
+import { analysisStatusLabel } from "@/lib/risk";
+import { RiskScoreMeter } from "@/components/ui/risk-score-meter";
 import { historyDetailHref } from "@/lib/analysis-detail";
-import {
-  RichButton,
-  type RichButtonColor,
-} from "@/components/ui/rich-button";
+import { RichButton } from "@/components/ui/rich-button";
 
 export type RecentAnalysis = {
   requestId: string | null;
-  riskBand: RiskBand | null;
   captureId: string;
   sessionId: string;
   date: string | null;
@@ -31,32 +28,6 @@ export type RecentAnalysis = {
   riskScore: number;
   status: string;
 };
-
-function formatVerdict(value: string) {
-  return value.charAt(0).toUpperCase() + value.slice(1);
-}
-
-function statusColor(status: string): RichButtonColor {
-  switch (status.toLowerCase()) {
-    case "malicious":
-    case "critical":
-      return "danger";
-    case "suspicious":
-    case "high":
-      return "warning";
-    case "benign":
-    case "complete":
-    case "low":
-      return "primary";
-    case "medium":
-      return "warning";
-    case "informational":
-    case "unknown":
-      return "info";
-    default:
-      return "default";
-  }
-}
 
 function formatTimestamp(timestamp: string) {
   const date = new Date(timestamp);
@@ -70,29 +41,7 @@ function formatTimestamp(timestamp: string) {
 }
 
 function RiskScore({ score }: { score: number }) {
-  const percentage = Math.max(0, Math.min(100, score * 100));
-  const formattedScore = `${percentage.toFixed(1)}%`;
-
-  return (
-    <div className="flex min-w-36 items-center gap-3">
-      <div
-        className="h-1.5 flex-1 overflow-hidden rounded-full bg-zinc-100"
-        role="progressbar"
-        aria-label={`Risk score ${formattedScore}`}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={percentage}
-      >
-        <div
-          className={`h-full rounded-full transition-[width] duration-300 motion-reduce:transition-none ${riskScoreBarClass(score)}`}
-          style={{ width: `${percentage}%` }}
-        />
-      </div>
-      <span className="w-12 text-right text-xs font-medium tabular-nums text-zinc-700">
-        <MorphingText>{formattedScore}</MorphingText>
-      </span>
-    </div>
-  );
+  return <RiskScoreMeter score={score} bars={18} size="sm" showText={false} />;
 }
 
 export default function RecentAnalysisTable({
@@ -107,7 +56,7 @@ export default function RecentAnalysisTable({
     name: "status",
     label: "Status",
     value: status,
-    options: ["All statuses", ...Array.from(new Set(analyses.map((analysis) => analysis.status))).sort()],
+    options: ["All statuses", ...Array.from(new Set(analyses.map((analysis) => analysisStatusLabel(analysis.status)))).sort()],
   }];
   const filteredAnalyses = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -117,7 +66,7 @@ export default function RecentAnalysisTable({
 
     return analyses.filter((analysis) => {
       const matchesQuery = !normalizedQuery || `${analysis.captureId} ${analysis.sessionId}`.toLowerCase().includes(normalizedQuery);
-      const matchesStatus = status === "All statuses" || analysis.status === status;
+      const matchesStatus = status === "All statuses" || analysisStatusLabel(analysis.status) === status;
       const recordTime = analysis.date ? new Date(analysis.date).getTime() : Number.NaN;
       const matchesDate = start === undefined || end === undefined || (
         Number.isFinite(recordTime) && recordTime >= start && recordTime < end + 86_400_000
@@ -135,7 +84,7 @@ export default function RecentAnalysisTable({
         <CardHeader>
           <CardTitle id="recent-analysis-heading">Recent analysis</CardTitle>
           <CardDescription>
-            Risk bands follow the numeric score; final verdicts remain backend-authoritative when rules raise severity.
+            Status combines the backend final verdict into a single readable severity label; the numeric score remains available for context.
           </CardDescription>
         </CardHeader>
         <TableToolbar
@@ -162,8 +111,7 @@ export default function RecentAnalysisTable({
                   <th scope="col" className="px-5 py-3">Date</th>
                   <th scope="col" className="px-5 py-3">Protocols</th>
                   <th scope="col" className="px-5 py-3">Risk score</th>
-                  <th scope="col" className="px-5 py-3">Risk band</th>
-                  <th scope="col" className="px-5 py-3">Final verdict</th>
+                  <th scope="col" className="px-5 py-3">Status</th>
                   <th scope="col" className="px-5 py-3"><span className="sr-only">Details</span><Link2 aria-hidden="true" className="size-4 text-zinc-500" /></th>
                 </tr>
               </thead>
@@ -213,28 +161,7 @@ export default function RecentAnalysisTable({
                         <RiskScore score={analysis.riskScore} />
                       </td>
                       <td className="px-5 py-4">
-                        {analysis.riskBand ? (
-                          <RichButton
-                            asChild
-                            size="sm"
-                            color={statusColor(analysis.riskBand)}
-                            className="pointer-events-none"
-                          >
-                            <span><MorphingText>{formatVerdict(analysis.riskBand)}</MorphingText></span>
-                          </RichButton>
-                        ) : (
-                          <span className="text-xs text-zinc-500">Not supplied</span>
-                        )}
-                      </td>
-                      <td className="px-5 py-4">
-                        <RichButton
-                          asChild
-                          size="sm"
-                          color={statusColor(analysis.status)}
-                          className="pointer-events-none"
-                        >
-                          <span><MorphingText>{analysis.status}</MorphingText></span>
-                        </RichButton>
+                        <AnalysisStatusText verdict={analysis.status} />
                       </td>
                       <td className="px-5 py-4">
                         {detailHref ? (

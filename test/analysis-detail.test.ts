@@ -110,7 +110,13 @@ test("normalizes supported analysis output into human-readable metrics", () => {
     },
   ]);
   assert.deepEqual(view.model.rule_findings, [
-    { label: "Legacy TLS", severity: null, detail: "Legacy protocol", evidence: "stream:7" },
+    {
+      label: "Legacy TLS",
+      severity: null,
+      detail: "Legacy protocol",
+      evidence: "stream:7",
+      citations: [],
+    },
   ]);
   assert.equal(view.summary_text.includes("Suspicious"), true);
   assert.equal(JSON.stringify(view).includes("model_bundle"), false);
@@ -134,6 +140,31 @@ test("keeps the numeric score band distinct from a higher backend verdict", () =
 
   assert.equal(view.summary_text.includes("Medium score band"), true);
   assert.equal(view.summary_text.includes("backend final verdict of High"), true);
+});
+
+test("preserves ranked backend citations without exposing unknown sources", () => {
+  const view = buildAnalysisDetailViewModel(
+    record({
+      trigger_details: [{
+        finding_id: "CERT-003",
+        title: "Invalid certificate chain",
+        severity: "high",
+        citations: [
+          "RFC 5280",
+          "NIST SP 800-52r2",
+          "RFC 5280",
+          "https://untrusted.example/source",
+          { raw: "ignored" },
+        ],
+      }],
+    }),
+    { state: "not_found", detail: null, reason: "No matching Inbox item was returned." },
+  );
+
+  assert.deepEqual(view.model.rule_findings[0]?.citations, [
+    "RFC 5280",
+    "NIST SP 800-52r2",
+  ]);
 });
 
 test("keeps absent supported metrics explicit without dumping unknown JSON", () => {

@@ -42,6 +42,7 @@ import {
 } from "@/components/agents/agent-activity";
 import { SPRING_PRESS, SPRING_SWAP } from "@/lib/ease";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 function toAgentActivityItems(steps: AgentActivityStep[]): AgentActivityItem[] {
   return steps.map((step) => {
@@ -202,6 +203,10 @@ function CopyButton({ text }: { text: string }) {
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
+      toast.success("Copied to clipboard", {
+        description: "Analysis notes ready for incident triage.",
+        duration: 2500,
+      });
       setTimeout(() => setCopied(false), 1600);
     } catch {
       // Fallback
@@ -253,15 +258,18 @@ export default function HistoryAiPanel({
       suggestedPrompts: greeting.suggestedPrompts,
     };
     setMessages([initialMsg]);
+    if (scrollerRef.current) {
+      scrollerRef.current.scrollTop = 0;
+    }
   }, [viewModel]);
 
   useEffect(() => {
     resetConversation();
   }, [resetConversation]);
 
-  // Auto-scroll to bottom on new messages
+  // Auto-scroll to bottom on new messages (only when user has engaged)
   useEffect(() => {
-    if (expanded && scrollerRef.current) {
+    if (expanded && scrollerRef.current && messages.length > 1) {
       scrollerRef.current.scrollTo({
         top: scrollerRef.current.scrollHeight,
         behavior: "smooth",
@@ -420,7 +428,7 @@ export default function HistoryAiPanel({
           {/* Messages Scroll Area */}
           <div
             ref={scrollerRef}
-            className="flex-1 min-h-0 overflow-y-auto px-3 py-3 space-y-3"
+            className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 py-3 space-y-3"
           >
             {messages.map((msg) => (
               <Message

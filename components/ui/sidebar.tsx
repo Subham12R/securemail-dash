@@ -68,13 +68,13 @@ export default function Sidebar() {
   }, []);
 
   const width = collapsed ? "w-16" : "w-64";
-  const surface = "border-zinc-200 bg-zinc-50 text-zinc-800";
+  const surface = "border-zinc-200 bg-zinc-100 text-zinc-800";
   const divider = "border-zinc-200";
   const muted = "text-zinc-600";
   const linkClasses = (active: boolean) =>
     `flex w-full items-center gap-2 rounded-md p-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 ${
       active
-        ? "bg-zinc-100 text-zinc-900"
+        ? "bg-zinc-900 text-zinc-200"
         : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
     } ${collapsed ? "justify-center" : "justify-start"}`;
 
@@ -89,19 +89,19 @@ export default function Sidebar() {
         className={`sticky top-0 flex h-full min-h-0 w-full flex-col overflow-y-auto overflow-x-hidden border-r ${surface}`}
       >
         <div
-          className={`flex w-full items-center gap-2 border-b ${divider} text-left ${
+          className={`flex w-full items-end gap-2 border-b ${divider} text-left ${
             collapsed ? "justify-center p-4" : "px-4 py-4"
           }`}
         >
           <Image
             src="/logo-mark.png"
             alt="SecureMailScope"
-            width={32}
-            height={32}
+            width={500}
+            height={500}
             className="size-8 object-contain"
           />
           {collapsed ? null : (
-            <h1 className="truncate text-md tracking-tighter">SecureMailScope</h1>
+            <h1 className="font-medium text-md tracking-tighter text-zinc-900">SecureMailScope</h1>
           )}
         </div>
 

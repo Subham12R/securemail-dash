@@ -14,7 +14,9 @@ import {
 } from "@/components/ui/card";
 import { MorphingText } from "@/components/ui/morphing-text";
 import { getQueueProgress, type CaptureQueueItem } from "@/lib/capture-queue";
-import { riskBandForScore, riskScoreBarClass } from "@/lib/risk";
+import { analysisStatusLabel, riskBandForScore } from "@/lib/risk";
+import AnalysisStatusText from "@/components/ui/analysis-status-text";
+import { RiskScoreMeter } from "@/components/ui/risk-score-meter";
 import TableToolbar, { type TableFilter } from "@/components/ui/table-toolbar";
 import { RichButton, type RichButtonColor } from "@/components/ui/rich-button";
 import TaskRows, { type TaskRow } from "@/components/ui/task-rows";
@@ -106,28 +108,7 @@ function StatusBadge({ label }: { label: string }) {
 }
 
 function RiskScoreBar({ score }: { score: number | null }) {
-  const percentage = score === null ? 0 : Math.max(0, Math.min(1, score)) * 100;
-
-  return (
-    <div className="flex min-w-40 items-center gap-3">
-      <div
-        className="h-2 flex-1 overflow-hidden rounded-full bg-zinc-100"
-        role="progressbar"
-        aria-label={`Risk score ${formatPercentage(score)}`}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={score === null ? undefined : percentage}
-      >
-        <div
-          className={`h-full rounded-full transition-[width] duration-300 motion-reduce:transition-none ${riskScoreBarClass(score)}`}
-          style={{ width: `${percentage}%` }}
-        />
-      </div>
-      <span className="w-12 text-right text-xs font-medium tabular-nums text-zinc-700">
-        <MorphingText>{formatPercentage(score)}</MorphingText>
-      </span>
-    </div>
-  );
+  return <RiskScoreMeter score={score} bars={18} size="sm" showText={false} />;
 }
 
 function queueDescription(item: CaptureQueueItem | undefined, hasFailed: boolean, allComplete: boolean) {
@@ -272,6 +253,7 @@ export default function AnalysisWorkspace({
     ? modelBundleVersion(currentAnalysis.model_bundle)
     : null;
   const verdict = currentAnalysis ? formatVerdict(currentAnalysis.final_verdict) : null;
+  const statusLabel = currentAnalysis ? analysisStatusLabel(currentAnalysis.final_verdict) : null;
   const riskBand = currentAnalysis ? riskBandForScore(currentAnalysis.risk_score) : null;
   const formattedRiskBand = riskBand ? formatVerdict(riskBand) : null;
 
@@ -279,15 +261,15 @@ export default function AnalysisWorkspace({
     name: "status",
     label: "Status",
     value: resultStatus,
-    options: ["All statuses", ...(verdict ? [verdict] : [])],
+    options: ["All statuses", ...(statusLabel ? [statusLabel] : [])],
   }];
   const showAnalysisResult = useMemo(() => {
     if (!currentAnalysis) return false;
     const matchesQuery = !resultQuery.trim() || `${currentAnalysis.client_id ?? currentAnalysis.session_id} ${currentAnalysis.request_id}`
       .toLowerCase()
       .includes(resultQuery.trim().toLowerCase());
-    return matchesQuery && (resultStatus === "All statuses" || resultStatus === verdict);
-  }, [currentAnalysis, resultQuery, resultStatus, verdict]);
+    return matchesQuery && (resultStatus === "All statuses" || resultStatus === statusLabel);
+  }, [currentAnalysis, resultQuery, resultStatus, statusLabel]);
 
   return (
     <>
@@ -386,18 +368,17 @@ export default function AnalysisWorkspace({
             <div className="overflow-x-auto" role="region" tabIndex={0} aria-label="Analysis results table">
               <table className="w-full min-w-[760px] border-collapse text-left text-sm">
                 <caption className="sr-only">Analysis results</caption>
-                <thead className="border-y border-zinc-200 bg-zinc-50 text-xs font-medium text-zinc-500"><tr><th scope="col" className="px-5 py-3">Capture / session ID</th><th scope="col" className="px-5 py-3">Protocol</th><th scope="col" className="px-5 py-3">Risk score</th><th scope="col" className="px-5 py-3">Risk band</th><th scope="col" className="px-5 py-3">Final verdict</th></tr></thead>
+                <thead className="border-y border-zinc-200 bg-zinc-50 text-xs font-medium text-zinc-500"><tr><th scope="col" className="px-5 py-3">Capture / session ID</th><th scope="col" className="px-5 py-3">Protocol</th><th scope="col" className="px-5 py-3">Risk score</th><th scope="col" className="px-5 py-3">Status</th></tr></thead>
                 <tbody className="divide-y divide-zinc-100">
                   {showAnalysisResult && currentAnalysis ? (
                     <tr className="text-zinc-700">
                       <th scope="row" className="max-w-64 px-5 py-4 font-mono text-xs font-medium text-zinc-900"><span className="block truncate" title={currentAnalysis.session_id}>{currentAnalysis.client_id ?? currentAnalysis.session_id}</span></th>
                       <td className="px-5 py-4 text-zinc-500">{currentAnalysis.protocol ?? "Not supplied"}</td>
                       <td className="px-5 py-4"><RiskScoreBar score={currentAnalysis.risk_score} /></td>
-                      <td className="px-5 py-4"><StatusBadge label={formattedRiskBand ?? "Unavailable"} /></td>
-                      <td className="px-5 py-4"><StatusBadge label={verdict ?? "Unavailable"} /></td>
+                      <td className="px-5 py-4"><AnalysisStatusText verdict={currentAnalysis.final_verdict} /></td>
                     </tr>
                   ) : (
-                    <tr><td colSpan={5} className="px-5 py-10 text-center text-sm text-zinc-500">{currentAnalysis ? "No analysis results match the current filters." : "No analysis records yet. The API returned an empty result set."}</td></tr>
+                    <tr><td colSpan={4} className="px-5 py-10 text-center text-sm text-zinc-500">{currentAnalysis ? "No analysis results match the current filters." : "No analysis records yet. The API returned an empty result set."}</td></tr>
                   )}
                 </tbody>
               </table>

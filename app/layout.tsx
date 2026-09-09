@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "sonner";
 import { CaptureQueueProvider } from "@/components/providers/capture-queue-provider";
 import LiveDataRefreshProvider from "@/components/providers/live-data-refresh-provider";
 import Sidebar from "@/components/ui/sidebar";
@@ -34,6 +35,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             {children}
           </CaptureQueueProvider>
         </div>
+        <Toaster position="top-right" richColors closeButton />
       </body>
     </html>
   );

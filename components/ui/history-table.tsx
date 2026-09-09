@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { getLocalTimeZone } from "@internationalized/date";
 import { ChevronLeft, ChevronRight, Link2 } from "lucide-react";
+import { MorphingText } from "@/components/ui/morphing-text";
 import {
   Card,
   CardContent,
@@ -11,15 +12,12 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import { MorphingText } from "@/components/ui/morphing-text";
 import TableToolbar, { type TableFilter } from "@/components/ui/table-toolbar";
 import type { SelectedDateRange } from "@/components/ui/date-range-filter";
-import {
-  RichButton,
-  type RichButtonColor,
-} from "@/components/ui/rich-button";
+import AnalysisStatusText from "@/components/ui/analysis-status-text";
 import { formatAnalysisSource, historyDetailHref } from "@/lib/analysis-detail";
-import { riskBandForScore, riskScoreBarClass } from "@/lib/risk";
+import { analysisStatusLabel } from "@/lib/risk";
+import { RiskScoreMeter } from "@/components/ui/risk-score-meter";
 import type { AnalysisRecord } from "@/lib/securemail-api";
 
 function formatTimestamp(timestamp: string) {
@@ -33,54 +31,8 @@ function formatTimestamp(timestamp: string) {
   }).format(date);
 }
 
-function statusColor(status: string): RichButtonColor {
-  switch (status.toLowerCase()) {
-    case "malicious":
-    case "critical":
-      return "danger";
-    case "suspicious":
-    case "high":
-      return "warning";
-    case "benign":
-    case "low":
-      return "primary";
-    case "medium":
-      return "warning";
-    case "informational":
-    case "unknown":
-      return "info";
-    default:
-      return "default";
-  }
-}
-
-function formatVerdict(verdict: string) {
-  return verdict.charAt(0).toUpperCase() + verdict.slice(1);
-}
-
 function RiskScore({ score }: { score: number }) {
-  const percentage = Math.max(0, Math.min(100, score * 100));
-
-  return (
-    <div className="flex min-w-36 items-center gap-3">
-      <div
-        className="h-1.5 flex-1 overflow-hidden rounded-full bg-zinc-100"
-        role="progressbar"
-        aria-label={`Risk score ${percentage.toFixed(1)}%`}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={percentage}
-      >
-        <div
-          className={`h-full rounded-full transition-[width] duration-300 motion-reduce:transition-none ${riskScoreBarClass(score)}`}
-          style={{ width: `${percentage}%` }}
-        />
-      </div>
-      <span className="w-12 text-right text-xs font-medium tabular-nums text-zinc-700">
-        <MorphingText>{`${percentage.toFixed(1)}%`}</MorphingText>
-      </span>
-    </div>
-  );
+  return <RiskScoreMeter score={score} bars={18} size="sm" showText={false} />;
 }
 
 function PaginationLink({
@@ -127,7 +79,7 @@ export default function HistoryTable({
   limit: number;
 }) {
   const [query, setQuery] = useState("");
-  const [verdict, setVerdict] = useState("All verdicts");
+  const [status, setStatus] = useState("All statuses");
   const [source, setSource] = useState("All sources");
   const [dateRange, setDateRange] = useState<SelectedDateRange | null>(null);
   const totalPages = Math.max(1, Math.ceil(total / limit));
@@ -135,10 +87,10 @@ export default function HistoryTable({
   const lastRecord = Math.min(page * limit, total);
   const filters: TableFilter[] = [
     {
-      name: "verdict",
-      label: "Verdict",
-      value: verdict,
-      options: ["All verdicts", ...Array.from(new Set(records.map((record) => formatVerdict(record.final_verdict)))).sort()],
+      name: "status",
+      label: "Status",
+      value: status,
+      options: ["All statuses", ...Array.from(new Set(records.map((record) => analysisStatusLabel(record.final_verdict)))).sort()],
     },
     {
       name: "source",
@@ -162,15 +114,15 @@ export default function HistoryTable({
     return records.filter((record) => {
       const identifier = `${record.client_id ?? record.session_id} ${record.request_id}`.toLowerCase();
       const matchesQuery = !normalizedQuery || identifier.includes(normalizedQuery);
-      const matchesVerdict = verdict === "All verdicts" || formatVerdict(record.final_verdict) === verdict;
+      const matchesStatus = status === "All statuses" || analysisStatusLabel(record.final_verdict) === status;
       const matchesSource = source === "All sources" || formatAnalysisSource(record) === source;
       const recordTime = new Date(record.timestamp).getTime();
       const matchesDate = start === undefined || end === undefined || (
         Number.isFinite(recordTime) && recordTime >= start && recordTime < end + 86_400_000
       );
-      return matchesQuery && matchesVerdict && matchesSource && matchesDate;
+      return matchesQuery && matchesStatus && matchesSource && matchesDate;
     });
-  }, [dateRange, query, records, source, verdict]);
+  }, [dateRange, query, records, source, status]);
 
   return (
     <section aria-labelledby="history-heading" className="p-6">
@@ -178,7 +130,7 @@ export default function HistoryTable({
         <CardHeader>
           <h2 id="history-heading" className="font-medium tracking-tighter text-zinc-900">Analysis history</h2>
           <CardDescription>
-            Risk bands follow the numeric score; final verdicts remain backend-authoritative when rules raise severity.
+            Status combines the backend final verdict into a single readable severity label; the numeric score remains available for context.
           </CardDescription>
         </CardHeader>
         <TableToolbar
@@ -186,7 +138,7 @@ export default function HistoryTable({
           filters={filters}
           onQueryChange={setQuery}
           onFilterChange={(name, value) => {
-            if (name === "verdict") setVerdict(value);
+            if (name === "status") setStatus(value);
             if (name === "source") setSource(value);
           }}
           onRangeChange={(nextRange) => setDateRange(nextRange)}
@@ -209,8 +161,7 @@ export default function HistoryTable({
                   <th scope="col" className="px-5 py-3">Capture / session ID</th>
                   <th scope="col" className="px-5 py-3">Request ID</th>
                   <th scope="col" className="px-5 py-3">Risk score</th>
-                  <th scope="col" className="px-5 py-3">Risk band</th>
-                  <th scope="col" className="px-5 py-3">Final verdict</th>
+                  <th scope="col" className="px-5 py-3">Status</th>
                   <th scope="col" className="px-5 py-3">Source</th>
                   <th scope="col" className="px-5 py-3">
                     <span className="sr-only">Analysis details</span>
@@ -221,8 +172,6 @@ export default function HistoryTable({
               <tbody className="divide-y divide-zinc-100">
                 {filteredRecords.length > 0 ? (
                   filteredRecords.map((record, index) => {
-                    const verdict = formatVerdict(record.final_verdict);
-                    const riskBand = riskBandForScore(record.risk_score);
                     const detailHref = historyDetailHref(record.request_id);
 
                     return (
@@ -254,28 +203,7 @@ export default function HistoryTable({
                           <RiskScore score={record.risk_score} />
                         </td>
                         <td className="px-5 py-4">
-                          {riskBand ? (
-                            <RichButton
-                              asChild
-                              size="sm"
-                              color={statusColor(riskBand)}
-                              className="pointer-events-none"
-                            >
-                              <span><MorphingText>{formatVerdict(riskBand)}</MorphingText></span>
-                            </RichButton>
-                          ) : (
-                            <span className="text-xs text-zinc-500">Not supplied</span>
-                          )}
-                        </td>
-                        <td className="px-5 py-4">
-                          <RichButton
-                            asChild
-                            size="sm"
-                            color={statusColor(record.final_verdict)}
-                            className="pointer-events-none"
-                          >
-                            <span><MorphingText>{verdict}</MorphingText></span>
-                          </RichButton>
+                          <AnalysisStatusText verdict={record.final_verdict} />
                         </td>
                         <td className="px-5 py-4 text-xs text-zinc-600">
                           {formatAnalysisSource(record)}
@@ -300,7 +228,7 @@ export default function HistoryTable({
                   })
                 ) : (
                   <tr>
-                    <td colSpan={8} className="px-5 py-14 text-center text-sm text-zinc-500">
+                    <td colSpan={7} className="px-5 py-14 text-center text-sm text-zinc-500">
                       No analysis records match the current filters.
                     </td>
                   </tr>

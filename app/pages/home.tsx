@@ -11,14 +11,10 @@ import RecentAnalysisTable, {
 } from "@/components/ui/recent-analysis-table";
 import FooterWatermark from "@/components/ui/footer";
 import { getDashboardApiData } from "@/lib/securemail-api";
-import { riskBandForScore } from "@/lib/risk";
+import { analysisStatusLabel } from "@/lib/risk";
 
 import { ViewTransition } from "react";
 import { AnimatedNumber } from "@/components/ui/animated-number";
-
-function formatVerdict(value: string) {
-  return value.charAt(0).toUpperCase() + value.slice(1);
-}
 
 export default async function HomePage({ range }: { range: "all" | "7d" | "30d" }) {
   const dashboard = await getDashboardApiData({
@@ -61,13 +57,12 @@ export default async function HomePage({ range }: { range: "all" | "7d" | "30d" 
   ];
   const recentAnalyses: RecentAnalysis[] = dashboard.records.map((record) => ({
     requestId: record.request_id,
-    riskBand: riskBandForScore(record.risk_score),
     captureId: record.capture_id ?? record.client_id ?? record.session_id,
     sessionId: record.session_id,
     date: record.timestamp,
     protocols: record.protocol ? [record.protocol] : [],
     riskScore: record.risk_score,
-    status: formatVerdict(record.final_verdict),
+    status: analysisStatusLabel(record.final_verdict),
   }));
   return (
     <ViewTransition enter="page-enter" exit="page-exit" default="none">
@@ -99,7 +94,7 @@ export default async function HomePage({ range }: { range: "all" | "7d" | "30d" 
               <article
                 key={metric.label}
                 style={{ animationDelay: `${index * 60}ms` }}
-                className="animate-reveal group rounded-lg border-2 border-neutral-200 bg-white p-5 shadow-[inset_0px_0px_2px_2px_rgba(0,0,0,0.05)] transition-all duration-200 motion-safe:hover:-translate-y-0.5 motion-safe:hover:shadow-md"
+                className="animate-reveal group rounded-lg border-2 border-neutral-200 bg-white  p-5 shadow-[inset_0px_0px_2px_2px_rgba(0,0,0,0.05)] transition-all duration-200 motion-safe:hover:-translate-y-0.5 motion-safe:hover:shadow-md"
               >
                 <div className="flex items-start justify-between gap-4">
                   <p className="text-sm font-medium tracking-tighter text-zinc-600 transition-colors group-hover:text-zinc-900">

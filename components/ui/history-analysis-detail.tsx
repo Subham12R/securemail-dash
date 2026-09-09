@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { notifyCriticalThreat } from "@/lib/notifications";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -21,7 +22,8 @@ import HistoryAiPanel from "@/components/ui/history-ai-panel";
 import InboxDetailPanels from "@/components/ui/inbox-detail-panels";
 import { MorphingText } from "@/components/ui/morphing-text";
 import { RichButton, type RichButtonColor } from "@/components/ui/rich-button";
-import { riskBandForScore, riskScoreBarClass } from "@/lib/risk";
+import { RiskScoreMeter } from "@/components/ui/risk-score-meter";
+import { riskBandForScore } from "@/lib/risk";
 import {
   analysisFieldLabel,
   type AnalysisDetailViewModel,
@@ -86,31 +88,7 @@ function StatusBadge({ label }: { label: string }) {
 }
 
 function RiskScore({ score }: { score: number }) {
-  const percentage = Number.isFinite(score)
-    ? Math.max(0, Math.min(100, score * 100))
-    : null;
-  const formatted = percentage === null ? "Not supplied" : `${percentage.toFixed(1)}%`;
-
-  return (
-    <div className="flex min-w-44 items-center gap-3">
-      <div
-        className="h-2 flex-1 overflow-hidden rounded-full bg-zinc-100"
-        role="progressbar"
-        aria-label={`Risk score ${formatted}`}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={percentage ?? undefined}
-      >
-        <div
-          className={`h-full rounded-full transition-[width] duration-300 motion-reduce:transition-none ${riskScoreBarClass(score)}`}
-          style={{ width: `${percentage ?? 0}%` }}
-        />
-      </div>
-      <span className="w-16 text-right text-xs font-medium tabular-nums text-zinc-700">
-        <MorphingText>{formatted}</MorphingText>
-      </span>
-    </div>
-  );
+  return <RiskScoreMeter score={score} bars={18} size="md" showText={true} />;
 }
 
 function MetadataList({
@@ -231,7 +209,7 @@ function RuleFindingsCard({ viewModel }: { viewModel: AnalysisDetailViewModel })
     <Card>
       <CardHeader>
         <CardTitle>Deterministic checks</CardTitle>
-        <CardDescription>Rule results and evidence counts returned with this record.</CardDescription>
+        <CardDescription>Rule results, ranked standards, and evidence counts returned with this record.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
         <dl className="grid gap-4 sm:grid-cols-3">
@@ -260,6 +238,14 @@ function RuleFindingsCard({ viewModel }: { viewModel: AnalysisDetailViewModel })
                   </div>
                   {finding.detail ? <p className="text-xs text-zinc-600">{finding.detail}</p> : null}
                   {finding.evidence ? <p className="text-xs text-zinc-500">Evidence: {finding.evidence}</p> : null}
+                  {finding.citations.length > 0 ? (
+                    <div className="pt-1 text-xs text-zinc-500">
+                      <p className="font-medium text-zinc-600">Standards basis (ranked by backend)</p>
+                      <ol className="mt-1 list-inside list-decimal space-y-0.5">
+                        {finding.citations.map((citation) => <li key={citation}>{citation}</li>)}
+                      </ol>
+                    </div>
+                  ) : null}
                 </li>
               ))}
             </ul>
@@ -504,6 +490,20 @@ export default function HistoryAnalysisDetail({
   viewModel: AnalysisDetailViewModel;
 }) {
   const [assistantOpen, setAssistantOpen] = useState(true);
+
+  useEffect(() => {
+    const verdict = viewModel.summary.final_verdict?.toLowerCase();
+    const risk = viewModel.summary.risk_score;
+    const isCritical = verdict === "malicious" || (risk !== null && risk >= 0.75);
+
+    if (isCritical) {
+      const topFinding = viewModel.model.rule_findings[0]?.label || "High-risk transport condition";
+      notifyCriticalThreat({
+        title: "Critical Issue Identified",
+        description: `Session ${viewModel.summary.session_id}: ${topFinding} (${Math.round((risk ?? 0) * 100)}% risk).`,
+      });
+    }
+  }, [viewModel.summary.session_id, viewModel.summary.final_verdict, viewModel.summary.risk_score, viewModel.model.rule_findings]);
 
   return (
     <div className="min-h-0 px-4 py-4 sm:px-6 sm:py-6">

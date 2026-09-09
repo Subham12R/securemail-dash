@@ -38,6 +38,7 @@ export type AnalysisRuleFinding = {
   severity: string | null;
   detail: string | null;
   evidence: string | null;
+  citations: string[];
 };
 
 export type InboxDetailLookup = {
@@ -79,9 +80,23 @@ const MAX_MODEL_EVALUATIONS = 8;
 const MAX_RISK_DRIVERS = 8;
 const MAX_RULE_FINDINGS = 12;
 const MAX_RULE_EVIDENCE_LENGTH = 240;
+const MAX_CITATIONS = 8;
+const MAX_CITATION_LENGTH = 64;
 const MAX_REQUEST_ID_LENGTH = 256;
 
 type JsonRecord = Record<string, unknown>;
+
+const SUPPORTED_CITATIONS = new Set([
+  "RFC 3207",
+  "RFC 5280",
+  "RFC 6125",
+  "RFC 7465",
+  "RFC 8314",
+  "RFC 8461",
+  "RFC 8996",
+  "RFC 9525",
+  "NIST SP 800-52r2",
+]);
 
 const LABEL_OVERRIDES: Record<string, string> = {
   dkim: "DKIM",
@@ -209,13 +224,25 @@ function normalizeRiskDrivers(value: JsonRecord) {
     .slice(0, MAX_RISK_DRIVERS);
 }
 
+function normalizeCitations(value: unknown) {
+  if (!Array.isArray(value)) return [];
+
+  const citations = new Set<string>();
+  for (const rawCitation of value.slice(0, MAX_CITATIONS * 2)) {
+    const citation = stringValue(rawCitation, MAX_CITATION_LENGTH);
+    if (citation && SUPPORTED_CITATIONS.has(citation)) citations.add(citation);
+    if (citations.size === MAX_CITATIONS) break;
+  }
+  return [...citations];
+}
+
 function normalizeRuleFindings(value: unknown) {
   if (!Array.isArray(value)) return [];
 
   return value.slice(0, MAX_RULE_FINDINGS).flatMap((rawValue): AnalysisRuleFinding[] => {
     if (typeof rawValue === "string") {
       const detail = stringValue(rawValue);
-      return detail ? [{ label: "Rule finding", severity: null, detail, evidence: null }] : [];
+      return detail ? [{ label: "Rule finding", severity: null, detail, evidence: null, citations: [] }] : [];
     }
 
     const entry = asRecord(rawValue);
@@ -241,6 +268,7 @@ function normalizeRuleFindings(value: unknown) {
         .join(", ")
       : null;
     const evidence = directEvidence ?? stringValue(evidenceRefs, MAX_RULE_EVIDENCE_LENGTH);
+    const citations = normalizeCitations(entry.citations);
 
     if (!label && !severity && !detail && !evidence) return [];
     return [{
@@ -248,6 +276,7 @@ function normalizeRuleFindings(value: unknown) {
       severity,
       detail,
       evidence,
+      citations,
     }];
   });
 }
