@@ -8,66 +8,71 @@
 
 Add the first metrics section to the existing dashboard page without changing the current sidebar, breadcrumb, or route structure.
 
-The initial dashboard shows exactly three metric cards in one row on desktop:
+The initial dashboard shows exactly four metric cards in one row on desktop:
 
-1. **Total analyses**
-2. **Average risk**
-3. **Critical analyses**
+1. **Sessions analysed**
+2. **Flagged sessions**
+3. **Average risk score**
+4. **Evidence archived**
 
 The main page remains a read-only overview. No analysis submission, history navigation, or remediation action is included in this slice.
 
 ## 2. Acceptance check
 
-A dashboard visitor can open the initial page and see three consistently sized metric cards beneath the existing breadcrumb. The cards render typed placeholder data, retain a clear loading/empty state, and do not present missing data as a safe or zero-risk result.
+A dashboard visitor can open the initial page and see four consistently sized metric cards beneath the existing breadcrumb. The cards render typed placeholder data, retain clear loading/empty states, and do not present missing data as a safe or zero-risk result.
 
-## 3. Backend contract
+## 3. Data contract
 
-The future data source is the existing aggregate endpoint:
+The current backend aggregate endpoint is:
 
 ```http
 GET /api/v1/analyses/stats
 ```
 
-Response shape:
+It currently provides `total_analyses`, `avg_risk_score`, and verdict distribution data. It does not currently provide authoritative `flagged_sessions` or `evidence_archived` fields.
+
+The placeholder UI uses a frontend adapter contract so the missing backend fields are explicit:
 
 ```ts
-type VerdictCount = {
-  verdict: string;
-  count: number;
-};
-
-type StatsResponse = {
-  total_analyses: number;
-  total_synthetic: number;
-  total_real: number;
+type DashboardMetrics = {
+  sessions_analysed: number;
+  flagged_sessions: number;
   avg_risk_score: number | null; // 0..1
-  verdict_distribution: VerdictCount[];
-  total_validations: number;
-  validation_pass_rate: number | null; // 0..1
+  evidence_archived: number;
 };
 ```
 
-The first UI slice may use a local typed fixture with this exact response shape. It must be clearly treated as preview data until a live API boundary is wired.
+Current and planned mappings:
 
-## 4. Metric mapping
+| Dashboard field | Current backend mapping | Live-contract requirement |
+|---|---|---|
+| `sessions_analysed` | `StatsResponse.total_analyses` | Keep the existing aggregate count or expose the aliased name |
+| `flagged_sessions` | None | Backend must define and return the authoritative count; the browser must not guess severity membership |
+| `avg_risk_score` | `StatsResponse.avg_risk_score` | Keep the existing 0..1 ratio |
+| `evidence_archived` | None | Backend must define what archived evidence means and return the count |
 
-| Card | Source | Presentation | Missing-data behavior |
-|---|---|---|---|
-| Total analyses | `total_analyses` | Integer with locale grouping | Show `—` when unavailable |
-| Average risk | `avg_risk_score` | Percentage, one decimal place | Show `Not available` for `null`; never infer safety |
-| Critical analyses | `verdict_distribution` entry where `verdict === "critical"` | Integer with locale grouping | Show `—` when distribution is unavailable; show `0` only when a complete distribution contains no critical entry |
+A local typed fixture may provide all four values for the initial visual implementation. Fixture data must be clearly marked as preview/demo data until a live API boundary is wired.
 
-The browser may format values and derive the critical count, but it must not invent risk policy, severity thresholds, or verdicts.
+## 4. Metric presentation
+
+| Card | Presentation | Missing-data behavior |
+|---|---|---|
+| Sessions analysed | Integer with locale grouping | Show `—` when unavailable |
+| Flagged sessions | Integer with locale grouping and a flagged-status label | Show `—` when unavailable; do not infer from raw verdict names |
+| Average risk score | Percentage, one decimal place | Show `Not available` for `null`; never infer safety |
+| Evidence archived | Integer with locale grouping | Show `—` when unavailable |
+
+The browser may format values, but it must not invent risk policy, flagged-session rules, or evidence-retention semantics.
 
 ## 5. Layout and visual requirements
 
 - Preserve the existing collapsible sidebar and external sidebar toggle.
 - Preserve the existing `Dashboard > Overview` breadcrumb.
-- Place the metric section directly below the breadcrumb bar.
-- Use a three-column grid at desktop widths with equal card widths and a consistent gap.
-- Stack cards vertically on narrow screens; do not introduce horizontal scrolling.
+- Place the metrics section directly below the breadcrumb bar.
+- Use a four-column grid at desktop widths with equal card widths and a consistent gap.
+- Stack cards at narrower widths; do not introduce horizontal scrolling.
 - Keep the visual language minimal: white cards, subtle border, small label, prominent value, and optional supporting text.
-- Use semantic critical styling for the Critical analyses card, pairing color with a text label or icon.
+- Use semantic warning styling for Flagged sessions and Average risk score, pairing color with text or an icon.
 - Do not add charts, animation, filters, API controls, or a new component library.
 
 Suggested content structure:
@@ -75,7 +80,7 @@ Suggested content structure:
 ```text
 Dashboard > Overview
 
-[ Total analyses ] [ Average risk ] [ Critical analyses ]
+[ Sessions analysed ] [ Flagged sessions ] [ Average risk score ] [ Evidence archived ]
 ```
 
 ## 6. UI states
@@ -83,12 +88,12 @@ Dashboard > Overview
 ### Preview/fixture state
 
 - Render representative typed fixture values only when the page is explicitly in preview mode.
-- Mark the section as preview/demo data if fixture values are visible.
+- Mark the metrics section as preview/demo data when fixture values are visible.
 - Keep the fixture separate from the eventual fetch boundary.
 
 ### Loading state
 
-- Preserve the three-card layout.
+- Preserve the four-card layout.
 - Show neutral skeletons or `—` values.
 - Do not animate fake metric changes.
 
@@ -107,7 +112,7 @@ Dashboard > Overview
 
 - `HomePage` owns page composition only.
 - A small metrics component owns card layout and presentation.
-- A typed fixture or future fetch adapter owns the `StatsResponse` data shape.
+- A typed fixture or future fetch adapter owns the `DashboardMetrics` data shape.
 - Formatting helpers may convert ratios to percentages and numbers to locale strings.
 - Business rules remain in backend/API contracts, not in card copy or CSS.
 
@@ -117,7 +122,7 @@ No authentication, API key, mutation, retry loop, or persistence work is part of
 
 - Use a section heading or accessible label for the metrics group.
 - Each card must expose a readable label and value to assistive technology.
-- Do not rely on color alone to identify critical metrics.
+- Do not rely on color alone to identify flagged sessions or risk.
 - Preserve visible focus styles for any future interactive elements; metric cards are non-interactive in this slice.
 - Maintain readable contrast and responsive text sizing.
 
@@ -126,13 +131,14 @@ No authentication, API key, mutation, retry loop, or persistence work is part of
 - `npm run lint` passes without new warnings.
 - `npm run build` completes successfully.
 - `git diff --check` passes.
-- The desktop layout renders exactly three cards in one row.
+- The desktop layout renders exactly four cards in one row.
 - A narrow viewport stacks the cards without clipping.
-- Preview, loading, null average-risk, missing distribution, and unavailable states do not crash or show fabricated values.
+- Preview, loading, null average-risk, unavailable flagged count, unavailable evidence count, and degraded states do not crash or show fabricated values.
 
 ## 10. Deferred work
 
-- Live fetching from `/api/v1/analyses/stats`.
+- Extend or adapt `/api/v1/analyses/stats` to return authoritative flagged-session and evidence-archive metrics.
+- Live fetching from the stats endpoint.
 - Authenticated API proxy and environment configuration.
 - Recent analyses table and detailed risk views.
 - Metric trend comparisons and time windows.
