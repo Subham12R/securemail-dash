@@ -77,7 +77,7 @@ export default async function HomePage({ range }: { range: "all" | "7d" | "30d" 
       className="h-full min-h-0 min-w-0 flex-1 overflow-y-auto bg-white"
       aria-label="Main content"
     >
-      <DashboardTopbar currentPage="Overview" showDateRange range={range} />
+      <DashboardTopbar currentPage="Overview" showDateRange showRefresh range={range} />
 
       <section aria-labelledby="metrics-heading" className="space-y-4 p-6">
         <div className="flex items-center justify-between gap-4">
