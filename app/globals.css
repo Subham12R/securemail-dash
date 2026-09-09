@@ -166,3 +166,70 @@ body {
     animation-delay: 0s !important;
   }
 }
+
+/* ==========================================================================
+   Dark SOC Forensics Theme
+   ========================================================================== */
+.dark-soc {
+  --background: #1a1a1a;
+  --foreground: #000e1c;
+  --muted: #151515;
+  --muted-foreground: #94a3b8;
+  --border: #2a2a2a;
+  --ring: #38bdf8;
+  --destructive: #ef4444;
+}
+/* Dark SOC Forensics Theme */
+.dark-soc,
+.dark-soc body,
+.dark-soc main {
+  background-color: #111111 !important;
+  color: #ffffff !important;
+}
+
+.dark-soc .bg-white {
+  background-color: #111c38 !important;
+}
+
+.dark-soc .bg-zinc-50,
+.dark-soc .bg-zinc-100 {
+  background-color: #0d1735 !important;
+}
+
+.dark-soc .border-zinc-100,
+.dark-soc .border-zinc-200,
+.dark-soc .border-neutral-200,
+.dark-soc .border-zinc-300 {
+  border-color: #1e2d56 !important;
+}
+
+.dark-soc .text-zinc-900,
+.dark-soc .text-zinc-800 {
+  color: #f8fafc !important;
+}
+
+.dark-soc .text-zinc-700,
+.dark-soc .text-zinc-600 {
+  color: #cbd5e1 !important;
+}
+
+.dark-soc .text-zinc-500,
+.dark-soc .text-zinc-400 {
+  color: #94a3b8 !important;
+}
+
+.dark-soc .hover\:bg-zinc-50:hover,
+.dark-soc .hover\:bg-zinc-100:hover,
+.dark-soc .hover\:bg-zinc-50\/80:hover {
+  background-color: #1a274c !important;
+}
+
+.dark-soc thead {
+  background-color: #1a1a1a !important;
+  border-color: #2a2a2a !important;
+}
+
+.dark-soc tr:hover {
+  background-color: #152244 !important;
+}
+

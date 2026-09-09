@@ -2,6 +2,7 @@ import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import DashboardRefreshButton from "@/components/ui/dashboard-refresh-button";
 import DateRangeFilter, { type DateRange } from "@/components/ui/date-range-filter";
+import ThemeToggle from "@/components/ui/theme-toggle";
 
 type DashboardTopbarProps = {
   currentPage: string;
@@ -56,6 +57,7 @@ export default function DashboardTopbar({
       <div className="flex items-center gap-2">
         {showRefresh ? <DashboardRefreshButton /> : null}
         {showDateRange ? <DateRangeFilter range={range} /> : null}
+        <ThemeToggle />
       </div>
     </header>
   );

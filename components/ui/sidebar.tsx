@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import {
+  BrainCircuit as BrainCircuitIcon,
   ChartLineIcon,
+  FileText as FileTextIcon,
   HistoryIcon,
   HomeIcon,
   LockIcon,
@@ -68,6 +70,22 @@ const investigationItems = [
     name: "History",
     icon: <HistoryIcon size={18} aria-hidden="true" />,
     href: "/history",
+  },
+];
+
+const intelligenceItems = [
+  {
+    name: "AI Insights",
+    icon: <BrainCircuitIcon size={18} aria-hidden="true" />,
+    href: "/intelligence",
+  },
+];
+
+const outputItems = [
+  {
+    name: "Reports",
+    icon: <FileTextIcon size={18} aria-hidden="true" />,
+    href: "/reports",
   },
 ];
 
@@ -247,6 +265,68 @@ export default function Sidebar() {
             </div>
           </div>
 
+          {/* Intelligence */}
+          <div className="mt-4 w-full">
+            {collapsed ? null : (
+              <p className="mb-1.5 px-2 text-sm font-medium tracking-tighter text-zinc-500">
+                Intelligence
+              </p>
+            )}
+            <div className="flex w-full flex-col gap-1">
+              {intelligenceItems.map((item) => {
+                const active = isActivePath(pathname, item.href);
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    aria-current={active ? "page" : undefined}
+                    aria-label={collapsed ? item.name : undefined}
+                    title={collapsed ? item.name : undefined}
+                    className={linkClasses(active)}
+                  >
+                    {item.icon}
+                    {collapsed ? null : (
+                      <span className="flex min-w-0 flex-1 items-center justify-between gap-2 text-sm font-medium tracking-tighter text-current">
+                        <span className="truncate">{item.name}</span>
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Output */}
+          <div className="mt-4 w-full">
+            {collapsed ? null : (
+              <p className="mb-1.5 px-2 text-sm font-medium tracking-tighter text-zinc-500">
+                Output
+              </p>
+            )}
+            <div className="flex w-full flex-col gap-1">
+              {outputItems.map((item) => {
+                const active = isActivePath(pathname, item.href);
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    aria-current={active ? "page" : undefined}
+                    aria-label={collapsed ? item.name : undefined}
+                    title={collapsed ? item.name : undefined}
+                    className={linkClasses(active)}
+                  >
+                    {item.icon}
+                    {collapsed ? null : (
+                      <span className="flex min-w-0 flex-1 items-center justify-between gap-2 text-sm font-medium tracking-tighter text-current">
+                        <span className="truncate">{item.name}</span>
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
           {/* System */}
           <div className="mt-4 w-full">
             <div className="flex w-full flex-col gap-1">
@@ -268,19 +348,14 @@ export default function Sidebar() {
         </nav>
 
         <div className={`mt-auto flex w-full flex-col items-center justify-center border-t px-2 py-3 ${divider}`}>
-          <div className={`flex w-full items-center ${collapsed ? "justify-center" : "justify-between px-2 py-1.5"}`}>
-            {collapsed ? null : (
-              <span className="text-xs font-medium text-zinc-500">Theme</span>
-            )}
-            <ThemeToggle />
-          </div>
+          
           <div
             className={`flex w-full items-center gap-2 rounded-md p-2 transition-colors ${
               "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
             } ${collapsed ? "justify-center" : "justify-start"}`}
             title={userProfile ? `${userProfile.display_name} (${userProfile.email})` : "SecOps Analyst"}
           >
-            <UserIcon size={18} aria-hidden="true" className="shrink-0" />
+            <UserIcon size={18} aria-hidden="true" className="shrink-0 bg-zinc-100 rounded-full p-4 text-zinc-900" />
             {collapsed ? null : (
               <div className="flex flex-col overflow-hidden text-left">
                 <span className="truncate text-xs font-semibold text-zinc-900">
