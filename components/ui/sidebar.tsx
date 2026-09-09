@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import {
   ChartLineIcon,
+  FlagIcon,
   HistoryIcon,
   HomeIcon,
   LogOutIcon,
@@ -16,16 +17,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const sidebarItems = [
+const primaryItems = [
   {
     name: "Dashboard",
     icon: <HomeIcon size={18} aria-hidden="true" />,
     href: "/",
-  },
-  {
-    name: "Analytics",
-    icon: <ChartLineIcon size={18} aria-hidden="true" />,
-    href: "/analytics",
   },
   {
     name: "Inbox",
@@ -44,9 +40,30 @@ const sidebarItems = [
   },
 ];
 
+const analysisItems = [
+  {
+    name: "Flagged Emails",
+    icon: <FlagIcon size={18} aria-hidden="true" />,
+    href: "/analytics/flagged",
+  },
+  {
+    name: "All Analysis",
+    icon: <ChartLineIcon size={18} aria-hidden="true" />,
+    href: "/analytics",
+  },
+];
+
+function isActivePath(pathname: string, href: string) {
+  return href === "/analytics"
+    ? pathname === href
+    : pathname === href || pathname.startsWith(`${href}/`);
+}
+
 export default function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const [flaggedCount, setFlaggedCount] = useState<number | null>(null);
+  const dark = pathname === "/inbox" || pathname.startsWith("/analytics");
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 767px)");
@@ -58,7 +75,55 @@ export default function Sidebar() {
     return () => mediaQuery.removeEventListener("change", updateForViewport);
   }, []);
 
+  useEffect(() => {
+    if (!dark) return;
+    const controller = new AbortController();
+
+    void (async () => {
+      try {
+        const response = await fetch("/api/inbox?skip=0&limit=1", {
+          cache: "no-store",
+          signal: controller.signal,
+        });
+        if (!response.ok) return;
+        const payload: unknown = await response.json();
+        if (
+          typeof payload === "object" &&
+          payload !== null &&
+          "counts" in payload &&
+          typeof payload.counts === "object" &&
+          payload.counts !== null &&
+          "flagged" in payload.counts &&
+          typeof payload.counts.flagged === "number"
+        ) {
+          setFlaggedCount(payload.counts.flagged);
+        }
+      } catch {
+        // The Inbox page owns the visible error state; the nav badge is optional.
+      }
+    })();
+
+    return () => controller.abort();
+  }, [dark]);
+
   const width = collapsed ? "w-16" : "w-64";
+  const surface = dark
+    ? "border-[#173858] bg-[#07182c] text-slate-200"
+    : "border-zinc-200 bg-zinc-50 text-zinc-800";
+  const divider = dark ? "border-[#173858]" : "border-zinc-200";
+  const muted = dark ? "text-slate-400" : "text-zinc-600";
+  const linkClasses = (active: boolean) =>
+    `flex w-full items-center gap-2 rounded-md p-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 ${
+      dark ? "focus-visible:outline-sky-300" : "focus-visible:outline-zinc-900"
+    } ${
+      active
+        ? dark
+          ? "bg-[#0d3d70] text-white"
+          : "bg-zinc-100 text-zinc-900"
+        : dark
+          ? "text-slate-400 hover:bg-[#0b213e] hover:text-white"
+          : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
+    } ${collapsed ? "justify-center" : "justify-start"}`;
 
   return (
     <div
@@ -67,10 +132,10 @@ export default function Sidebar() {
       <aside
         id="dashboard-sidebar"
         aria-label="Sidebar"
-        className="sticky top-0 flex h-full min-h-0 w-full flex-col overflow-y-auto overflow-x-hidden border-r border-zinc-200 bg-zinc-50"
+        className={`sticky top-0 flex h-full min-h-0 w-full flex-col overflow-y-auto overflow-x-hidden border-r ${surface}`}
       >
         <div
-          className={`flex w-full items-center gap-2 border-b border-zinc-200 text-left text-zinc-800 ${
+          className={`flex w-full items-center gap-2 border-b ${divider} text-left ${
             collapsed ? "justify-center p-4" : "px-4 py-4"
           }`}
         >
@@ -88,59 +153,90 @@ export default function Sidebar() {
 
         <nav
           aria-label="Primary navigation"
-          className="flex flex-1 flex-col items-start justify-start px-2 py-4 text-left text-zinc-800"
+          className={`flex flex-1 flex-col items-start justify-start px-2 py-4 text-left ${muted}`}
         >
-          {sidebarItems.map((item) => {
-            const isActive = pathname === item.href;
-
-            return (
+          <div className="flex w-full flex-col gap-1">
+            {primaryItems.slice(0, 2).map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
-                aria-current={isActive ? "page" : undefined}
+                aria-current={isActivePath(pathname, item.href) ? "page" : undefined}
                 aria-label={collapsed ? item.name : undefined}
                 title={collapsed ? item.name : undefined}
-                className={`flex w-full items-center gap-2 rounded-md p-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 ${
-                  isActive
-                    ? "bg-zinc-100 text-zinc-900"
-                    : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
-                } ${collapsed ? "justify-center" : "justify-start"}`}
+                className={linkClasses(isActivePath(pathname, item.href))}
               >
                 {item.icon}
-                {collapsed ? null : (
-                  <span className="text-sm font-medium tracking-tighter text-current">
-                    {item.name}
-                  </span>
-                )}
+                {collapsed ? null : <span className="text-sm font-medium tracking-tighter text-current">{item.name}</span>}
               </Link>
-            );
-          })}
+            ))}
+          </div>
+
+          <div className="mt-6 w-full">
+            {collapsed ? null : (
+              <p className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                Analysis
+              </p>
+            )}
+            <div className="flex w-full flex-col gap-1">
+              {analysisItems.map((item) => {
+                const active = isActivePath(pathname, item.href);
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    aria-current={active ? "page" : undefined}
+                    aria-label={collapsed ? item.name : undefined}
+                    title={collapsed ? item.name : undefined}
+                    className={linkClasses(active)}
+                  >
+                    {item.icon}
+                    {collapsed ? null : (
+                      <span className="flex min-w-0 flex-1 items-center justify-between gap-2 text-sm font-medium tracking-tighter text-current">
+                        <span className="truncate">{item.name}</span>
+                        {item.name === "Flagged Emails" && flaggedCount !== null ? (
+                          <span className="rounded-full bg-rose-500 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white">
+                            {flaggedCount}
+                          </span>
+                        ) : null}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="mt-1 flex w-full flex-col gap-1">
+            {primaryItems.slice(2).map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                aria-current={isActivePath(pathname, item.href) ? "page" : undefined}
+                aria-label={collapsed ? item.name : undefined}
+                title={collapsed ? item.name : undefined}
+                className={linkClasses(isActivePath(pathname, item.href))}
+              >
+                {item.icon}
+                {collapsed ? null : <span className="text-sm font-medium tracking-tighter text-current">{item.name}</span>}
+              </Link>
+            ))}
+          </div>
         </nav>
 
-        <div className="mt-auto flex w-full flex-col items-center justify-center px-2 py-4 text-zinc-800">
+        <div className={`mt-auto flex w-full flex-col items-center justify-center border-t px-2 py-4 ${divider}`}>
           <div
-            className={`flex w-full items-center gap-2 rounded-md p-2 text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900 ${
-              collapsed ? "justify-center" : "justify-start"
-            }`}
+            className={`flex w-full items-center gap-2 rounded-md p-2 transition-colors ${
+              dark ? "text-slate-400 hover:bg-[#0b213e] hover:text-white" : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
+            } ${collapsed ? "justify-center" : "justify-start"}`}
           >
             <UserIcon size={18} aria-hidden="true" />
-            {collapsed ? null : (
-              <span className="text-sm font-medium tracking-tighter text-current">
-                Profile
-              </span>
-            )}
+            {collapsed ? null : <span className="text-sm font-medium tracking-tighter text-current">Profile</span>}
           </div>
           <div
-            className={`flex w-full items-center gap-2 rounded-md p-2 text-red-600 transition-colors hover:bg-red-50 hover:text-red-500 ${
-              collapsed ? "justify-center" : "justify-start"
-            }`}
+            className={`flex w-full items-center gap-2 rounded-md p-2 text-red-500 transition-colors hover:bg-red-500/10 hover:text-red-400 ${collapsed ? "justify-center" : "justify-start"}`}
           >
             <LogOutIcon size={18} aria-hidden="true" />
-            {collapsed ? null : (
-              <span className="text-sm font-medium tracking-tighter text-current">
-                Logout
-              </span>
-            )}
+            {collapsed ? null : <span className="text-sm font-medium tracking-tighter text-current">Logout</span>}
           </div>
         </div>
       </aside>
@@ -151,7 +247,11 @@ export default function Sidebar() {
         aria-expanded={!collapsed}
         title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         onClick={() => setCollapsed((value) => !value)}
-        className="absolute left-full top-3 z-50 ml-2 inline-flex size-9 cursor-pointer items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+        className={`absolute left-full top-3 z-50 ml-2 inline-flex size-9 cursor-pointer items-center justify-center rounded-md transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 ${
+          dark
+            ? "text-slate-400 hover:bg-[#0b213e] hover:text-white focus-visible:outline-sky-300"
+            : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 focus-visible:outline-zinc-900"
+        }`}
       >
         {collapsed ? (
           <PanelLeftIcon size={18} aria-hidden="true" />

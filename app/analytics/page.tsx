@@ -8,9 +8,9 @@ export default async function AnalyticsPage() {
   return (
     <main
       className="h-full min-h-0 min-w-0 flex-1 overflow-y-auto bg-white"
-      aria-label="Analytics page"
+      aria-label="All Analysis page"
     >
-      <DashboardTopbar currentPage="Analytics" />
+      <DashboardTopbar currentPage="All Analysis" tone="dark" />
       <AnalysisWorkspace
         analysis={dashboard.records[0] ?? null}
         apiError={dashboard.error}
