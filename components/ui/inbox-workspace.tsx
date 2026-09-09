@@ -231,7 +231,7 @@ export default function InboxWorkspace({ initialItemId }: InboxWorkspaceProps) {
         >
           <div className="flex h-full min-h-0 flex-col bg-white">
             <div className="flex shrink-0 items-center justify-between border-b border-zinc-200 px-4 py-2">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+              <span className="text-[11px] font-semibold tracking-tighter text-zinc-500">
                 Message inspection
               </span>
               <button

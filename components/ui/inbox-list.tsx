@@ -149,7 +149,7 @@ export default function InboxList({
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <h1 id="inbox-list-heading" className="text-2xl font-semibold tracking-tight text-zinc-900">
+              <h1 id="inbox-list-heading" className="text-2xl font-semibold tracking-tighter text-zinc-900">
                 Inbox
               </h1>
             </div>

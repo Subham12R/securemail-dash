@@ -74,7 +74,7 @@ export default function FlaggedAnalysisView({
           <div>
             <div className="flex items-center gap-2">
               <Flag aria-hidden="true" className="size-5 text-rose-600" />
-              <h1 id="flagged-analysis-heading" className="text-2xl font-semibold tracking-tight text-zinc-900">Flagged Emails</h1>
+              <h1 id="flagged-analysis-heading" className="text-2xl font-semibold tracking-tighter text-zinc-900">Flagged Emails</h1>
             </div>
             <p className="mt-1 text-sm text-zinc-600">
               <MorphingText>{counts.flagged}</MorphingText> items require analyst review · {counts.healthy} healthy items excluded
@@ -103,7 +103,7 @@ export default function FlaggedAnalysisView({
           <div className="overflow-x-auto rounded-lg border border-zinc-200" role="region" tabIndex={0} aria-label="Flagged email analysis table">
             <table className="w-full min-w-[980px] border-collapse text-left text-sm">
               <caption className="sr-only">Backend-flagged email analysis</caption>
-              <thead className="border-b border-zinc-200 bg-zinc-50 text-[11px] uppercase tracking-[0.12em] text-zinc-600">
+              <thead className="border-b border-zinc-200 bg-zinc-50 text-[11px] tracking-tighter text-zinc-600">
                 <tr>
                   <th scope="col" className="px-4 py-3">Email</th>
                   <th scope="col" className="px-4 py-3">Checks</th>

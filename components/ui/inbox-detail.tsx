@@ -107,7 +107,7 @@ function DataList({
     <dl className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
       {entries.map(([label, value]) => (
         <div key={label} className="min-w-0">
-          <dt className="text-[11px] uppercase tracking-[0.12em] text-zinc-500">{label}</dt>
+          <dt className="text-[11px] tracking-tighter text-zinc-500">{label}</dt>
           <dd className="mt-1 break-words text-sm text-zinc-800">{value}</dd>
         </div>
       ))}
@@ -184,7 +184,7 @@ function HeadersPanel({ section }: { section: Section<HeaderDetails> }) {
               <dt className="text-xs font-medium text-zinc-600">{field.name}</dt>
               <dd className={cn("break-words text-sm", field.flagged ? "text-rose-700" : "text-zinc-800")}>
                 {field.value}
-                {field.flagged ? <span className="ml-2 text-[10px] uppercase tracking-wider text-rose-600">suspicious</span> : null}
+                {field.flagged ? <span className="ml-2 text-[10px] tracking-tighter text-rose-600">suspicious</span> : null}
               </dd>
             </div>
           ))}
@@ -407,13 +407,13 @@ export default function InboxDetail({
       <header className="border-b border-zinc-200 px-6 pb-5 pt-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em]">
+            <div className="flex flex-wrap items-center gap-2 text-xs font-semibold tracking-tighter">
               {flagged ? <Flag aria-hidden="true" className="size-4 text-rose-600" /> : <ShieldCheck aria-hidden="true" className="size-4 text-emerald-600" />}
               <span className={flagged ? "text-rose-700" : "text-emerald-700"}>{flagged ? "Flagged" : "Healthy"}</span>
               <span className="text-zinc-400">·</span>
               <span className="text-zinc-600">{item.protocol}</span>
             </div>
-            <h2 id="selected-message-heading" className="mt-2 max-w-3xl text-xl font-semibold tracking-tight text-zinc-900">
+            <h2 id="selected-message-heading" className="mt-2 max-w-3xl text-xl font-semibold tracking-tighter text-zinc-900">
               {item.subject ?? "Subject unavailable"}
             </h2>
           </div>
