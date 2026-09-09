@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import ThemeToggle from "@/components/ui/theme-toggle";
 
 const overviewItems = [
@@ -49,6 +49,7 @@ const forensicItems = [
     name: "Findings",
     icon: <ShieldAlertIcon size={18} aria-hidden="true" />,
     href: "/findings",
+    badge: "6",
   },
 ];
 
@@ -85,7 +86,30 @@ function isActivePath(pathname: string, href: string) {
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
+  const [userProfile, setUserProfile] = useState<{ email: string; display_name: string } | null>(null);
+
+  useEffect(() => {
+    fetch("/api/auth/profile")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.ok && data.profile) {
+          setUserProfile(data.profile);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch {
+      // Ignore network errors
+    }
+    router.push("/login");
+    router.refresh();
+  };
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 767px)");
@@ -179,6 +203,11 @@ export default function Sidebar() {
                     {collapsed ? null : (
                       <span className="flex min-w-0 flex-1 items-center justify-between gap-2 text-sm font-medium tracking-tighter text-current">
                         <span className="truncate">{item.name}</span>
+                        {"badge" in item && item.badge && (
+                          <span className="rounded-full bg-rose-500/10 px-2 py-0.5 text-xs font-bold text-rose-600 dark-soc:bg-rose-500/20 dark-soc:text-rose-400">
+                            {item.badge}
+                          </span>
+                        )}
                       </span>
                     )}
                   </Link>
@@ -249,17 +278,28 @@ export default function Sidebar() {
             className={`flex w-full items-center gap-2 rounded-md p-2 transition-colors ${
               "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
             } ${collapsed ? "justify-center" : "justify-start"}`}
+            title={userProfile ? `${userProfile.display_name} (${userProfile.email})` : "SecOps Analyst"}
           >
-            <UserIcon size={18} aria-hidden="true" />
-            {collapsed ? null : <span className="text-sm font-medium tracking-tighter text-current">Profile</span>}
+            <UserIcon size={18} aria-hidden="true" className="shrink-0" />
+            {collapsed ? null : (
+              <div className="flex flex-col overflow-hidden text-left">
+                <span className="truncate text-xs font-semibold text-zinc-900">
+                  {userProfile?.display_name || "SecOps Analyst"}
+                </span>
+                <span className="truncate text-[10px] text-zinc-500">
+                  {userProfile?.email || "analyst@company.com"}
+                </span>
+              </div>
+            )}
           </div>
-          <Link
-            href="/login"
+          <button
+            type="button"
+            onClick={handleLogout}
             className={`flex w-full items-center gap-2 rounded-md p-2 text-red-600 transition-colors hover:bg-red-500/10 hover:text-red-700 ${collapsed ? "justify-center" : "justify-start"}`}
           >
-            <LogOutIcon size={18} aria-hidden="true" />
+            <LogOutIcon size={18} aria-hidden="true" className="shrink-0" />
             {collapsed ? null : <span className="text-sm font-medium tracking-tighter text-current">Logout</span>}
-          </Link>
+          </button>
         </div>
       </aside>
       <button
