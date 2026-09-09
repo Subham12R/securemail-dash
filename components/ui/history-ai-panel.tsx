@@ -1,7 +1,11 @@
 "use client";
 
 import { Bot, ChevronDown } from "lucide-react";
-import { ANALYSIS_DETAIL_FIELDS, type AnalysisDetailViewModel } from "@/lib/analysis-detail";
+import {
+  ANALYSIS_DETAIL_FIELDS,
+  analysisFieldLabel,
+  type AnalysisDetailViewModel,
+} from "@/lib/analysis-detail";
 
 type HistoryAiPanelProps = {
   viewModel: AnalysisDetailViewModel;
@@ -15,6 +19,7 @@ export default function HistoryAiPanel({
   onToggle,
 }: HistoryAiPanelProps) {
   const missingFields = viewModel.model.missing_fields;
+  const missingLabels = missingFields.map(analysisFieldLabel);
   const availableFields = Math.max(
     0,
     ANALYSIS_DETAIL_FIELDS.length - missingFields.length,
@@ -79,8 +84,8 @@ export default function HistoryAiPanel({
             <dd className="mt-1 font-medium tabular-nums text-zinc-800">{availableFields}</dd>
           </div>
           <div>
-            <dt className="text-zinc-500">Missing fields</dt>
-            <dd className="mt-1 break-words text-zinc-800">{missingFields.join(", ") || "None recorded"}</dd>
+            <dt className="text-zinc-500">Missing supporting data</dt>
+            <dd className="mt-1 break-words text-zinc-800">{missingLabels.join(", ") || "None recorded"}</dd>
           </div>
         </dl>
 

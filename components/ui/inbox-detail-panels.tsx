@@ -191,16 +191,31 @@ function HeadersPanel({ section }: { section: Section<HeaderDetails> }) {
 function ContentPanel({ section }: { section: Section<ContentDetails> }) {
   if (section.state !== "available" || !section.data) return <SectionState section={section} />;
   const content = section.data;
+  const hasHtmlPreview = content.format === "html" && content.html !== null;
 
   return (
     <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-5">
-      <PanelHeading icon={FileText} title="Safe message preview" />
+      <PanelHeading icon={FileText} title="Message preview" />
       <p className="mb-4 text-xs text-zinc-500">
-        Rendered as bounded plain text. HTML and raw message bytes are withheld from the inspection view.
+        {hasHtmlPreview
+          ? "Rendered directly from the captured HTML body in an isolated preview. Scripts, forms, and navigation are disabled."
+          : "Rendered as bounded plain text. Raw message bytes are withheld from the inspection view."}
       </p>
-      <pre className="max-w-prose whitespace-pre-wrap break-words font-sans text-sm leading-6 text-zinc-800">
-        {content.text}
-      </pre>
+      {hasHtmlPreview ? (
+        <iframe
+          data-email-preview="html"
+          title="Rendered email HTML preview"
+          srcDoc={content.html ?? ""}
+          sandbox=""
+          referrerPolicy="no-referrer"
+          loading="lazy"
+          className="h-[32rem] w-full rounded-lg border border-zinc-200 bg-white"
+        />
+      ) : (
+        <pre className="max-w-prose whitespace-pre-wrap break-words font-sans text-sm leading-6 text-zinc-800">
+          {content.text}
+        </pre>
+      )}
       <div className="mt-5 flex flex-wrap gap-2 text-xs text-zinc-600">
         <span>Format: {content.format}</span>
         <span>·</span>

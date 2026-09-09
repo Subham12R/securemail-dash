@@ -11,7 +11,8 @@ export type RichButtonColor =
   | "default"
   | "primary"
   | "danger"
-  | "warning";
+  | "warning"
+  | "info";
 export type RichButtonSize = "default" | "sm" | "lg" | "icon";
 
 export interface RichButtonProps
@@ -29,6 +30,8 @@ const colorClasses: Record<RichButtonColor, string> = {
   danger: "border-red-200 bg-red-500 text-white hover:bg-red-600",
   warning:
     "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 hover:text-amber-800",
+  info:
+    "border-blue-900 bg-blue-900 text-white hover:bg-blue-950 hover:shadow-[0_6px_16px_-4px_rgb(30_58_138/0.4)]",
 };
 
 const sizeClasses: Record<RichButtonSize, string> = {

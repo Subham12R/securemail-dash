@@ -32,11 +32,12 @@ const statusColors: Record<string, RichButtonColor> = {
   Processing: "warning",
   Analyzing: "warning",
   Empty: "default",
+  Unknown: "info",
   Failed: "danger",
   Benign: "primary",
   Suspicious: "warning",
   Malicious: "danger",
-  Informational: "default",
+  Informational: "info",
 };
 
 function formatFileSize(bytes: number | undefined) {

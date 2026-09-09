@@ -290,27 +290,39 @@ function normalizeContent(email: RecordValue): ContentDetails | null {
   const textBody = valueAt(email, "TextBody");
   const htmlBody = valueAt(email, "HTMLBody");
   const rawBody = valueAt(email, "RawBody");
-  const source =
-    typeof textBody === "string"
-      ? textBody
-      : typeof htmlBody === "string"
-        ? htmlToPlainText(htmlBody)
-        : typeof rawBody === "string"
-          ? htmlToPlainText(rawBody)
-          : null;
-  if (!source) return null;
+  const textSource = typeof textBody === "string" ? textBody : null;
+  const htmlSource = typeof htmlBody === "string" ? htmlBody : null;
+  const rawSource = typeof rawBody === "string" ? rawBody : null;
 
-  const boundedSource = boundedString(source, MAX_CONTENT_LENGTH * 4);
-  if (!boundedSource) return null;
-  const safe = redactSensitiveText(boundedSource);
-  const text = boundedString(safe.text, MAX_CONTENT_LENGTH);
-  if (!text) return null;
+  if (!textSource && !htmlSource && !rawSource) return null;
+
+  const boundedHtmlSource = htmlSource === null
+    ? null
+    : boundedString(htmlSource, MAX_CONTENT_LENGTH * 4);
+  const safeHtml = boundedHtmlSource === null
+    ? null
+    : redactSensitiveText(boundedHtmlSource);
+  const html = safeHtml ? boundedString(safeHtml.text, MAX_CONTENT_LENGTH) : null;
+  const textCandidate = textSource ?? (html ? htmlToPlainText(html) : rawSource ? htmlToPlainText(rawSource) : null);
+  const boundedTextSource = textCandidate === null
+    ? null
+    : boundedString(textCandidate, MAX_CONTENT_LENGTH * 4);
+  const safeText = boundedTextSource === null
+    ? { text: "", redactions: [] as string[] }
+    : redactSensitiveText(boundedTextSource);
+  const text = boundedString(safeText.text, MAX_CONTENT_LENGTH) ?? "";
+  if (!html && !text) return null;
 
   return {
-    format: "plain_text",
+    format: html ? "html" : "plain_text",
     text,
-    truncated: source.length > MAX_CONTENT_LENGTH || safe.text.length > MAX_CONTENT_LENGTH,
-    redactions: safe.redactions,
+    html,
+    truncated:
+      (htmlSource?.length ?? 0) > MAX_CONTENT_LENGTH ||
+      (safeHtml?.text.length ?? 0) > MAX_CONTENT_LENGTH ||
+      (textCandidate?.length ?? 0) > MAX_CONTENT_LENGTH ||
+      safeText.text.length > MAX_CONTENT_LENGTH,
+    redactions: [...new Set([...(safeHtml?.redactions ?? []), ...safeText.redactions])],
   };
 }
 
@@ -553,7 +565,7 @@ function normalizeExternalRecord(value: unknown): NormalizedExternal {
 
   const diagnostics: string[] = [];
   if (content === null && valueAt(email, "HTMLBody") !== undefined) {
-    diagnostics.push("HTML-only message content is withheld from the safe text view.");
+    diagnostics.push("Message content could not be normalized for preview.");
   }
   if (analysisAuth === null && analysis === null) {
     diagnostics.push("Live analysis data was not supplied for this message.");

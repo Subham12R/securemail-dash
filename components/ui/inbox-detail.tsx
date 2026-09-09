@@ -13,6 +13,7 @@ import type {
   InboxDetailResponse,
   InboxDetailTab,
 } from "@/lib/inbox-data";
+import { historyDetailHref } from "@/lib/analysis-detail";
 
 type DetailStatus = "idle" | "loading" | "success" | "error";
 
@@ -89,7 +90,7 @@ export default function InboxDetail({
   const item = detail.item;
   const flagged = item.triage_state === "flagged";
   const analysisHref = detail.analysis_ref.request_id
-    ? `/analytics?requestId=${encodeURIComponent(detail.analysis_ref.request_id)}`
+    ? historyDetailHref(detail.analysis_ref.request_id)
     : null;
 
   const senderHeading = item.sender.address ?? item.sender.name ?? "Sender unavailable";

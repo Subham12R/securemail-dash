@@ -75,8 +75,9 @@ export type HeaderDetails = {
 };
 
 export type ContentDetails = {
-  format: "plain_text";
+  format: "plain_text" | "html";
   text: string;
+  html: string | null;
   truncated: boolean;
   redactions: string[];
 };
@@ -557,6 +558,7 @@ function contentDetails(item: InboxListItem): ContentDetails {
       item.triage_state === "flagged"
         ? "We detected unusual activity on your account. Verify your details using the approved security portal."
         : "This is a bounded preview message supplied by the Inbox fixture.",
+    html: null,
     truncated: false,
     redactions: [],
   };

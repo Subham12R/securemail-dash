@@ -68,27 +68,74 @@ test("builds an encoded detail URL only for a bounded request ID", () => {
   assert.equal(historyDetailHref("x".repeat(257)), null);
 });
 
-test("bounds nested analysis values and records absent model values", () => {
-  const secret = "raw-secret-should-be-bounded-".repeat(100);
+test("normalizes supported analysis output into human-readable metrics", () => {
   const view = buildAnalysisDetailViewModel(
     record({
+      model_bundle: { id: "bundle-secret", version: "do-not-display" },
       ml_scores: {
-        model: {
-          secret,
-          deep: { one: { two: { three: { four: "too deep" } } } },
+        xgboost: {
+          predicted_class: "high",
+          risk_probability: 0.75,
+          class_probabilities: { high: 1 },
         },
       },
-      explanations: {},
-      model_bundle: {},
-      trigger_details: [],
+      explanations: {
+        supervised: [
+          {
+            feature: "handshake_success",
+            observed_value: false,
+            contribution: 1.5115,
+            direction: "increases_risk",
+            ignored: { raw: "not displayed" },
+          },
+        ],
+      },
+      trigger_details: [
+        { rule: "legacy_tls", description: "Legacy protocol", evidence: "stream:7" },
+      ],
     }),
     { state: "not_found", detail: null, reason: "No matching Inbox item was returned." },
   );
 
   assert.equal(view.source, "analysed_pcap");
+  assert.deepEqual(view.model.evaluations, [
+    { model: "XGBoost", prediction: "High", risk_probability: 0.75 },
+  ]);
+  assert.deepEqual(view.model.risk_drivers, [
+    {
+      feature: "Handshake Success",
+      observed_value: "No",
+      contribution: 1.5115,
+      direction: "increases_risk",
+    },
+  ]);
+  assert.deepEqual(view.model.rule_findings, [
+    { label: "Legacy TLS", severity: null, detail: "Legacy protocol", evidence: "stream:7" },
+  ]);
+  assert.equal(view.summary_text.includes("Suspicious"), true);
+  assert.equal(JSON.stringify(view).includes("model_bundle"), false);
+  assert.equal(JSON.stringify(view).includes("bundle-secret"), false);
+  assert.equal(JSON.stringify(view).includes("not displayed"), false);
+});
+
+test("keeps absent supported metrics explicit without dumping unknown JSON", () => {
+  const secret = "raw-secret-should-not-be-exposed";
+  const view = buildAnalysisDetailViewModel(
+    record({
+      ml_scores: { model: { secret } },
+      explanations: { unknown_shape: { secret } },
+      model_bundle: { id: secret },
+      trigger_details: [{ unexpected: { secret } }],
+    }),
+    { state: "not_found", detail: null, reason: "No matching Inbox item was returned." },
+  );
+
+  assert.equal(view.model.evaluations.length, 0);
+  assert.equal(view.model.risk_drivers.length, 0);
+  assert.equal(view.model.rule_findings.length, 0);
+  assert.equal(view.model.missing_fields.includes("ml_scores"), true);
   assert.equal(view.model.missing_fields.includes("explanations"), true);
-  assert.equal(view.model.missing_fields.includes("model_bundle"), true);
+  assert.equal(view.model.missing_fields.includes("trigger_details"), true);
   assert.equal(JSON.stringify(view).includes(secret), false);
-  assert.equal(view.model.scores.some((entry) => entry.value.length <= 512), true);
-  assert.equal(view.model.scores.some((entry) => entry.path.includes("four")), false);
+  assert.equal(JSON.stringify(view).includes("model_bundle"), false);
 });

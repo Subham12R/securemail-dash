@@ -32,8 +32,10 @@ import {
 } from "@/components/ui/loading-skeleton";
 import type { PostureCount, VerdictCount } from "@/lib/securemail-api";
 
+const DEEP_BLUE = "#1e3a8a";
+
 const verdictColors: Record<string, string> = {
-  informational: "#64748b",
+  informational: DEEP_BLUE,
   benign: "#22c55e",
   low: "#22c55e",
   suspicious: "#f59e0b",
@@ -55,7 +57,7 @@ const postureColors: Record<string, string> = {
   at_risk: "#ef4444",
   risky: "#ef4444",
   handshake_failed: "#dc2626",
-  unknown: "#64748b",
+  unknown: DEEP_BLUE,
 };
 
 const fallbackColors = [

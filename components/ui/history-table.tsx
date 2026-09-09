@@ -42,6 +42,9 @@ function statusColor(status: string): RichButtonColor {
       return "warning";
     case "benign":
       return "primary";
+    case "informational":
+    case "unknown":
+      return "info";
     default:
       return "default";
   }

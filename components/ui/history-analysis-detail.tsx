@@ -23,9 +23,10 @@ import { MorphingText } from "@/components/ui/morphing-text";
 import { RichButton, type RichButtonColor } from "@/components/ui/rich-button";
 import { riskScoreBarClass } from "@/lib/risk";
 import {
-  ANALYSIS_DETAIL_FIELDS,
+  analysisFieldLabel,
   type AnalysisDetailViewModel,
-  type SafeAnalysisEntry,
+  type AnalysisModelEvaluation,
+  type AnalysisRiskDriver,
 } from "@/lib/analysis-detail";
 
 function displayValue(value: string | null | undefined) {
@@ -58,6 +59,9 @@ function statusColor(value: string): RichButtonColor {
     case "benign":
     case "complete":
       return "primary";
+    case "informational":
+    case "unknown":
+      return "info";
     default:
       return "default";
   }
@@ -123,29 +127,166 @@ function MetadataList({
   );
 }
 
-function EntryList({
-  entries,
-  emptyLabel,
-}: {
-  entries: readonly SafeAnalysisEntry[];
-  emptyLabel: string;
-}) {
-  if (entries.length === 0) {
-    return <p className="text-sm text-zinc-600">{emptyLabel}</p>;
+function formatProbability(value: number | null) {
+  if (value === null || !Number.isFinite(value)) return "Not supplied";
+  return `${(Math.max(0, Math.min(1, value)) * 100).toFixed(1)}%`;
+}
+
+function formatContribution(value: number | null) {
+  if (value === null || !Number.isFinite(value)) return "Not supplied";
+  return `${value >= 0 ? "+" : ""}${value.toFixed(2)}`;
+}
+
+function directionLabel(value: AnalysisRiskDriver["direction"]) {
+  switch (value) {
+    case "increases_risk":
+      return "Raises risk";
+    case "decreases_risk":
+      return "Lowers risk";
+    default:
+      return "Direction not supplied";
+  }
+}
+
+function ModelEvaluationList({ evaluations }: { evaluations: readonly AnalysisModelEvaluation[] }) {
+  if (evaluations.length === 0) {
+    return <p className="text-sm text-zinc-600">No normalized model evaluation was supplied.</p>;
   }
 
   return (
-    <dl className="divide-y divide-zinc-200">
-      {entries.map((entry, index) => (
-        <div
-          key={`${entry.path}-${index}`}
-          className="grid gap-1 py-3 sm:grid-cols-[minmax(8rem,0.4fr)_minmax(0,1fr)] sm:gap-4"
-        >
-          <dt className="break-words font-mono text-xs text-zinc-600">{entry.path}</dt>
-          <dd className="break-words text-sm text-zinc-800">{entry.value}</dd>
-        </div>
+    <ul className="grid gap-3 sm:grid-cols-2">
+      {evaluations.map((evaluation) => (
+        <li key={evaluation.model} className="rounded-lg border border-zinc-200 bg-zinc-50 p-4">
+          <p className="font-medium text-zinc-900">{evaluation.model}</p>
+          <dl className="mt-3 grid gap-3 text-xs sm:grid-cols-2">
+            <div>
+              <dt className="text-zinc-500">Prediction</dt>
+              <dd className="mt-1 text-sm text-zinc-800">{evaluation.prediction ?? "Not supplied"}</dd>
+            </div>
+            <div>
+              <dt className="text-zinc-500">Risk likelihood</dt>
+              <dd className="mt-1 text-sm tabular-nums text-zinc-800">{formatProbability(evaluation.risk_probability)}</dd>
+            </div>
+          </dl>
+        </li>
       ))}
-    </dl>
+    </ul>
+  );
+}
+
+function RiskDriverList({ drivers }: { drivers: readonly AnalysisRiskDriver[] }) {
+  if (drivers.length === 0) {
+    return <p className="text-sm text-zinc-600">No normalized model signals were supplied.</p>;
+  }
+
+  return (
+    <ul className="divide-y divide-zinc-200 rounded-lg border border-zinc-200">
+      {drivers.map((driver) => (
+        <li key={`${driver.feature}-${driver.contribution ?? "none"}`} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-4 py-3 text-sm">
+          <span className="font-medium text-zinc-900">{driver.feature}</span>
+          <span className="text-xs text-zinc-600">
+            {directionLabel(driver.direction)} · observed {driver.observed_value} · contribution {formatContribution(driver.contribution)}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function AnalysisSummaryCard({ viewModel }: { viewModel: AnalysisDetailViewModel }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Analysis summary</CardTitle>
+        <CardDescription>Human-readable interpretation of the persisted analysis output.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-5">
+        <p className="max-w-3xl text-sm leading-6 text-zinc-700">{viewModel.summary_text}</p>
+        <div className="border-t border-zinc-100 pt-5">
+          <h4 className="text-sm font-semibold text-zinc-900">Model evaluation</h4>
+          <p className="mt-1 text-xs text-zinc-500">The available model predictions and risk likelihoods, without raw bundle metadata.</p>
+          <div className="mt-4">
+            <ModelEvaluationList evaluations={viewModel.model.evaluations} />
+          </div>
+        </div>
+        <div className="border-t border-zinc-100 pt-5">
+          <h4 className="text-sm font-semibold text-zinc-900">Key risk signals</h4>
+          <p className="mt-1 text-xs text-zinc-500">The strongest supported feature contributions, normalized for review.</p>
+          <div className="mt-4">
+            <RiskDriverList drivers={viewModel.model.risk_drivers} />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function RuleFindingsCard({ viewModel }: { viewModel: AnalysisDetailViewModel }) {
+  const { summary } = viewModel;
+  const { rule_findings: findings } = viewModel.model;
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Deterministic checks</CardTitle>
+        <CardDescription>Rule results and evidence counts returned with this record.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-5">
+        <dl className="grid gap-4 sm:grid-cols-3">
+          <div>
+            <dt className="text-[11px] text-zinc-500">Rule score</dt>
+            <dd className="mt-1 text-sm text-zinc-800">{summary.rule_score === null ? "Not supplied" : summary.rule_score.toFixed(3)}</dd>
+          </div>
+          <div>
+            <dt className="text-[11px] text-zinc-500">Triggered checks</dt>
+            <dd className="mt-1 text-sm text-zinc-800">{summary.rule_triggers_count}</dd>
+          </div>
+          <div>
+            <dt className="text-[11px] text-zinc-500">Evidence references</dt>
+            <dd className="mt-1 text-sm text-zinc-800">{summary.evidence_ref_count}</dd>
+          </div>
+        </dl>
+        <div className="border-t border-zinc-100 pt-5">
+          <h4 className="text-sm font-semibold text-zinc-900">Findings</h4>
+          {findings.length > 0 ? (
+            <ul className="mt-3 divide-y divide-zinc-200 rounded-lg border border-zinc-200">
+              {findings.map((finding) => (
+                <li key={`${finding.label}-${finding.evidence ?? "none"}`} className="space-y-1 px-4 py-3 text-sm">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <span className="font-medium text-zinc-900">{finding.label}</span>
+                    {finding.severity ? <span className="text-xs text-amber-700">{finding.severity}</span> : null}
+                  </div>
+                  {finding.detail ? <p className="text-xs text-zinc-600">{finding.detail}</p> : null}
+                  {finding.evidence ? <p className="text-xs text-zinc-500">Evidence: {finding.evidence}</p> : null}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 text-sm text-zinc-600">
+              {summary.rule_triggers_count === 0 ? "No rule findings were recorded." : "Rule finding details were not supplied."}
+            </p>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function DataAvailabilityCard({ missingFields }: { missingFields: readonly string[] }) {
+  const missing = missingFields.map(analysisFieldLabel);
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Data availability</CardTitle>
+        <CardDescription>Supporting values are shown only when the analysis supplied a meaningful result.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm leading-6 text-zinc-700">
+          {missing.length === 0
+            ? "The core record and normalized analysis metrics are available."
+            : `Not supplied: ${missing.join(", ")}.`}
+        </p>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -291,32 +432,7 @@ function EmailRecordView({ viewModel }: { viewModel: AnalysisDetailViewModel }) 
   );
 }
 
-function AnalysisEntryCard({
-  title,
-  description,
-  entries,
-  emptyLabel,
-}: {
-  title: string;
-  description: string;
-  entries: readonly SafeAnalysisEntry[];
-  emptyLabel: string;
-}) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <EntryList entries={entries} emptyLabel={emptyLabel} />
-      </CardContent>
-    </Card>
-  );
-}
-
 function PcapRecordView({ viewModel }: { viewModel: AnalysisDetailViewModel }) {
-  const missingFields = new Set(viewModel.model.missing_fields);
   const summary = viewModel.summary;
   const relatedInbox = viewModel.inbox.state === "available"
     ? viewModel.inbox.detail
@@ -338,69 +454,18 @@ function PcapRecordView({ viewModel }: { viewModel: AnalysisDetailViewModel }) {
               ["Capture ID", displayValue(summary.capture_id)],
               ["Session ID", displayValue(summary.session_id)],
               ["Request ID", displayValue(summary.request_id)],
+              ["Client ID", displayValue(summary.client_id)],
               ["Protocol", displayValue(summary.protocol)],
               ["Posture", displayValue(summary.posture)],
               ["Observed", formatTimestamp(summary.timestamp)],
-              ["Rule score", summary.rule_score === null ? "Not supplied" : String(summary.rule_score)],
-              ["Rule triggers", String(summary.rule_triggers_count)],
-              ["Evidence references", String(summary.evidence_ref_count)],
             ]}
           />
         </CardContent>
       </Card>
 
-      <AnalysisEntryCard
-        title="Model bundle"
-        description="Backend-provided model bundle and version fields."
-        entries={viewModel.model.bundle}
-        emptyLabel="No persisted model bundle values"
-      />
-      <AnalysisEntryCard
-        title="ML scores"
-        description="Backend-provided model classes and probabilities."
-        entries={viewModel.model.scores}
-        emptyLabel="No persisted model score values"
-      />
-      <Card>
-        <CardHeader>
-          <CardTitle>Explanations</CardTitle>
-          <CardDescription>Feature contributions and explanation fields returned by the API.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <EntryList entries={viewModel.model.explanations} emptyLabel="No persisted explanation values" />
-          <p className="mt-5 border-t border-zinc-100 pt-4 text-xs leading-5 text-zinc-600">
-            Model explanations describe model behavior and are not proof of attacker intent.
-          </p>
-        </CardContent>
-      </Card>
-      <AnalysisEntryCard
-        title="Rule findings"
-        description="Deterministic findings returned with the persisted analysis."
-        entries={viewModel.model.rule_findings}
-        emptyLabel="No persisted rule findings"
-      />
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Field availability</CardTitle>
-          <CardDescription>Fields present in the normalized analysis record.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <dl className="grid gap-2 sm:grid-cols-2">
-            {ANALYSIS_DETAIL_FIELDS.map((field) => {
-              const missing = missingFields.has(field);
-              return (
-                <div key={field} className="flex items-center justify-between gap-3 rounded border border-zinc-200 px-3 py-2 text-xs">
-                  <dt className="break-words font-mono text-zinc-600">{field}</dt>
-                  <dd className={missing ? "text-amber-700" : "text-emerald-700"}>
-                    {missing ? "Not supplied" : "Available"}
-                  </dd>
-                </div>
-              );
-            })}
-          </dl>
-        </CardContent>
-      </Card>
+      <AnalysisSummaryCard viewModel={viewModel} />
+      <RuleFindingsCard viewModel={viewModel} />
+      <DataAvailabilityCard missingFields={viewModel.model.missing_fields} />
 
       {relatedInbox ? (
         <Card>
