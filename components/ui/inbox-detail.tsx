@@ -22,6 +22,8 @@ import type {
   EmailDetails,
   HeaderDetails,
   InboxDetailResponse,
+  InboxDetailTab,
+  IpReputationDetails,
   NetworkDetails,
   Section,
   TlsDetails,
@@ -35,11 +37,10 @@ type InboxDetailProps = {
   error: string | null;
   onRetry: () => void;
   onBack: () => void;
+  initialTab?: InboxDetailTab;
 };
 
-type TabKey = "email" | "headers" | "content" | "network" | "tls";
-
-const tabs: Array<{ key: TabKey; label: string; icon: typeof Mail }> = [
+const tabs: Array<{ key: InboxDetailTab; label: string; icon: typeof Mail }> = [
   { key: "email", label: "Email", icon: Mail },
   { key: "headers", label: "Headers", icon: FileText },
   { key: "content", label: "Preview", icon: FileText },
@@ -230,12 +231,64 @@ function ContentPanel({ section }: { section: Section<ContentDetails> }) {
   );
 }
 
+function formatQualityScore(value: number | null) {
+  if (value === null) return "Not supplied";
+  return `${Math.max(0, Math.min(100, value)).toFixed(0)}/100`;
+}
+
+function IpReputationPanel({ details }: { details: IpReputationDetails | null }) {
+  if (!details) {
+    return (
+      <div role="status" className="rounded-lg border border-zinc-200 bg-zinc-50 p-5 text-sm text-zinc-700">
+        IP reputation data was not supplied for this stream.
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-5">
+      <PanelHeading icon={Network} title="IP reputation" />
+      <DataList
+        entries={[
+          ["IP address", valueOrFallback(details.address)],
+          [
+            "Spamhaus",
+            details.spamhaus_listed === null
+              ? "Not supplied"
+              : details.spamhaus_listed
+                ? "Listed"
+                : "Not listed",
+          ],
+          ["IP quality score", formatQualityScore(details.quality_score)],
+          ["Quality level", valueOrFallback(details.quality_level)],
+          ["Quality source", valueOrFallback(details.quality_source)],
+          ["Hosting / datacenter", formatBoolean(details.hosting)],
+          ["Proxy", formatBoolean(details.proxy)],
+          ["ISP", valueOrFallback(details.isp)],
+          ["Organization", valueOrFallback(details.organization)],
+          ["Location", [details.city, details.country].filter(Boolean).join(", ") || "Not supplied"],
+          ["Reverse DNS", valueOrFallback(details.reverse_dns)],
+        ]}
+      />
+      {details.issues.length > 0 ? (
+        <div className="mt-5 border-t border-zinc-200 pt-4">
+          <p className="text-[11px] tracking-tighter text-zinc-500">IP issues</p>
+          <ul className="mt-2 space-y-2 text-sm text-zinc-800">
+            {details.issues.map((issue) => <li key={issue}>{issue}</li>)}
+          </ul>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function NetworkPanel({ section }: { section: Section<NetworkDetails> }) {
   if (section.state !== "available" || !section.data) return <SectionState section={section} />;
   const network = section.data;
 
   return (
     <div className="space-y-5">
+      <IpReputationPanel details={network.ip_reputation} />
       <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-5">
         <PanelHeading icon={Network} title="TCP stream analysis" />
         <DataList
@@ -284,11 +337,22 @@ function TlsPanel({ section }: { section: Section<TlsDetails> }) {
             ["Handshake", formatBoolean(tls.handshake_success)],
             ["Handshake failures", valueOrFallback(tls.handshake_failures)],
             ["Version", valueOrFallback(tls.version)],
+            ["Version status", valueOrFallback(tls.version_status)],
             ["Cipher suite", valueOrFallback(tls.cipher_suite)],
             ["Supported versions", tls.supported_versions.join(", ") || "Not observed"],
             ["Supported groups", tls.supported_groups.join(", ") || "Not observed"],
           ]}
         />
+      </div>
+      <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-5">
+        <PanelHeading icon={AlertTriangle} title="TLS warnings" />
+        {tls.warnings.length > 0 ? (
+          <ul className="space-y-2 text-sm text-zinc-800">
+            {tls.warnings.map((warning) => <li key={warning}>{warning}</li>)}
+          </ul>
+        ) : (
+          <p className="text-sm text-zinc-600">No warnings supplied.</p>
+        )}
       </div>
       <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-5">
         <PanelHeading icon={LockKeyhole} title="Certificate posture" />
@@ -320,7 +384,7 @@ function DetailSkeleton() {
   );
 }
 
-function renderPanel(tab: TabKey, detail: InboxDetailResponse) {
+function renderPanel(tab: InboxDetailTab, detail: InboxDetailResponse) {
   switch (tab) {
     case "email":
       return <EmailPanel section={detail.email} />;
@@ -341,14 +405,15 @@ export default function InboxDetail({
   error,
   onRetry,
   onBack,
+  initialTab = "content",
 }: InboxDetailProps) {
-  const [activeTab, setActiveTab] = useState<TabKey>("content");
+  const [activeTab, setActiveTab] = useState<InboxDetailTab>(initialTab);
 
-  if (status === "loading") return <DetailSkeleton />;
+  if (status === "loading" && !detail) return <DetailSkeleton />;
 
   if (status === "error") {
     return (
-      <section className="flex min-h-full flex-col justify-center p-6" aria-label="Selected message error">
+      <section className="flex min-h-full flex-col justify-start p-6" aria-label="Selected message error">
         <div role="alert" className="rounded-lg border border-rose-200 bg-rose-50 p-5 text-rose-800">
           <p className="font-medium">Message detail unavailable</p>
           <p className="mt-1 text-sm text-rose-700">{error ?? "The source did not return this message."}</p>
@@ -391,7 +456,7 @@ export default function InboxDetail({
     ? `/analytics?requestId=${encodeURIComponent(detail.analysis_ref.request_id)}`
     : null;
 
-  const selectTab = (key: TabKey) => setActiveTab(key);
+  const selectTab = (key: InboxDetailTab) => setActiveTab(key);
   const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
     const currentIndex = tabs.findIndex((tab) => tab.key === activeTab);
     let nextIndex = currentIndex;
@@ -409,7 +474,11 @@ export default function InboxDetail({
   const recipients = item.recipients.map((recipient) => recipient.address ?? "Not observed").join(", ") || "Not observed";
 
   return (
-    <section aria-labelledby="selected-message-heading" className="min-h-full bg-white">
+    <section
+      aria-labelledby="selected-message-heading"
+      aria-busy={status === "loading"}
+      className="min-h-full bg-white"
+    >
       <header className="border-b border-zinc-200 px-6 pb-5 pt-5">
         <div className="flex items-start justify-between gap-4">
           <div className="flex min-w-0 items-start gap-3">

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { CaptureQueueProvider } from "@/components/providers/capture-queue-provider";
+import LiveDataRefreshProvider from "@/components/providers/live-data-refresh-provider";
 import Sidebar from "@/components/ui/sidebar";
 
 const geistSans = Geist({
@@ -28,7 +29,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex h-screen w-full flex-col overflow-hidden bg-white">
         <div className="flex min-h-0 min-w-0 flex-1">
           <Sidebar />
-          <CaptureQueueProvider>{children}</CaptureQueueProvider>
+          <CaptureQueueProvider>
+            <LiveDataRefreshProvider />
+            {children}
+          </CaptureQueueProvider>
         </div>
       </body>
     </html>

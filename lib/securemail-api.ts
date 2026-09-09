@@ -1,3 +1,7 @@
+import { LIVE_DATA_CACHE_SECONDS } from "@/lib/live-data";
+
+export const SECUREMAIL_CACHE_TAG = "securemailscope:securemail";
+
 export type VerdictCount = {
   verdict: string;
   count: number;
@@ -206,7 +210,10 @@ async function getJson(path: string): Promise<unknown> {
       accept: "application/json",
       Authorization: apiKey,
     },
-    cache: "no-store",
+    next: {
+      revalidate: LIVE_DATA_CACHE_SECONDS,
+      tags: [SECUREMAIL_CACHE_TAG],
+    },
     signal: AbortSignal.timeout(5000),
   });
 
@@ -275,8 +282,12 @@ export async function getDashboardApiData({
 }: {
   range?: "7d" | "30d";
 } = {}): Promise<DashboardApiData> {
+  const cacheWindowStart =
+    Math.floor(Date.now() / (LIVE_DATA_CACHE_SECONDS * 1000)) *
+    LIVE_DATA_CACHE_SECONDS *
+    1000;
   const from = range
-    ? new Date(Date.now() - (range === "7d" ? 7 : 30) * 86_400_000).toISOString()
+    ? new Date(cacheWindowStart - (range === "7d" ? 7 : 30) * 86_400_000).toISOString()
     : null;
   const filter = from ? `&from=${encodeURIComponent(from)}` : "";
   const [statsResult, recordsResult, healthResult] = await Promise.allSettled([

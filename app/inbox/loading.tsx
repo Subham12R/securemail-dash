@@ -7,7 +7,7 @@ export default function Loading() {
       aria-label="Loading Inbox"
       className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white"
     >
-      <DashboardTopbar currentPage="Inbox" />
+      <DashboardTopbar currentPage="Inbox" showRefresh />
       <div className="min-h-0 flex-1 p-4 sm:p-6">
         <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border-2 border-neutral-200 bg-white">
           <div className="shrink-0 border-b border-zinc-200 p-5">

@@ -70,8 +70,6 @@ export default async function HomePage({ range }: { range: "all" | "7d" | "30d" 
     riskScore: record.risk_score,
     status: formatVerdict(record.final_verdict),
   }));
-  const apiReturnedNoAnalyses = stats?.total_analyses === 0;
-
   return (
     <main
       className="h-full min-h-0 min-w-0 flex-1 overflow-y-auto bg-white"
@@ -92,16 +90,6 @@ export default async function HomePage({ range }: { range: "all" | "7d" | "30d" 
           </div>
         </div>
 
-        {dashboard.error || apiReturnedNoAnalyses ? (
-          <div
-            role="status"
-            className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800"
-          >
-            {dashboard.error
-              ? `${dashboard.error}. Values not returned by the API remain unavailable.`
-              : "SecureMail API connected, but no analyses have been persisted yet."}
-          </div>
-        ) : null}
 
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {metrics.map((metric) => {

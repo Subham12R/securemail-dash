@@ -57,6 +57,21 @@ const rawEmail = {
       Flagged: true,
       Indicators: [{ Category: "IP", Description: "Test finding", Level: "high" }],
     },
+    IP: {
+      IP: "203.0.113.10",
+      IPInfo: {
+        Hosting: true,
+        Proxy: false,
+        ISP: "Example ISP",
+        Org: "Example Org",
+        ReverseDNS: "mail.example.test",
+        Country: "United States",
+        City: "Austin",
+      },
+      Spamhaus: { Listed: false },
+      Fraud: { Score: 12, Level: "low", Source: "composite" },
+      Issues: ["Test IP issue"],
+    },
     Auth: {
       SPF: { Result: "fail", Details: "failed" },
       DKIM: { Result: "neutral", Details: "not verified" },
@@ -65,12 +80,14 @@ const rawEmail = {
     TLS: {
       Secure: true,
       Version: "TLS 1.3",
+      VersionStatus: "current",
+      Warnings: ["Test TLS warning"],
       CipherSuite: "TLS_AES_128_GCM_SHA256",
       ForwardSecrecy: true,
       CertificatePinning: false,
     },
     TCP: {
-      Flags: { SYN: "ok", ACK: "ok", RST: "ok" },
+      Flags: { SYN: true, ACK: false, RST: "ok" },
       PacketRatio: 1,
       AvgPacketSize: 100,
       Anomalies: [],
@@ -87,6 +104,16 @@ const rawEmail = {
         session_id: "session-1",
         protocol: "SMTP",
         source_type: "authorized_capture",
+        observations: {
+          starttls_advertised: true,
+          cert_present: true,
+          cert_expired: false,
+          cert_chain_valid: true,
+          hostname_mismatch: false,
+          cert_key_algorithm: "RSA",
+          cert_key_length_bits: 2048,
+          signature_algorithm: "RSA-PSS",
+        },
       },
     },
   },
@@ -113,6 +140,35 @@ test("normalizes the live inbox list into the existing contract", () => {
   assert.equal(response.items[0]?.analysis.request_id, "request-1");
 });
 
+test("treats an explicit empty live inbox as an empty list", () => {
+  const response = normalizeInboxApiList(
+    { success: true, data: null, meta: { total: 0, page: 1, limit: 20 } },
+    { skip: 0, limit: 20 },
+  );
+
+  assert.equal(response.total, 0);
+  assert.deepEqual(response.items, []);
+  assert.deepEqual(response.counts, { all: 0, flagged: 0, healthy: 0 });
+});
+
+test("bounds HTML-only content and ignores invalid numeric entities", () => {
+  const detail = normalizeInboxApiDetail({
+    success: true,
+    data: {
+      ...rawEmail,
+      email: {
+        ...rawEmail.email,
+        TextBody: undefined,
+        HTMLBody: `<p>Hello &#x110000; &amp; welcome</p>${"x".repeat(50_000)}`,
+      },
+    },
+  });
+
+  assert.equal(detail.content.data?.text.startsWith("Hello"), true);
+  assert.equal(detail.content.data?.truncated, true);
+  assert.equal(JSON.stringify(detail).includes("110000"), false);
+});
+
 test("normalizes live detail while withholding unbounded raw message data", () => {
   const detail = normalizeInboxApiDetail({ success: true, data: rawEmail });
 
@@ -120,8 +176,27 @@ test("normalizes live detail while withholding unbounded raw message data", () =
   assert.equal(detail.email.data?.message_id, "<message@example.com>");
   assert.equal(detail.content.data?.text, "Bounded message text");
   assert.equal(detail.network.data?.packet_count, 12);
+  assert.equal(detail.network.data?.ip_reputation?.address, "203.0.113.10");
+  assert.equal(detail.network.data?.ip_reputation?.spamhaus_listed, false);
+  assert.equal(detail.network.data?.ip_reputation?.quality_score, 12);
+  assert.equal(detail.network.data?.ip_reputation?.quality_source, "composite");
+  assert.equal(detail.network.data?.ip_reputation?.hosting, true);
+  assert.deepEqual(detail.network.data?.ip_reputation?.issues, ["Test IP issue"]);
+  assert.deepEqual(detail.network.data?.tcp_flags, {
+    SYN: "present",
+    ACK: "absent",
+    RST: "present",
+  });
   assert.equal(detail.tls.data?.starttls_advertised, true);
+  assert.equal(detail.tls.data?.certificate.present, true);
+  assert.equal(detail.tls.data?.certificate.expired, false);
+  assert.equal(detail.tls.data?.certificate.chain_valid, true);
+  assert.equal(detail.tls.data?.certificate.key_algorithm, "RSA");
+  assert.equal(detail.tls.data?.certificate.key_length_bits, 2048);
+  assert.equal(detail.tls.data?.certificate.signature_algorithm, "RSA-PSS");
   assert.equal(detail.tls.data?.version, "TLS 1.3");
+  assert.equal(detail.tls.data?.version_status, "current");
+  assert.deepEqual(detail.tls.data?.warnings, ["Test TLS warning"]);
   assert.equal(detail.headers.data?.authentication.spf, "fail");
   assert.equal(detail.analysis_ref.request_id, "request-1");
   assert.equal(JSON.stringify(detail).includes("RAW BODY MUST NOT LEAK"), false);

@@ -35,7 +35,7 @@ export default async function HistoryPage(props: PageProps<"/history">) {
       className="h-full min-h-0 min-w-0 flex-1 overflow-y-auto bg-white"
       aria-label="History page"
     >
-      <DashboardTopbar currentPage="History" />
+      <DashboardTopbar currentPage="History" showRefresh />
       <section aria-labelledby="history-page-heading" className="px-6 pt-6">
         <h1
           id="history-page-heading"

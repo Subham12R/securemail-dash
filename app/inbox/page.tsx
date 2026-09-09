@@ -1,30 +1,42 @@
 import InboxWorkspace from "@/components/ui/inbox-workspace";
 import DashboardTopbar from "@/components/ui/dashboard-topbar";
-import { getInboxFilterFromQuery } from "@/lib/inbox-data";
+import {
+  getInboxFilterFromQuery,
+  getInboxTabFromQuery,
+} from "@/lib/inbox-data";
 
 type InboxPageProps = {
   searchParams: Promise<{
     itemId?: string | string[];
+    requestId?: string | string[];
     filter?: string | string[];
+    tab?: string | string[];
   }>;
 };
 
+function firstQueryValue(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
 export default async function InboxPage({ searchParams }: InboxPageProps) {
   const params = await searchParams;
-  const itemId = Array.isArray(params.itemId) ? params.itemId[0] : params.itemId;
-  const filterValue = Array.isArray(params.filter) ? params.filter[0] : params.filter;
-  const initialFilter = getInboxFilterFromQuery(filterValue);
+  const itemId = firstQueryValue(params.itemId);
+  const requestId = firstQueryValue(params.requestId);
+  const initialFilter = getInboxFilterFromQuery(firstQueryValue(params.filter));
+  const initialTab = getInboxTabFromQuery(firstQueryValue(params.tab));
 
   return (
     <main
       className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white"
       aria-label="Inbox page"
     >
-      <DashboardTopbar currentPage="Inbox" />
+      <DashboardTopbar currentPage="Inbox" showRefresh />
       <InboxWorkspace
-        key={`${initialFilter}:${itemId ?? ""}`}
+        key={`${initialFilter}:${itemId ?? ""}:${requestId ?? ""}:${initialTab}`}
         initialItemId={itemId}
+        initialRequestId={requestId}
         initialFilter={initialFilter}
+        initialTab={initialTab}
       />
     </main>
   );

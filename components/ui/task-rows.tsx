@@ -164,49 +164,51 @@ export default function TaskRows({
             role="listitem"
             className="overflow-hidden rounded-xl border border-zinc-200 bg-white transition-colors hover:bg-zinc-50"
           >
-            <button
-              type="button"
-              aria-expanded={open}
-              className="flex min-h-12 w-full items-center gap-2.5 px-3 text-left focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-zinc-900"
-              onClick={() => {
-                setManualOpen((current) => ({ ...current, [row.key]: !open }));
-                onToggleRow?.(row.key, !open);
-              }}
-            >
-              <StatusMark status={row.status} step={row.step} />
-              <span className="min-w-0 flex-1 truncate text-xs font-medium text-zinc-900">
-                {row.label}
-              </span>
-              <span className="text-[11px] tabular-nums text-zinc-500">
-                {row.amount}
-              </span>
-              <StatusPill status={row.status} />
-              <svg
-                width="15"
-                height="15"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-                className={`size-4 shrink-0 text-zinc-400 transition-transform ${open ? "rotate-180" : ""}`}
-              >
-                <path d="m6 9 6 6 6-6" />
-              </svg>
-            </button>
-            {onRemoveRow && row.status !== "running" ? (
+            <div className="flex min-h-12 items-center px-3">
               <button
                 type="button"
-                aria-label={`Delete ${row.label} from queue`}
-                title="Delete from queue"
-                onClick={() => onRemoveRow(row.key)}
-                className="grid size-9 shrink-0 place-items-center rounded-lg text-zinc-400 outline-none transition-colors hover:bg-red-50 hover:text-red-600 focus-visible:ring-2 focus-visible:ring-red-600"
+                aria-expanded={open}
+                className="flex min-w-0 flex-1 items-center gap-2.5 text-left focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-zinc-900"
+                onClick={() => {
+                  setManualOpen((current) => ({ ...current, [row.key]: !open }));
+                  onToggleRow?.(row.key, !open);
+                }}
               >
-                <Trash2 aria-hidden="true" className="size-4" />
+                <StatusMark status={row.status} step={row.step} />
+                <span className="min-w-0 flex-1 truncate text-xs font-medium text-zinc-900">
+                  {row.label}
+                </span>
+                <span className="text-[11px] tabular-nums text-zinc-500">
+                  {row.amount}
+                </span>
+                <StatusPill status={row.status} />
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                  className={`size-4 shrink-0 text-zinc-400 transition-transform ${open ? "rotate-180" : ""}`}
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
               </button>
-            ) : null}
+              {onRemoveRow && row.status !== "running" ? (
+                <button
+                  type="button"
+                  aria-label={`Delete ${row.label} from queue`}
+                  title="Delete from queue"
+                  onClick={() => onRemoveRow(row.key)}
+                  className="ml-1 grid size-9 shrink-0 place-items-center rounded-lg text-zinc-400 outline-none transition-colors hover:bg-red-50 hover:text-red-600 focus-visible:ring-2 focus-visible:ring-red-600"
+                >
+                  <Trash2 aria-hidden="true" className="size-4" />
+                </button>
+              ) : null}
+            </div>
 
             {typeof row.progress === "number" && Number.isFinite(row.progress) ? (
               <div className="px-3 pb-2" role="progressbar" aria-label={`${row.label} progress`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={row.progress}>

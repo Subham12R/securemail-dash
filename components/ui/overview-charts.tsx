@@ -159,7 +159,7 @@ export default function OverviewCharts({
               <div className="relative">
                 <BarChartSkeleton />
                 <p className="absolute left-1/2 top-1/2 max-w-[80%] -translate-x-1/2 -translate-y-1/2 rounded-md bg-white/90 px-3 py-1 text-center text-sm text-zinc-500">
-                  No verdict data yet
+                  No data available
                 </p>
               </div>
             )}
@@ -238,7 +238,7 @@ export default function OverviewCharts({
                   role="status"
                   className="absolute left-1/2 top-1/2 max-w-[80%] -translate-x-1/2 -translate-y-1/2 rounded-md bg-white/90 px-3 py-1 text-center text-sm text-zinc-500"
                 >
-                  Posture data is not supplied by the current API
+                  No data available
                 </p>
               </div>
             )}

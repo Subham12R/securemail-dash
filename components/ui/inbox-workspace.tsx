@@ -3,19 +3,23 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { X } from "lucide-react";
 import InboxDetail from "@/components/ui/inbox-detail";
+import { LIVE_DATA_REFRESH_EVENT } from "@/lib/live-data";
 import InboxList from "@/components/ui/inbox-list";
 import {
   filterInboxItems,
   parseInboxDetailResponse,
   parseInboxListResponse,
   type InboxDetailResponse,
+  type InboxDetailTab,
   type InboxFilter,
   type InboxListResponse,
 } from "@/lib/inbox-data";
 
 type InboxWorkspaceProps = {
   initialItemId?: string;
+  initialRequestId?: string;
   initialFilter: InboxFilter;
+  initialTab: InboxDetailTab;
 };
 
 type RequestStatus = "idle" | "loading" | "success" | "error";
@@ -46,7 +50,12 @@ async function responseError(response: Response, fallback: string) {
   return fallback;
 }
 
-export default function InboxWorkspace({ initialItemId, initialFilter }: InboxWorkspaceProps) {
+export default function InboxWorkspace({
+  initialItemId,
+  initialRequestId,
+  initialFilter,
+  initialTab,
+}: InboxWorkspaceProps) {
   const [list, setList] = useState<InboxListResponse | null>(null);
   const [listStatus, setListStatus] = useState<RequestStatus>("loading");
   const [listError, setListError] = useState<string | null>(null);
@@ -58,9 +67,14 @@ export default function InboxWorkspace({ initialItemId, initialFilter }: InboxWo
   const [detailStatus, setDetailStatus] = useState<RequestStatus>(initialItemId ? "loading" : "idle");
   const [detailError, setDetailError] = useState<string | null>(null);
   const [detailRetry, setDetailRetry] = useState(0);
+  const selectedIdRef = useRef<string | null>(initialItemId ?? null);
   const sheetRef = useRef<HTMLDialogElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    selectedIdRef.current = selectedId;
+  }, [selectedId]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -79,22 +93,33 @@ export default function InboxWorkspace({ initialItemId, initialFilter }: InboxWo
         setList(nextList);
         setListStatus("success");
         setListError(null);
-        setDetail(null);
-        setDetailError(null);
-        setDetailStatus(nextList.items.length > 0 ? "loading" : "idle");
-        setSelectedId((current) => {
-          if (current && nextList.items.some((item) => item.mail_item_id === current)) return current;
-          if (initialItemId && nextList.items.some((item) => item.mail_item_id === initialItemId)) return initialItemId;
-          return nextList.items[0]?.mail_item_id ?? null;
-        });
-        if (initialItemId && !nextList.items.some((item) => item.mail_item_id === initialItemId)) {
-          setSheetOpen(false);
+        const requestedItem = nextList.items.find(
+          (item) =>
+            (initialItemId !== undefined && item.mail_item_id === initialItemId) ||
+            (initialRequestId !== undefined && item.analysis.request_id === initialRequestId),
+        );
+        const currentSelectedId = selectedIdRef.current;
+        const nextSelectedId =
+          currentSelectedId && nextList.items.some((item) => item.mail_item_id === currentSelectedId)
+            ? currentSelectedId
+            : requestedItem?.mail_item_id ?? nextList.items[0]?.mail_item_id ?? null;
+        if (nextSelectedId !== currentSelectedId) {
+          setDetail(null);
+          setDetailError(null);
         }
+        setDetailStatus(nextSelectedId ? "loading" : "idle");
+        selectedIdRef.current = nextSelectedId;
+        setSelectedId(nextSelectedId);
+        if (requestedItem && (initialItemId !== undefined || initialRequestId !== undefined)) {
+          setSheetOpen(true);
+        }
+        if (initialItemId !== undefined && !requestedItem) setSheetOpen(false);
       } catch (error) {
         if (controller.signal.aborted) return;
         setList(null);
         setListStatus("error");
         setListError(error instanceof Error ? error.message : "The Inbox source is unavailable.");
+        selectedIdRef.current = null;
         setSelectedId(null);
         setSheetOpen(false);
         setDetail(null);
@@ -104,7 +129,20 @@ export default function InboxWorkspace({ initialItemId, initialFilter }: InboxWo
     })();
 
     return () => controller.abort();
-  }, [initialItemId, listRetry]);
+  }, [initialItemId, initialRequestId, listRetry]);
+
+  useEffect(() => {
+    const refresh = () => {
+      setListStatus("loading");
+      setListError(null);
+      setDetailStatus(selectedId ? "loading" : "idle");
+      setDetailError(null);
+      setListRetry((value) => value + 1);
+    };
+
+    window.addEventListener(LIVE_DATA_REFRESH_EVENT, refresh);
+    return () => window.removeEventListener(LIVE_DATA_REFRESH_EVENT, refresh);
+  }, [selectedId]);
 
   useEffect(() => {
     if (!selectedId) return;
@@ -164,6 +202,7 @@ export default function InboxWorkspace({ initialItemId, initialFilter }: InboxWo
       setDetail(null);
       setDetailStatus("loading");
       setDetailError(null);
+      selectedIdRef.current = itemId;
       setSelectedId(itemId);
     }
     setSheetOpen(true);
@@ -175,6 +214,7 @@ export default function InboxWorkspace({ initialItemId, initialFilter }: InboxWo
     if (selectedId && nextItems.some((item) => item.mail_item_id === selectedId)) return;
 
     const nextId = nextItems[0]?.mail_item_id ?? null;
+    selectedIdRef.current = nextId;
     setSelectedId(nextId);
     setSheetOpen(false);
     setDetail(null);
@@ -211,6 +251,7 @@ export default function InboxWorkspace({ initialItemId, initialFilter }: InboxWo
           selectedId={selectedId}
           source={list?.source}
           isLoading={listStatus === "loading"}
+          hasLoaded={list !== null}
           error={listError}
           onFilterChange={changeFilter}
           onSelect={selectItem}
@@ -254,6 +295,7 @@ export default function InboxWorkspace({ initialItemId, initialFilter }: InboxWo
                 error={detailError}
                 onRetry={retryDetail}
                 onBack={closeSheet}
+                initialTab={initialTab}
               />
             </div>
           </div>

@@ -39,7 +39,7 @@ const quickRanges: QuickRange[] = [
 ];
 
 function presetClassName(active: boolean) {
-  return `rounded px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 ${active ? "bg-zinc-900 text-white" : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"}`;
+  return `inline-flex h-8 items-center rounded px-3 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 ${active ? "bg-zinc-900 text-white" : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"}`;
 }
 
 function rangeFor(days: number, currentDay: CalendarDate): RangeValue<CalendarDate> {
@@ -155,7 +155,7 @@ export default function DateRangeFilter({
   }
 
   return (
-    <nav aria-label="Analysis date range" className="flex rounded-md border border-zinc-200 p-1">
+    <nav aria-label="Analysis date range" className="flex h-10 items-center rounded-md border border-zinc-200 p-1">
       {presets.map((option) => (
         <Link
           key={option.value}

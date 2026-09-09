@@ -121,7 +121,6 @@ export default function HistoryTable({
 }) {
   const [query, setQuery] = useState("");
   const [verdict, setVerdict] = useState("All verdicts");
-  const [source, setSource] = useState("All sources");
   const [dateRange, setDateRange] = useState<SelectedDateRange | null>(null);
   const totalPages = Math.max(1, Math.ceil(total / limit));
   const firstRecord = total === 0 ? 0 : (page - 1) * limit + 1;
@@ -132,12 +131,6 @@ export default function HistoryTable({
       label: "Verdict",
       value: verdict,
       options: ["All verdicts", ...Array.from(new Set(records.map((record) => formatVerdict(record.final_verdict)))).sort()],
-    },
-    {
-      name: "source",
-      label: "Source",
-      value: source,
-      options: ["All sources", ...Array.from(new Set(records.map((record) => record.source_label ?? "Not supplied"))).sort()],
     },
   ];
   const filteredRecords = useMemo(() => {
@@ -150,15 +143,13 @@ export default function HistoryTable({
       const identifier = `${record.client_id ?? record.session_id} ${record.request_id}`.toLowerCase();
       const matchesQuery = !normalizedQuery || identifier.includes(normalizedQuery);
       const matchesVerdict = verdict === "All verdicts" || formatVerdict(record.final_verdict) === verdict;
-      const recordSource = record.source_label ?? "Not supplied";
-      const matchesSource = source === "All sources" || recordSource === source;
       const recordTime = new Date(record.timestamp).getTime();
       const matchesDate = start === undefined || end === undefined || (
         Number.isFinite(recordTime) && recordTime >= start && recordTime < end + 86_400_000
       );
-      return matchesQuery && matchesVerdict && matchesSource && matchesDate;
+      return matchesQuery && matchesVerdict && matchesDate;
     });
-  }, [dateRange, query, records, source, verdict]);
+  }, [dateRange, query, records, verdict]);
 
   return (
     <section aria-labelledby="history-heading" className="p-6">
@@ -175,7 +166,6 @@ export default function HistoryTable({
           onQueryChange={setQuery}
           onFilterChange={(name, value) => {
             if (name === "verdict") setVerdict(value);
-            if (name === "source") setSource(value);
           }}
           onRangeChange={(nextRange) => setDateRange(nextRange)}
           showExport
@@ -187,7 +177,7 @@ export default function HistoryTable({
             tabIndex={0}
             aria-label="Analysis history table"
           >
-            <table className="w-full min-w-[980px] border-collapse text-left text-sm">
+            <table className="w-full min-w-[860px] border-collapse text-left text-sm">
               <caption className="sr-only">
                 Paginated SecureMail analysis history
               </caption>
@@ -198,15 +188,13 @@ export default function HistoryTable({
                   <th scope="col" className="px-5 py-3">Request ID</th>
                   <th scope="col" className="px-5 py-3">Risk score</th>
                   <th scope="col" className="px-5 py-3">Verdict</th>
-                  <th scope="col" className="px-5 py-3">Source</th>
-                  <th scope="col" className="px-5 py-3">Rule triggers</th>
+                  <th scope="col" className="px-5 py-3">IP</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100">
                 {filteredRecords.length > 0 ? (
                   filteredRecords.map((record) => {
                     const verdict = formatVerdict(record.final_verdict);
-                    const source = record.source_label ?? "Not supplied";
 
                     return (
                       <tr key={record.id} className="text-zinc-700">
@@ -242,18 +230,20 @@ export default function HistoryTable({
                             <span><MorphingText>{verdict}</MorphingText></span>
                           </RichButton>
                         </td>
-                        <td className="px-5 py-4 text-xs text-zinc-600">
-                          {record.is_synthetic ? "Synthetic" : source}
-                        </td>
-                        <td className="px-5 py-4 text-center tabular-nums text-zinc-700">
-                          {record.rule_triggers_count}
+                        <td className="px-5 py-4">
+                          <Link
+                            href={`/inbox?requestId=${encodeURIComponent(record.request_id)}&tab=network`}
+                            className="font-medium text-sky-700 underline decoration-sky-300 underline-offset-2 transition-colors hover:text-sky-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-700"
+                          >
+                            IP
+                          </Link>
                         </td>
                       </tr>
                     );
                   })
                 ) : (
                   <tr>
-                    <td colSpan={7} className="px-5 py-14 text-center text-sm text-zinc-500">
+                    <td colSpan={6} className="px-5 py-14 text-center text-sm text-zinc-500">
                       No analysis records match the current filters.
                     </td>
                   </tr>

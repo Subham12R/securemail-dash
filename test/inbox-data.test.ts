@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   filterInboxItems,
   getInboxFilterFromQuery,
+  getInboxTabFromQuery,
   getInboxDataSource,
   parseInboxListResponse,
   type InboxListResponse,
@@ -37,6 +38,8 @@ test("inbox filter links accept only supported filters", () => {
   assert.equal(getInboxFilterFromQuery("flagged"), "flagged");
   assert.equal(getInboxFilterFromQuery("healthy"), "healthy");
   assert.equal(getInboxFilterFromQuery("unexpected"), "all");
+  assert.equal(getInboxTabFromQuery("network"), "network");
+  assert.equal(getInboxTabFromQuery("deprecated"), "content");
 });
 
 test("local inbox filters use backend-provided triage state", async () => {

@@ -93,7 +93,7 @@ export default function Sidebar() {
           }`}
         >
           <Image
-            src="/logo.png"
+            src="/logo-mark.png"
             alt="SecureMailScope"
             width={32}
             height={32}

@@ -18,6 +18,7 @@ type InboxListProps = {
   selectedId: string | null;
   source?: InboxSource;
   isLoading: boolean;
+  hasLoaded: boolean;
   error: string | null;
   onFilterChange: (filter: InboxFilter) => void;
   onSelect: (itemId: string, trigger: HTMLButtonElement) => void;
@@ -103,6 +104,7 @@ export default function InboxList({
   selectedId,
   source,
   isLoading,
+  hasLoaded,
   error,
   onFilterChange,
   onSelect,
@@ -111,6 +113,7 @@ export default function InboxList({
   return (
     <section
       aria-labelledby="inbox-list-heading"
+      aria-busy={isLoading}
       className="flex min-h-0 min-w-0 flex-1 flex-col bg-white p-4 sm:p-6"
     >
       <header className="shrink-0 px-1 pb-4 pt-1 sm:px-0">
@@ -172,7 +175,7 @@ export default function InboxList({
 
       <Card className="min-h-0 flex-1 overflow-hidden">
         <div className="min-h-0 h-full overflow-y-auto">
-        {isLoading ? <ListSkeleton /> : null}
+        {isLoading && !hasLoaded ? <ListSkeleton /> : null}
 
         {!isLoading && error ? (
           <div role="alert" className="m-5 rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
@@ -188,13 +191,13 @@ export default function InboxList({
           </div>
         ) : null}
 
-        {!isLoading && !error && items.length === 0 ? (
+        {!error && hasLoaded && items.length === 0 ? (
           <p className="px-5 py-12 text-center text-sm text-zinc-600">
             No messages match this filter.
           </p>
         ) : null}
 
-        {!isLoading && !error && items.length > 0 ? (
+        {!error && items.length > 0 ? (
           <>
             <div className={cn(
               "hidden gap-3 border-b border-zinc-200 bg-zinc-50 px-5 py-2 pr-14 text-[11px] font-medium text-zinc-500 sm:grid",

@@ -11,13 +11,16 @@ import {
   type InboxDetailResponse,
   type InboxListItem,
   type InboxListResponse,
+  type IpReputationDetails,
   type MailAddress,
   type NetworkDetails,
   type Section,
   type TlsDetails,
   type ViewCheck,
 } from "./inbox-data.ts";
+import { LIVE_DATA_CACHE_SECONDS } from "./live-data.ts";
 
+export const INBOX_CACHE_TAG = "securemailscope:inbox";
 const DEFAULT_INBOX_API_URL = "https://inbox.tmpvault.com/api/emails";
 const MAX_FIELD_LENGTH = 2_048;
 const MAX_CONTENT_LENGTH = 12_000;
@@ -238,16 +241,127 @@ function normalizeHeaders(
   };
 }
 
+function decodeCodePoint(value: string, radix: number) {
+  const codePoint = Number.parseInt(value, radix);
+  return Number.isInteger(codePoint) && codePoint >= 0 && codePoint <= 0x10ffff
+    ? String.fromCodePoint(codePoint)
+    : " ";
+}
+
+function htmlToPlainText(value: string) {
+  return value
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, " ")
+    .replace(/<\s*br\s*\/?\s*>/gi, "\n")
+    .replace(/<\s*\/(?:p|div|li|tr|h[1-6])\s*>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&#x([0-9a-f]+);/gi, (_, code: string) => decodeCodePoint(code, 16))
+    .replace(/&#(\d+);/g, (_, code: string) => decodeCodePoint(code, 10))
+    .replace(/[ \t]+/g, " ")
+    .replace(/\n[ \t]+/g, "\n")
+    .trim();
+}
+
+function redactSensitiveText(value: string) {
+  const redactions = new Set<string>();
+  let text = value;
+  const replacements: Array<[name: string, pattern: RegExp]> = [
+    ["credential", /\b(password|passwd|passcode)\b\s*[:=]\s*[^\n]{0,200}/gi],
+    ["secret", /\b(api[- ]?key|access[- ]?token|token|secret)\b\s*[:=]\s*[^\n]{0,200}/gi],
+    ["private key", /-----BEGIN [^-]*PRIVATE KEY-----[\s\S]*?-----END [^-]*PRIVATE KEY-----/gi],
+  ];
+
+  for (const [name, pattern] of replacements) {
+    const nextText = text.replace(pattern, () => {
+      redactions.add(name);
+      return `[${name} redacted]`;
+    });
+    text = nextText;
+  }
+
+  return { text, redactions: [...redactions] };
+}
+
 function normalizeContent(email: RecordValue): ContentDetails | null {
-  const rawText = valueAt(email, "TextBody");
-  const text = boundedString(rawText, MAX_CONTENT_LENGTH);
-  if (text === null) return null;
+  const textBody = valueAt(email, "TextBody");
+  const htmlBody = valueAt(email, "HTMLBody");
+  const rawBody = valueAt(email, "RawBody");
+  const source =
+    typeof textBody === "string"
+      ? textBody
+      : typeof htmlBody === "string"
+        ? htmlToPlainText(htmlBody)
+        : typeof rawBody === "string"
+          ? htmlToPlainText(rawBody)
+          : null;
+  if (!source) return null;
+
+  const boundedSource = boundedString(source, MAX_CONTENT_LENGTH * 4);
+  if (!boundedSource) return null;
+  const safe = redactSensitiveText(boundedSource);
+  const text = boundedString(safe.text, MAX_CONTENT_LENGTH);
+  if (!text) return null;
 
   return {
     format: "plain_text",
     text,
-    truncated: typeof rawText === "string" && rawText.length > MAX_CONTENT_LENGTH,
-    redactions: [],
+    truncated: source.length > MAX_CONTENT_LENGTH || safe.text.length > MAX_CONTENT_LENGTH,
+    redactions: safe.redactions,
+  };
+}
+
+function normalizeTcpFlag(value: unknown): "present" | "absent" | "not_observed" {
+  if (value === true || value === 1) return "present";
+  if (value === false || value === 0) return "absent";
+  if (typeof value !== "string") return "not_observed";
+
+  switch (value.trim().toLowerCase()) {
+    case "present":
+    case "true":
+    case "set":
+    case "ok":
+    case "1":
+      return "present";
+    case "absent":
+    case "false":
+    case "not_present":
+    case "unset":
+    case "0":
+      return "absent";
+    default:
+      return "not_observed";
+  }
+}
+
+function normalizeIpReputation(
+  analysisIp: RecordValue | null,
+  stream: RecordValue,
+): IpReputationDetails | null {
+  const info = record(valueAt(analysisIp, "IPInfo"));
+  const spamhaus = record(valueAt(analysisIp, "Spamhaus"));
+  const fraud = record(valueAt(analysisIp, "Fraud"));
+  const address = stringAt(analysisIp, "IP") ?? stringAt(stream, "ClientIP");
+
+  if (!analysisIp && address === null) return null;
+
+  return {
+    address,
+    spamhaus_listed: booleanAt(spamhaus, "Listed"),
+    quality_score: numberAt(fraud, "Score"),
+    quality_level: stringAt(fraud, "Level"),
+    quality_source: stringAt(fraud, "Source"),
+    hosting: booleanAt(info, "Hosting"),
+    proxy: booleanAt(info, "Proxy"),
+    isp: stringAt(info, "ISP"),
+    organization: stringAt(info, "Org", "Organization"),
+    reverse_dns: stringAt(info, "ReverseDNS"),
+    country: stringAt(info, "Country"),
+    city: stringAt(info, "City"),
+    issues: stringArray(valueAt(analysisIp, "Issues"), MAX_EVIDENCE_LENGTH),
   };
 }
 
@@ -256,6 +370,7 @@ function normalizeNetwork(
   observations: RecordValue | null,
   tcp: RecordValue | null,
   evidenceRefs: string[],
+  analysisIp: RecordValue | null,
 ): NetworkDetails {
   const clientBytes = numberAt(stream, "ClientBytes");
   const serverBytes = numberAt(stream, "ServerBytes");
@@ -265,7 +380,9 @@ function normalizeNetwork(
   const rawFlags = record(valueAt(tcp, "Flags"));
   const tcpFlags: NetworkDetails["tcp_flags"] = {};
 
-  for (const name of Object.keys(rawFlags ?? {})) tcpFlags[name] = "not_observed";
+  for (const [name, value] of Object.entries(rawFlags ?? {})) {
+    tcpFlags[name] = normalizeTcpFlag(value);
+  }
 
   return {
     stream_id: stringOrNumberAt(stream, "StreamID") ?? "Not observed",
@@ -285,6 +402,7 @@ function normalizeNetwork(
     out_of_order: numberAt(observations, "out_of_order_count"),
     tcp_flags: tcpFlags,
     evidence_refs: evidenceRefs,
+    ip_reputation: normalizeIpReputation(analysisIp, stream),
   };
 }
 
@@ -299,7 +417,8 @@ function normalizeTls(
   const supportedGroups = stringArray(valueAt(streamTls, "ClientSupportedGroups"));
 
   return {
-    starttls_advertised: booleanAt(stream, "HasSTARTTLS"),
+    starttls_advertised:
+      booleanAt(stream, "HasSTARTTLS") ?? booleanAt(observations, "starttls_advertised"),
     starttls_used: booleanAt(observations, "starttls_used"),
     handshake_success: booleanAt(observations, "handshake_success"),
     handshake_failures: numberAt(observations, "handshake_failures"),
@@ -307,21 +426,36 @@ function normalizeTls(
       stringAt(analysisTls, "Version") ??
       stringAt(streamTls, "Version") ??
       stringAt(observations, "tls_version"),
+    version_status: stringAt(analysisTls, "VersionStatus"),
     cipher_suite:
       stringAt(analysisTls, "CipherSuite") ??
       stringAt(streamTls, "CipherSuite") ??
       stringAt(observations, "cipher_suite"),
     supported_versions: supportedVersions,
     supported_groups: supportedGroups,
+    warnings: stringArray(valueAt(analysisTls, "Warnings"), MAX_EVIDENCE_LENGTH),
     certificate: {
-      present: booleanAt(certificate, "Present", "present"),
-      expired: booleanAt(certificate, "Expired", "expired"),
-      chain_valid: booleanAt(certificate, "ChainValid", "chain_valid"),
-      hostname_mismatch: booleanAt(certificate, "HostnameMismatch", "hostname_mismatch"),
-      key_algorithm: stringAt(certificate, "KeyAlgorithm", "key_algorithm"),
-      key_length_bits: numberAt(certificate, "KeyLengthBits", "key_length_bits"),
+      present:
+        booleanAt(certificate, "Present", "present") ??
+        booleanAt(observations, "cert_present"),
+      expired:
+        booleanAt(certificate, "Expired", "expired") ??
+        booleanAt(observations, "cert_expired"),
+      chain_valid:
+        booleanAt(certificate, "ChainValid", "chain_valid") ??
+        booleanAt(observations, "cert_chain_valid"),
+      hostname_mismatch:
+        booleanAt(certificate, "HostnameMismatch", "hostname_mismatch") ??
+        booleanAt(observations, "hostname_mismatch"),
+      key_algorithm:
+        stringAt(certificate, "KeyAlgorithm", "key_algorithm") ??
+        stringAt(observations, "cert_key_algorithm"),
+      key_length_bits:
+        numberAt(certificate, "KeyLengthBits", "key_length_bits") ??
+        numberAt(observations, "cert_key_length_bits"),
       signature_algorithm:
         stringAt(certificate, "SignatureAlgorithm", "signature_algorithm") ??
+        stringAt(observations, "cert_signature_algorithm") ??
         stringAt(observations, "signature_algorithm"),
     },
   };
@@ -337,6 +471,7 @@ function normalizeExternalRecord(value: unknown): NormalizedExternal {
   const risk = record(valueAt(analysis, "Risk"));
   const analysisAuth = record(valueAt(analysis, "Auth"));
   const analysisTls = record(valueAt(analysis, "TLS"));
+  const analysisIp = record(valueAt(analysis, "IP"));
   const tcp = record(valueAt(analysis, "TCP"));
   const ai = record(valueAt(raw, "ai"));
   const aiResponse = record(valueAt(ai, "response"));
@@ -372,11 +507,11 @@ function normalizeExternalRecord(value: unknown): NormalizedExternal {
   );
   const subject = stringAt(raw, "subject") ?? stringAt(headers, "Subject");
   const observedAt = stringAt(raw, "received_at") ?? stringAt(email, "ReceivedAt");
-  const textBody = boundedString(valueAt(email, "TextBody"), MAX_CONTENT_LENGTH);
+  const content = normalizeContent(email ?? {});
   const evidenceRefs = stringArray(valueAt(record(valueAt(aiResponse, "result")), "evidence_refs"), MAX_EVIDENCE_LENGTH);
   const checks = {
     headers: observedCheck(headers !== null, "Available"),
-    content: observedCheck(textBody !== null, "Available"),
+    content: observedCheck(content !== null, "Available"),
     tcp: observedCheck(stream !== null || tcp !== null, "Available"),
     tls: observedCheck(streamTls !== null || analysisTls !== null, "Available"),
   };
@@ -395,7 +530,7 @@ function normalizeExternalRecord(value: unknown): NormalizedExternal {
     sender,
     recipients,
     subject,
-    preview: textBody ? boundedString(textBody.replace(/\s+/g, " ").trim(), 180) : null,
+    preview: content ? boundedString(content.text.replace(/\s+/g, " ").trim(), 180) : null,
     triage_state: hasTriageSignal ? (flagged ? "flagged" : "healthy") : "unavailable",
     view_checks: checks,
     analysis: analysisSummary,
@@ -409,9 +544,8 @@ function normalizeExternalRecord(value: unknown): NormalizedExternal {
     protocol: item.protocol,
     direction: "unknown",
   };
-  const content = normalizeContent(email ?? {});
   const network = stream
-    ? normalizeNetwork(stream, observations, tcp, evidenceRefs)
+    ? normalizeNetwork(stream, observations, tcp, evidenceRefs, analysisIp)
     : null;
   const tls = streamTls || analysisTls
     ? normalizeTls(stream ?? {}, streamTls ?? {}, analysisTls, observations)
@@ -448,6 +582,9 @@ function envelopeData(payload: unknown, expectArray: boolean): unknown {
   const source = record(payload);
   if (!source || source.success !== true) throw new InboxDataError();
   const data = valueAt(source, "data");
+  if (expectArray && data === null && numberAt(record(valueAt(source, "meta")), "total") === 0) {
+    return [];
+  }
   if (expectArray ? !Array.isArray(data) : !record(data)) throw new InboxDataError();
   return data;
 }
@@ -509,8 +646,11 @@ function configuredInboxUrl() {
 
 async function fetchJson(url: URL, notFoundIsNull = false): Promise<unknown | null> {
   const response = await fetch(url, {
-    cache: "no-store",
     headers: { accept: "application/json" },
+    next: {
+      revalidate: LIVE_DATA_CACHE_SECONDS,
+      tags: [INBOX_CACHE_TAG],
+    },
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   });
   if (notFoundIsNull && response.status === 404) return null;

@@ -1,4 +1,5 @@
 export type InboxFilter = "all" | "flagged" | "healthy";
+export type InboxDetailTab = "email" | "headers" | "content" | "network" | "tls";
 export type InboxSource = "fixture" | "live";
 
 export type TriageState = "flagged" | "healthy" | "unavailable";
@@ -80,6 +81,22 @@ export type ContentDetails = {
   redactions: string[];
 };
 
+export type IpReputationDetails = {
+  address: string | null;
+  spamhaus_listed: boolean | null;
+  quality_score: number | null;
+  quality_level: string | null;
+  quality_source: string | null;
+  hosting: boolean | null;
+  proxy: boolean | null;
+  isp: string | null;
+  organization: string | null;
+  reverse_dns: string | null;
+  country: string | null;
+  city: string | null;
+  issues: string[];
+};
+
 export type NetworkDetails = {
   stream_id: string;
   client_ip: string | null;
@@ -95,6 +112,7 @@ export type NetworkDetails = {
   out_of_order: number | null;
   tcp_flags: Record<string, "present" | "absent" | "not_observed">;
   evidence_refs: string[];
+  ip_reputation: IpReputationDetails | null;
 };
 
 export type TlsDetails = {
@@ -103,7 +121,9 @@ export type TlsDetails = {
   handshake_success: boolean | null;
   handshake_failures: number | null;
   version: string | null;
+  version_status: string | null;
   cipher_suite: string | null;
+  warnings: string[];
   supported_versions: string[];
   supported_groups: string[];
   certificate: {
@@ -294,6 +314,12 @@ export function parseInboxDetailResponse(value: unknown): InboxDetailResponse {
 
 export function getInboxFilterFromQuery(value: unknown): InboxFilter {
   return value === "flagged" || value === "healthy" || value === "all" ? value : "all";
+}
+
+export function getInboxTabFromQuery(value: unknown): InboxDetailTab {
+  return value === "email" || value === "headers" || value === "content" || value === "network" || value === "tls"
+    ? value
+    : "content";
 }
 
 export function filterInboxItems(
@@ -558,6 +584,21 @@ function networkDetails(item: InboxListItem): NetworkDetails {
       RST: "absent",
     },
     evidence_refs: [`${item.capture_id}:stream:${item.session_id}`],
+    ip_reputation: {
+      address: "104.195.127.17",
+      spamhaus_listed: false,
+      quality_score: item.triage_state === "flagged" ? 78 : 15,
+      quality_level: item.triage_state === "flagged" ? "elevated" : "low",
+      quality_source: "fixture",
+      hosting: true,
+      proxy: false,
+      isp: "Example Network",
+      organization: "Example Organization",
+      reverse_dns: "mail.example.test",
+      country: "United States",
+      city: "Austin",
+      issues: item.triage_state === "flagged" ? ["Preview IP reputation requires review."] : [],
+    },
   };
 }
 
@@ -568,6 +609,7 @@ function tlsDetails(item: InboxListItem): TlsDetails {
     handshake_success: true,
     handshake_failures: item.triage_state === "flagged" ? 3 : 0,
     version: item.triage_state === "flagged" ? "TLS1.0" : "TLS1.3",
+    version_status: item.triage_state === "flagged" ? "deprecated" : "current",
     cipher_suite:
       item.triage_state === "flagged"
         ? "TLS_RSA_WITH_3DES_EDE_CBC_SHA"
@@ -583,6 +625,7 @@ function tlsDetails(item: InboxListItem): TlsDetails {
       key_length_bits: item.triage_state === "flagged" ? 1024 : 2048,
       signature_algorithm: item.triage_state === "flagged" ? "SHA1-RSA" : "SHA256-RSA",
     },
+    warnings: item.triage_state === "flagged" ? ["Legacy TLS version requires review."] : [],
   };
 }
 
