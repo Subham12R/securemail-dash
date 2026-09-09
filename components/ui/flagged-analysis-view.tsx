@@ -1,11 +1,13 @@
 import { AlertTriangle, ArrowUpRight, Flag, Network, ShieldAlert } from "lucide-react";
 import Link from "next/link";
+import { Card } from "@/components/ui/card";
 import { MorphingText } from "@/components/ui/morphing-text";
-import type { InboxListItem, InboxListResponse, ViewCheck } from "@/lib/inbox-data";
+import type { InboxListItem, InboxListResponse, InboxSource, ViewCheck } from "@/lib/inbox-data";
 
 type FlaggedAnalysisViewProps = {
   items: readonly InboxListItem[];
   counts: InboxListResponse["counts"];
+  source?: InboxSource;
   error?: string | null;
 };
 
@@ -65,6 +67,7 @@ function RiskScore({ score }: { score: number | null }) {
 export default function FlaggedAnalysisView({
   items,
   counts,
+  source,
   error = null,
 }: FlaggedAnalysisViewProps) {
   return (
@@ -72,9 +75,14 @@ export default function FlaggedAnalysisView({
       <div className="border-b border-zinc-200 px-6 py-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Flag aria-hidden="true" className="size-5 text-rose-600" />
               <h1 id="flagged-analysis-heading" className="text-lg font-semibold tracking-tighter text-zinc-900">Flagged Emails</h1>
+              {source === "fixture" ? (
+                <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-medium tracking-tighter text-amber-700">
+                  Preview data
+                </span>
+              ) : null}
             </div>
             <p className="mt-1 text-sm text-zinc-600">
               <MorphingText>{counts.flagged}</MorphingText> items require analyst review · {counts.healthy} healthy items excluded
@@ -92,15 +100,20 @@ export default function FlaggedAnalysisView({
 
       <div className="p-6">
         {error ? (
-          <div role="alert" className="rounded-lg border border-rose-200 bg-rose-50 p-5 text-sm text-rose-800">
-            Flagged analysis is unavailable. {error}
-          </div>
+          <Card className="overflow-hidden">
+            <div role="alert" className="bg-rose-50 p-5 text-sm text-rose-800">
+              Flagged analysis is unavailable. {error}
+            </div>
+          </Card>
         ) : items.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-zinc-300 px-5 py-12 text-center text-sm text-zinc-600">
-            No backend-flagged emails are available.
-          </div>
+          <Card className="overflow-hidden">
+            <div className="px-5 py-12 text-center text-sm text-zinc-600">
+              No backend-flagged emails are available.
+            </div>
+          </Card>
         ) : (
-          <div className="overflow-x-auto rounded-lg border border-zinc-200" role="region" tabIndex={0} aria-label="Flagged email analysis table">
+          <Card className="overflow-hidden">
+            <div className="overflow-x-auto" role="region" tabIndex={0} aria-label="Flagged email analysis table">
             <table className="w-full min-w-[980px] border-collapse text-left text-sm">
               <caption className="sr-only">Backend-flagged email analysis</caption>
               <thead className="border-b border-zinc-200 bg-zinc-50 text-[11px] tracking-tighter text-zinc-600">
@@ -162,7 +175,8 @@ export default function FlaggedAnalysisView({
                 ))}
               </tbody>
             </table>
-          </div>
+            </div>
+          </Card>
         )}
       </div>
     </section>

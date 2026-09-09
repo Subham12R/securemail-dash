@@ -1,6 +1,7 @@
 import DashboardTopbar from "@/components/ui/dashboard-topbar";
 import FlaggedAnalysisView from "@/components/ui/flagged-analysis-view";
-import { getInboxDataSource, type InboxListItem, type InboxListResponse } from "@/lib/inbox-data";
+import { getServerInboxDataSource } from "@/lib/inbox-external";
+import type { InboxListItem, InboxListResponse, InboxSource } from "@/lib/inbox-data";
 
 const emptyCounts: InboxListResponse["counts"] = {
   all: 0,
@@ -11,15 +12,17 @@ const emptyCounts: InboxListResponse["counts"] = {
 type FlaggedPageData = {
   items: InboxListItem[];
   counts: InboxListResponse["counts"];
+  source?: InboxSource;
   error: string | null;
 };
 
 async function getFlaggedPageData(): Promise<FlaggedPageData> {
   try {
-    const response = await getInboxDataSource().list({ skip: 0, limit: 200 });
+    const response = await getServerInboxDataSource().list({ skip: 0, limit: 200 });
     return {
       items: response.items.filter((item) => item.triage_state === "flagged"),
       counts: response.counts,
+      source: response.source,
       error: null,
     };
   } catch {
@@ -40,7 +43,7 @@ export default async function FlaggedEmailsPage() {
       aria-label="Flagged Emails page"
     >
       <DashboardTopbar currentPage="Flagged Emails" />
-      <FlaggedAnalysisView items={data.items} counts={data.counts} error={data.error} />
+      <FlaggedAnalysisView items={data.items} counts={data.counts} source={data.source} error={data.error} />
     </main>
   );
 }

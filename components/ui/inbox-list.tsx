@@ -110,8 +110,7 @@ export default function InboxList({
       aria-labelledby="inbox-list-heading"
       className="flex min-h-0 min-w-0 flex-1 flex-col bg-white p-4 sm:p-6"
     >
-      <Card className="flex min-h-0 flex-1 flex-col overflow-hidden">
-      <header className="shrink-0 border-b border-zinc-200 px-5 pb-4 pt-5">
+      <header className="shrink-0 px-1 pb-4 pt-1 sm:px-0">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
@@ -168,7 +167,8 @@ export default function InboxList({
         </fieldset>
       </header>
 
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <Card className="min-h-0 flex-1 overflow-hidden">
+        <div className="min-h-0 h-full overflow-y-auto">
         {isLoading ? <ListSkeleton /> : null}
 
         {!isLoading && error ? (
@@ -259,7 +259,7 @@ export default function InboxList({
             </ul>
           </>
         ) : null}
-      </div>
+        </div>
       </Card>
     </section>
   );
