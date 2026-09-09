@@ -173,7 +173,7 @@ export default function Sidebar() {
 
           <div className="mt-6 w-full">
             {collapsed ? null : (
-              <p className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+              <p className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
                 Analysis
               </p>
             )}

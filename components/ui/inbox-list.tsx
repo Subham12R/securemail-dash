@@ -142,21 +142,21 @@ export default function InboxList({
 }: InboxListProps) {
   return (
     <section
-      aria-labelledby="inbox-heading"
+      aria-labelledby="inbox-list-heading"
       className="flex min-h-0 min-w-0 flex-1 flex-col border-r border-[#173858] bg-[#07182c] lg:max-w-[51%]"
     >
       <header className="shrink-0 border-b border-[#173858] px-5 pb-4 pt-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <h1 id="inbox-heading" className="text-2xl font-semibold tracking-tight text-white">
+              <h1 id="inbox-list-heading" className="text-2xl font-semibold tracking-tight text-white">
                 Inbox
               </h1>
               <span className="rounded border border-sky-400/30 bg-sky-400/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.14em] text-sky-300">
                 Preview data
               </span>
             </div>
-            <p className="mt-1 text-sm text-slate-400">
+            <p className="mt-1 text-sm text-slate-300">
               <MorphingText>{counts.all}</MorphingText> emails ·{" "}
               <span className="text-rose-300">
                 <MorphingText>{counts.flagged}</MorphingText> flagged
@@ -166,7 +166,8 @@ export default function InboxList({
           <Mail aria-hidden="true" className="mt-1 size-5 text-slate-500" />
         </div>
 
-        <div className="mt-5 flex flex-wrap gap-2" aria-label="Inbox filters">
+        <fieldset className="mt-5 flex flex-wrap gap-2">
+          <legend className="sr-only">Inbox filters</legend>
           {filters.map((option) => {
             const count = counts[option.value];
             const active = filter === option.value;
@@ -194,7 +195,7 @@ export default function InboxList({
               </button>
             );
           })}
-        </div>
+        </fieldset>
       </header>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
@@ -246,14 +247,14 @@ export default function InboxList({
                         {item.sender.address ?? "Sender unavailable"}
                       </span>
                     </div>
-                    <time dateTime={item.observed_at ?? undefined} className="whitespace-nowrap text-[11px] text-slate-400">
+                    <time dateTime={item.observed_at ?? undefined} className="whitespace-nowrap text-[11px] text-slate-300">
                       {formatTime(item.observed_at)}
                     </time>
                     <div className="min-w-0 pl-6">
                       <p className="truncate text-sm font-medium text-white" title={item.subject ?? "Subject unavailable"}>
                         {item.subject ?? "Subject unavailable"}
                       </p>
-                      <p className="mt-1 truncate text-xs text-slate-400" title={item.preview ?? "Preview unavailable"}>
+                      <p className="mt-1 truncate text-xs text-slate-300" title={item.preview ?? "Preview unavailable"}>
                         {item.preview ?? "Preview unavailable"}
                       </p>
                     </div>

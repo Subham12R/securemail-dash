@@ -107,7 +107,7 @@ function DataList({
     <dl className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
       {entries.map(([label, value]) => (
         <div key={label} className="min-w-0">
-          <dt className="text-[11px] uppercase tracking-[0.12em] text-slate-500">{label}</dt>
+          <dt className="text-[11px] uppercase tracking-[0.12em] text-slate-400">{label}</dt>
           <dd className="mt-1 break-words text-sm text-slate-200">{value}</dd>
         </div>
       ))}
@@ -410,8 +410,8 @@ export default function InboxDetail({
             <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em]">
               {flagged ? <Flag aria-hidden="true" className="size-4 text-rose-400" /> : <ShieldCheck aria-hidden="true" className="size-4 text-emerald-400" />}
               <span className={flagged ? "text-rose-300" : "text-emerald-300"}>{flagged ? "Flagged" : "Healthy"}</span>
-              <span className="text-slate-600">·</span>
-              <span className="text-slate-500">{item.protocol}</span>
+              <span className="text-slate-400">·</span>
+              <span className="text-slate-300">{item.protocol}</span>
             </div>
             <h2 id="selected-message-heading" className="mt-2 max-w-3xl text-xl font-semibold tracking-tight text-white">
               {item.subject ?? "Subject unavailable"}
@@ -429,10 +429,10 @@ export default function InboxDetail({
         </div>
 
         <dl className="mt-5 grid gap-x-8 gap-y-2 text-sm sm:grid-cols-2">
-          <div className="flex min-w-0 gap-3"><dt className="w-12 shrink-0 text-slate-500">From:</dt><dd className="truncate text-slate-200" title={item.sender.address ?? undefined}>{item.sender.address ?? "Not observed"}</dd></div>
-          <div className="flex min-w-0 gap-3"><dt className="w-12 shrink-0 text-slate-500">To:</dt><dd className="truncate text-slate-200">{item.recipients.map((recipient) => recipient.address ?? "Not observed").join(", ") || "Not observed"}</dd></div>
-          <div className="flex min-w-0 gap-3"><dt className="w-12 shrink-0 text-slate-500">Time:</dt><dd className="text-slate-200">{formatDate(item.observed_at)}</dd></div>
-          <div className="flex min-w-0 gap-3"><dt className="w-12 shrink-0 text-slate-500">Item:</dt><dd className="truncate font-mono text-xs text-slate-400" title={item.mail_item_id}>{item.mail_item_id}</dd></div>
+          <div className="flex min-w-0 gap-3"><dt className="w-12 shrink-0 text-slate-400">From:</dt><dd className="truncate text-slate-200" title={item.sender.address ?? undefined}>{item.sender.address ?? "Not observed"}</dd></div>
+          <div className="flex min-w-0 gap-3"><dt className="w-12 shrink-0 text-slate-400">To:</dt><dd className="truncate text-slate-200">{item.recipients.map((recipient) => recipient.address ?? "Not observed").join(", ") || "Not observed"}</dd></div>
+          <div className="flex min-w-0 gap-3"><dt className="w-12 shrink-0 text-slate-400">Time:</dt><dd className="text-slate-200">{formatDate(item.observed_at)}</dd></div>
+          <div className="flex min-w-0 gap-3"><dt className="w-12 shrink-0 text-slate-400">Item:</dt><dd className="truncate font-mono text-xs text-slate-400" title={item.mail_item_id}>{item.mail_item_id}</dd></div>
         </dl>
 
         <button
@@ -462,7 +462,7 @@ export default function InboxDetail({
                 onKeyDown={handleTabKeyDown}
                 className={cn(
                   "inline-flex items-center gap-2 border-b-2 px-3 py-3 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-sky-300",
-                  active ? "border-sky-400 text-white" : "border-transparent text-slate-500 hover:border-slate-600 hover:text-slate-200",
+                  active ? "border-sky-400 text-white" : "border-transparent text-slate-300 hover:border-slate-600 hover:text-white",
                 )}
               >
                 <Icon aria-hidden="true" className="size-3.5" />
