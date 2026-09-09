@@ -25,11 +25,13 @@ export interface RichButtonProps
 
 const colorClasses: Record<RichButtonColor, string> = {
   default:
-    "border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900",
-  primary: "border-green-600 bg-green-600 text-white hover:bg-green-700",
-  danger: "border-red-200 bg-red-500 text-white hover:bg-red-600",
+    "border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900 hover:shadow-xs",
+  primary:
+    "border-green-600 bg-green-600 text-white hover:bg-green-700 hover:shadow-[0_6px_16px_-4px_rgb(22_163_74/0.45)]",
+  danger:
+    "border-red-200 bg-red-500 text-white hover:bg-red-600 hover:shadow-[0_6px_16px_-4px_rgb(239_68_68/0.45)]",
   warning:
-    "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 hover:text-amber-800",
+    "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 hover:text-amber-800 hover:shadow-[0_6px_16px_-6px_rgb(217_119_6/0.4)]",
   info:
     "border-blue-900 bg-blue-900 text-white hover:bg-blue-950 hover:shadow-[0_6px_16px_-4px_rgb(30_58_138/0.4)]",
 };
@@ -54,7 +56,7 @@ export const RichButton = forwardRef<HTMLButtonElement, RichButtonProps>(
     ref,
   ) {
     const classes = [
-      "inline-flex items-center justify-center gap-2 rounded-md border text-sm font-medium transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 disabled:pointer-events-none disabled:opacity-50",
+      "inline-flex items-center justify-center gap-2 rounded-md border text-sm font-medium transition-[background-color,border-color,color,transform,box-shadow] duration-150 ease-out motion-safe:hover:-translate-y-px motion-safe:active:translate-y-0 motion-safe:active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 disabled:pointer-events-none disabled:opacity-50",
       colorClasses[color],
       sizeClasses[size],
       className,

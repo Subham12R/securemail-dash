@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { getLocalTimeZone } from "@internationalized/date";
 import {
   Card,
@@ -9,15 +10,19 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Link2 } from "lucide-react";
 import { MorphingText } from "@/components/ui/morphing-text";
 import TableToolbar, { type TableFilter } from "@/components/ui/table-toolbar";
 import type { SelectedDateRange } from "@/components/ui/date-range-filter";
+import { riskScoreBarClass } from "@/lib/risk";
+import { historyDetailHref } from "@/lib/analysis-detail";
 import {
   RichButton,
   type RichButtonColor,
 } from "@/components/ui/rich-button";
 
 export type RecentAnalysis = {
+  requestId: string | null;
   captureId: string;
   sessionId: string;
   date: string | null;
@@ -71,7 +76,7 @@ function RiskScore({ score }: { score: number }) {
         aria-valuenow={percentage}
       >
         <div
-          className="h-full rounded-full bg-zinc-800 transition-[width] duration-300 motion-reduce:transition-none"
+          className={`h-full rounded-full transition-[width] duration-300 motion-reduce:transition-none ${riskScoreBarClass(score)}`}
           style={{ width: `${percentage}%` }}
         />
       </div>
@@ -150,12 +155,22 @@ export default function RecentAnalysisTable({
                   <th scope="col" className="px-5 py-3">Protocols</th>
                   <th scope="col" className="px-5 py-3">Risk score</th>
                   <th scope="col" className="px-5 py-3">Verdict</th>
+                  <th scope="col" className="px-5 py-3"><span className="sr-only">Details</span><Link2 aria-hidden="true" className="size-4 text-zinc-500" /></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100">
                 {filteredAnalyses.length > 0 ? (
-                  filteredAnalyses.map((analysis) => (
-                    <tr key={analysis.sessionId} className="text-zinc-700">
+                  filteredAnalyses.map((analysis, index) => {
+                    const detailHref = analysis.requestId
+                      ? historyDetailHref(analysis.requestId)
+                      : null;
+
+                    return (
+                    <tr
+                      key={analysis.sessionId}
+                      style={{ animationDelay: `${Math.min(index, 8) * 18}ms` }}
+                      className="animate-row-reveal text-zinc-700 transition-colors duration-150 hover:bg-zinc-50/80"
+                    >
                       <th
                         scope="row"
                         className="max-w-64 whitespace-nowrap px-5 py-4 font-mono text-xs font-medium text-zinc-900"
@@ -198,11 +213,27 @@ export default function RecentAnalysisTable({
                           <span><MorphingText>{analysis.status}</MorphingText></span>
                         </RichButton>
                       </td>
+                      <td className="px-5 py-4">
+                        {detailHref ? (
+                          <Link
+                            href={detailHref}
+                            aria-label={`View analysis details for ${analysis.captureId}`}
+                            title="View analysis details"
+                            className="inline-flex rounded-sm text-sky-700 transition-colors hover:text-sky-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-700"
+                          >
+                            <Link2 aria-hidden="true" className="size-4" />
+                            <span className="sr-only">View analysis details</span>
+                          </Link>
+                        ) : (
+                          <span role="status" className="text-xs text-zinc-400">Not available</span>
+                        )}
+                      </td>
                     </tr>
-                  ))
+                    );
+                  })
                 ) : (
                   <tr>
-                    <td colSpan={5} className="px-5 py-10 text-center text-sm text-zinc-500">
+                    <td colSpan={6} className="px-5 py-10 text-center text-sm text-zinc-500">
                       No analysis records match the current filters.
                     </td>
                   </tr>

@@ -1,3 +1,4 @@
+import { ViewTransition } from "react";
 import Link from "next/link";
 import HistoryAnalysisDetail from "@/components/ui/history-analysis-detail";
 import DashboardTopbar from "@/components/ui/dashboard-topbar";
@@ -21,27 +22,29 @@ function normalizeRouteRequestId(value: string) {
 
 function HistoryDetailError({ message }: { message: string }) {
   return (
-    <main
-      className="h-full min-h-0 min-w-0 flex-1 overflow-y-auto bg-white"
-      aria-label="History detail page"
-    >
-      <DashboardTopbar currentPage="History detail" />
-      <section className="p-6" aria-labelledby="history-detail-error-heading">
-        <h1
-          id="history-detail-error-heading"
-          className="text-lg font-semibold tracking-tighter text-zinc-900"
-        >
-          Analysis record unavailable
-        </h1>
-        <p className="mt-2 max-w-xl text-sm text-zinc-600">{message}</p>
-        <Link
-          href="/history"
-          className="mt-5 inline-flex rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
-        >
-          Back to History
-        </Link>
-      </section>
-    </main>
+    <ViewTransition enter="page-enter" exit="page-exit" default="none">
+      <main
+        className="h-full min-h-0 min-w-0 flex-1 overflow-y-auto bg-white"
+        aria-label="History detail page"
+      >
+        <DashboardTopbar currentPage="History detail" />
+        <section className="p-6" aria-labelledby="history-detail-error-heading">
+          <h1
+            id="history-detail-error-heading"
+            className="text-lg font-semibold tracking-tighter text-zinc-900"
+          >
+            Analysis record unavailable
+          </h1>
+          <p className="mt-2 max-w-xl text-sm text-zinc-600">{message}</p>
+          <Link
+            href="/history"
+            className="mt-5 inline-flex rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+          >
+            Back to History
+          </Link>
+        </section>
+      </main>
+    </ViewTransition>
   );
 }
 
@@ -71,12 +74,14 @@ export default async function HistoryDetailPage({
   const viewModel = buildAnalysisDetailViewModel(analysis.record, inbox);
 
   return (
-    <main
-      className="h-full min-h-0 min-w-0 flex-1 overflow-y-auto bg-white"
-      aria-label="History detail page"
-    >
-      <DashboardTopbar currentPage="History detail" showRefresh />
-      <HistoryAnalysisDetail viewModel={viewModel} />
-    </main>
+    <ViewTransition enter="page-enter" exit="page-exit" default="none">
+      <main
+        className="h-full min-h-0 min-w-0 flex-1 overflow-y-auto bg-white"
+        aria-label="History detail page"
+      >
+        <DashboardTopbar currentPage="History detail" showRefresh />
+        <HistoryAnalysisDetail viewModel={viewModel} />
+      </main>
+    </ViewTransition>
   );
 }

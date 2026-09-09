@@ -22,6 +22,7 @@ export default function DashboardTopbar({
 
   return (
     <header
+      style={{ viewTransitionName: "app-topbar" }}
       className={`sticky top-0 z-20 flex min-h-16 flex-wrap items-center justify-between gap-3 border-b py-3 pl-20 pr-6 backdrop-blur ${
         dark
           ? "border-[#173858] bg-[#08182c]/95 text-slate-100"

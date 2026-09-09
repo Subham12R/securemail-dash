@@ -95,7 +95,9 @@ export default function OverviewCharts({
   verdictDistribution: readonly VerdictCount[];
   postureDistribution: readonly PostureCount[];
 }) {
-  const [activePostureIndex, setActivePostureIndex] = useState(0);
+  const [hoveredVerdict, setHoveredVerdict] = useState<string | null>(null);
+  const [activePostureIndex, setActivePostureIndex] = useState<number | null>(null);
+
   const verdictData = verdictDistribution.map((entry, index) => ({
     verdict: formatLabel(entry.verdict),
     count: entry.count,
@@ -106,6 +108,9 @@ export default function OverviewCharts({
     count: entry.count,
     fill: colorFor(entry.posture, postureColors, index),
   }));
+  const totalPostureCount = postureData.reduce((sum, item) => sum + item.count, 0);
+  const activePosture = activePostureIndex !== null ? postureData[activePostureIndex] : null;
+
   return (
     <section
       aria-labelledby="graph-overview-heading"
@@ -147,12 +152,25 @@ export default function OverviewCharts({
                     tickFormatter={(value) => String(value).slice(0, 8)}
                   />
                   <ChartTooltip
-                    cursor={false}
+                    cursor={{ fill: "rgba(0, 0, 0, 0.04)" }}
                     content={<ChartTooltipContent hideLabel />}
                   />
-                  <Bar dataKey="count" radius={0} isAnimationActive={false}>
+                  <Bar
+                    dataKey="count"
+                    radius={[4, 4, 0, 0]}
+                    isAnimationActive={true}
+                    animationDuration={750}
+                    animationEasing="ease-out"
+                  >
                     {verdictData.map((entry) => (
-                      <Cell key={entry.verdict} fill={entry.fill} />
+                      <Cell
+                        key={entry.verdict}
+                        fill={entry.fill}
+                        opacity={hoveredVerdict && hoveredVerdict !== entry.verdict ? 0.35 : 1}
+                        className="transition-opacity duration-200 cursor-pointer"
+                        onMouseEnter={() => setHoveredVerdict(entry.verdict)}
+                        onMouseLeave={() => setHoveredVerdict(null)}
+                      />
                     ))}
                   </Bar>
                 </BarChart>
@@ -169,7 +187,12 @@ export default function OverviewCharts({
           <CardFooter className="flex-wrap gap-x-4 gap-y-2 text-xs text-zinc-600">
             {verdictData.length > 0
               ? verdictData.map((entry) => (
-                  <div key={entry.verdict} className="flex items-center gap-1.5">
+                  <div
+                    key={entry.verdict}
+                    className={`flex items-center gap-1.5 transition-opacity duration-150 ${
+                      hoveredVerdict && hoveredVerdict !== entry.verdict ? "opacity-40" : "opacity-100"
+                    }`}
+                  >
                     <span
                       aria-hidden="true"
                       className="size-2 rounded-full"
@@ -192,47 +215,72 @@ export default function OverviewCharts({
           </CardHeader>
           <CardContent className="flex flex-1 items-center justify-center pb-5">
             {postureData.length > 0 ? (
-              <ChartContainer
-                config={chartConfig}
-                role="img"
-                aria-label="Colorful donut chart showing cryptographic posture"
-                className="mx-auto aspect-square max-h-[280px]"
-              >
-                <PieChart>
-                  <ChartTooltip
-                    cursor={false}
-                    content={<ChartTooltipContent hideLabel />}
-                  />
-                  <Pie
-                    data={postureData}
-                    dataKey="count"
-                    nameKey="posture"
-                    innerRadius={65}
-                    strokeWidth={4}
-                    isAnimationActive={false}
-                    onMouseEnter={(_, index) => setActivePostureIndex(index)}
-                    onMouseLeave={() => setActivePostureIndex(0)}
-                    shape={({
-                      index,
-                      outerRadius = 0,
-                      ...props
-                    }: PieSectorShapeProps) => (
-                      <Sector
-                        {...props}
-                        outerRadius={
-                          index === activePostureIndex
-                            ? outerRadius + 10
-                            : outerRadius
-                        }
-                      />
-                    )}
-                  >
-                    {postureData.map((entry) => (
-                      <Cell key={entry.posture} fill={entry.fill} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ChartContainer>
+              <div className="relative mx-auto aspect-square w-full max-h-[280px]">
+                <ChartContainer
+                  config={chartConfig}
+                  role="img"
+                  aria-label="Colorful donut chart showing cryptographic posture"
+                  className="size-full"
+                >
+                  <PieChart>
+                    <ChartTooltip
+                      cursor={false}
+                      content={<ChartTooltipContent hideLabel />}
+                    />
+                    <Pie
+                      data={postureData}
+                      dataKey="count"
+                      nameKey="posture"
+                      innerRadius={68}
+                      strokeWidth={3}
+                      isAnimationActive={true}
+                      animationDuration={850}
+                      animationEasing="ease-out"
+                      onMouseEnter={(_, index) => setActivePostureIndex(index)}
+                      onMouseLeave={() => setActivePostureIndex(null)}
+                      shape={({
+                        index,
+                        outerRadius = 0,
+                        ...props
+                      }: PieSectorShapeProps) => (
+                        <Sector
+                          {...props}
+                          outerRadius={
+                            index === activePostureIndex
+                              ? outerRadius + 8
+                              : outerRadius
+                          }
+                          className="transition-[outerRadius] duration-300 ease-out cursor-pointer"
+                        />
+                      )}
+                    >
+                      {postureData.map((entry, index) => (
+                        <Cell
+                          key={entry.posture}
+                          fill={entry.fill}
+                          opacity={activePostureIndex !== null && activePostureIndex !== index ? 0.45 : 1}
+                          className="transition-opacity duration-200"
+                        />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ChartContainer>
+
+                {/* Animated Center Metric Callout */}
+                <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
+                  <span className="text-[11px] font-medium tracking-tight text-zinc-500 truncate max-w-[110px]">
+                    {activePosture ? activePosture.posture : "Total Sessions"}
+                  </span>
+                  <span className="text-xl font-bold tracking-tight text-zinc-900 tabular-nums">
+                    {activePosture ? activePosture.count.toLocaleString() : totalPostureCount.toLocaleString()}
+                  </span>
+                  <span className="text-[10px] text-zinc-400 font-medium">
+                    {totalPostureCount > 0 && activePosture
+                      ? `${((activePosture.count / totalPostureCount) * 100).toFixed(1)}%`
+                      : "Persisted"}
+                  </span>
+                </div>
+              </div>
             ) : (
               <div className="relative w-full">
                 <PieChartSkeleton />

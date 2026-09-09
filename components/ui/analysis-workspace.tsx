@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/card";
 import { MorphingText } from "@/components/ui/morphing-text";
 import { getQueueProgress, type CaptureQueueItem } from "@/lib/capture-queue";
+import { riskScoreBarClass } from "@/lib/risk";
 import TableToolbar, { type TableFilter } from "@/components/ui/table-toolbar";
 import { RichButton, type RichButtonColor } from "@/components/ui/rich-button";
 import TaskRows, { type TaskRow } from "@/components/ui/task-rows";
@@ -116,7 +117,7 @@ function RiskScoreBar({ score }: { score: number | null }) {
         aria-valuenow={score === null ? undefined : percentage}
       >
         <div
-          className="h-full rounded-full bg-red-600 transition-[width] duration-300 motion-reduce:transition-none"
+          className={`h-full rounded-full transition-[width] duration-300 motion-reduce:transition-none ${riskScoreBarClass(score)}`}
           style={{ width: `${percentage}%` }}
         />
       </div>

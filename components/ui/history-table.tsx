@@ -19,6 +19,7 @@ import {
   type RichButtonColor,
 } from "@/components/ui/rich-button";
 import { formatAnalysisSource, historyDetailHref } from "@/lib/analysis-detail";
+import { riskScoreBarClass } from "@/lib/risk";
 import type { AnalysisRecord } from "@/lib/securemail-api";
 
 function formatTimestamp(timestamp: string) {
@@ -68,7 +69,7 @@ function RiskScore({ score }: { score: number }) {
         aria-valuenow={percentage}
       >
         <div
-          className="h-full rounded-full bg-zinc-800"
+          className={`h-full rounded-full transition-[width] duration-300 motion-reduce:transition-none ${riskScoreBarClass(score)}`}
           style={{ width: `${percentage}%` }}
         />
       </div>
@@ -215,12 +216,16 @@ export default function HistoryTable({
               </thead>
               <tbody className="divide-y divide-zinc-100">
                 {filteredRecords.length > 0 ? (
-                  filteredRecords.map((record) => {
+                  filteredRecords.map((record, index) => {
                     const verdict = formatVerdict(record.final_verdict);
                     const detailHref = historyDetailHref(record.request_id);
 
                     return (
-                      <tr key={record.id} className="text-zinc-700">
+                      <tr
+                        key={record.id}
+                        style={{ animationDelay: `${Math.min(index, 8) * 18}ms` }}
+                        className="animate-row-reveal text-zinc-700 transition-colors duration-150 hover:bg-zinc-50/80"
+                      >
                         <td className="whitespace-nowrap px-5 py-4 text-xs text-zinc-500">
                           {formatTimestamp(record.timestamp)}
                         </td>
@@ -262,7 +267,7 @@ export default function HistoryTable({
                               href={detailHref}
                               aria-label={`View analysis details for ${record.client_id ?? record.session_id}`}
                               title="View analysis details"
-                              className="inline-flex rounded-sm text-sky-700 transition-colors hover:text-sky-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-700"
+                              className="inline-flex rounded-sm text-sky-700 transition-all hover:text-sky-900 hover:scale-110 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-700"
                             >
                               <Link2 aria-hidden="true" className="size-4" />
                               <span className="sr-only">View analysis details</span>

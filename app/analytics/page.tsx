@@ -1,3 +1,4 @@
+import { ViewTransition } from "react";
 import AnalysisWorkspace from "@/components/ui/analysis-workspace";
 import DashboardTopbar from "@/components/ui/dashboard-topbar";
 import {
@@ -21,12 +22,14 @@ export default async function AnalyticsPage({ searchParams }: AnalyticsPageProps
   const apiError = requestId ? selected?.error ?? null : dashboard.error;
 
   return (
-    <main
-      className="h-full min-h-0 min-w-0 flex-1 overflow-y-auto bg-white"
-      aria-label="All Analysis page"
-    >
-      <DashboardTopbar currentPage="All Analysis" showRefresh />
-      <AnalysisWorkspace analysis={analysis} apiError={apiError} />
-    </main>
+    <ViewTransition enter="page-enter" exit="page-exit" default="none">
+      <main
+        className="h-full min-h-0 min-w-0 flex-1 overflow-y-auto bg-white"
+        aria-label="All Analysis page"
+      >
+        <DashboardTopbar currentPage="All Analysis" showRefresh />
+        <AnalysisWorkspace analysis={analysis} apiError={apiError} />
+      </main>
+    </ViewTransition>
   );
 }

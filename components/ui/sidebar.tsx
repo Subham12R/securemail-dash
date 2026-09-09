@@ -85,6 +85,7 @@ export default function Sidebar() {
       <aside
         id="dashboard-sidebar"
         aria-label="Sidebar"
+        style={{ viewTransitionName: "app-sidebar" }}
         className={`sticky top-0 flex h-full min-h-0 w-full flex-col overflow-y-auto overflow-x-hidden border-r ${surface}`}
       >
         <div

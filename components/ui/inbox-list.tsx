@@ -209,10 +209,14 @@ export default function InboxList({
               <span className="text-right">Received</span>
             </div>
             <ul aria-label="Inbox messages" className="divide-y divide-zinc-200">
-              {items.map((item) => {
+              {items.map((item, index) => {
                 const recipient = item.recipients[0]?.address ?? "Recipient unavailable";
                 return (
-                  <li key={item.mail_item_id} className="relative flex items-stretch">
+                  <li
+                    key={item.mail_item_id}
+                    style={{ animationDelay: `${Math.min(index, 8) * 16}ms` }}
+                    className="animate-row-reveal relative flex items-stretch"
+                  >
                     <button
                       type="button"
                       aria-pressed={selectedId === item.mail_item_id}
