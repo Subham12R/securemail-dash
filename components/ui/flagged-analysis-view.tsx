@@ -74,7 +74,7 @@ export default function FlaggedAnalysisView({
           <div>
             <div className="flex items-center gap-2">
               <Flag aria-hidden="true" className="size-5 text-rose-600" />
-              <h1 id="flagged-analysis-heading" className="text-2xl font-semibold tracking-tighter text-zinc-900">Flagged Emails</h1>
+              <h1 id="flagged-analysis-heading" className="text-lg font-semibold tracking-tighter text-zinc-900">Flagged Emails</h1>
             </div>
             <p className="mt-1 text-sm text-zinc-600">
               <MorphingText>{counts.flagged}</MorphingText> items require analyst review · {counts.healthy} healthy items excluded

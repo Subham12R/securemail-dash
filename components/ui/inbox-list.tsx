@@ -8,6 +8,7 @@ import {
   Mail,
   ShieldCheck,
 } from "lucide-react";
+import { Card } from "@/components/ui/card";
 import { MorphingText } from "@/components/ui/morphing-text";
 import { cn } from "@/lib/utils";
 import type {
@@ -143,13 +144,14 @@ export default function InboxList({
   return (
     <section
       aria-labelledby="inbox-list-heading"
-      className="flex min-h-0 min-w-0 flex-1 flex-col border-r border-zinc-200 bg-white"
+      className="flex min-h-0 min-w-0 flex-1 flex-col bg-white p-4 sm:p-6"
     >
+      <Card className="flex min-h-0 flex-1 flex-col overflow-hidden">
       <header className="shrink-0 border-b border-zinc-200 px-5 pb-4 pt-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <h1 id="inbox-list-heading" className="text-2xl font-semibold tracking-tighter text-zinc-900">
+              <h1 id="inbox-list-heading" className="text-lg font-semibold tracking-tighter text-zinc-900">
                 Inbox
               </h1>
             </div>
@@ -272,6 +274,7 @@ export default function InboxList({
           </ul>
         ) : null}
       </div>
+      </Card>
     </section>
   );
 }
