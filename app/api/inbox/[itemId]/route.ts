@@ -1,4 +1,4 @@
-import { getInboxDataSource } from "@/lib/inbox-data";
+import { getServerInboxDataSource } from "@/lib/inbox-external";
 
 export async function GET(
   _request: Request,
@@ -11,7 +11,7 @@ export async function GET(
   }
 
   try {
-    const detail = await getInboxDataSource().detail(itemId);
+    const detail = await getServerInboxDataSource().detail(itemId);
     if (!detail) {
       return Response.json({ detail: "Inbox item not found" }, { status: 404 });
     }

@@ -42,7 +42,7 @@ type TabKey = "email" | "headers" | "content" | "network" | "tls";
 const tabs: Array<{ key: TabKey; label: string; icon: typeof Mail }> = [
   { key: "email", label: "Email", icon: Mail },
   { key: "headers", label: "Headers", icon: FileText },
-  { key: "content", label: "Content", icon: FileText },
+  { key: "content", label: "Preview", icon: FileText },
   { key: "network", label: "TCP Stream", icon: Network },
   { key: "tls", label: "TLS", icon: LockKeyhole },
 ];
@@ -208,7 +208,10 @@ function ContentPanel({ section }: { section: Section<ContentDetails> }) {
 
   return (
     <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-5">
-      <PanelHeading icon={FileText} title="Sanitized message content" />
+      <PanelHeading icon={FileText} title="Safe message preview" />
+      <p className="mb-4 text-xs text-zinc-500">
+        Rendered as bounded plain text. HTML and raw message bytes are withheld from the inspection view.
+      </p>
       <pre className="max-w-prose whitespace-pre-wrap break-words font-sans text-sm leading-6 text-zinc-800">
         {content.text}
       </pre>
@@ -339,7 +342,7 @@ export default function InboxDetail({
   onRetry,
   onBack,
 }: InboxDetailProps) {
-  const [activeTab, setActiveTab] = useState<TabKey>("email");
+  const [activeTab, setActiveTab] = useState<TabKey>("content");
 
   if (status === "loading") return <DetailSkeleton />;
 
@@ -402,20 +405,26 @@ export default function InboxDetail({
     document.getElementById(`inbox-tab-${tabs[nextIndex].key}`)?.focus();
   };
 
+  const senderHeading = item.sender.address ?? item.sender.name ?? "Sender unavailable";
+  const recipients = item.recipients.map((recipient) => recipient.address ?? "Not observed").join(", ") || "Not observed";
+
   return (
     <section aria-labelledby="selected-message-heading" className="min-h-full bg-white">
       <header className="border-b border-zinc-200 px-6 pb-5 pt-5">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2 text-xs font-semibold tracking-tighter">
-              {flagged ? <Flag aria-hidden="true" className="size-4 text-rose-600" /> : <ShieldCheck aria-hidden="true" className="size-4 text-emerald-600" />}
-              <span className={flagged ? "text-rose-700" : "text-emerald-700"}>{flagged ? "Flagged" : "Healthy"}</span>
-              <span className="text-zinc-400">·</span>
-              <span className="text-zinc-600">{item.protocol}</span>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex min-w-0 items-start gap-3">
+            <span className="inline-flex size-12 shrink-0 items-center justify-center rounded-xl border-2 border-zinc-200 bg-white text-emerald-700 shadow-[inset_0_0_0_4px_rgba(16,185,129,0.08)]">
+              <Mail aria-hidden="true" className="size-6" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-zinc-600">Email</p>
+              <h2 id="selected-message-heading" className="mt-1 break-words text-xl font-semibold tracking-tighter text-zinc-900">
+                {senderHeading}
+              </h2>
+              <p className="mt-1 truncate text-sm text-zinc-500" title={item.subject ?? undefined}>
+                {item.subject ?? "Subject unavailable"}
+              </p>
             </div>
-            <h2 id="selected-message-heading" className="mt-2 max-w-3xl text-xl font-semibold tracking-tighter text-zinc-900">
-              {item.subject ?? "Subject unavailable"}
-            </h2>
           </div>
           {analysisHref ? (
             <Link
@@ -428,12 +437,33 @@ export default function InboxDetail({
           ) : null}
         </div>
 
-        <dl className="mt-5 grid gap-x-8 gap-y-2 text-sm sm:grid-cols-2">
-          <div className="flex min-w-0 gap-3"><dt className="w-12 shrink-0 text-zinc-600">From:</dt><dd className="truncate text-zinc-800" title={item.sender.address ?? undefined}>{item.sender.address ?? "Not observed"}</dd></div>
-          <div className="flex min-w-0 gap-3"><dt className="w-12 shrink-0 text-zinc-600">To:</dt><dd className="truncate text-zinc-800">{item.recipients.map((recipient) => recipient.address ?? "Not observed").join(", ") || "Not observed"}</dd></div>
-          <div className="flex min-w-0 gap-3"><dt className="w-12 shrink-0 text-zinc-600">Time:</dt><dd className="text-zinc-800">{formatDate(item.observed_at)}</dd></div>
-          <div className="flex min-w-0 gap-3"><dt className="w-12 shrink-0 text-zinc-600">Item:</dt><dd className="truncate font-mono text-xs text-zinc-600" title={item.mail_item_id}>{item.mail_item_id}</dd></div>
+        <dl className="mt-6 grid gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
+          <div className="min-w-0">
+            <dt className="text-[11px] text-zinc-500">From</dt>
+            <dd className="mt-1 truncate text-zinc-800" title={item.sender.address ?? undefined}>{item.sender.address ?? "Not observed"}</dd>
+          </div>
+          <div className="min-w-0">
+            <dt className="text-[11px] text-zinc-500">Subject</dt>
+            <dd className="mt-1 truncate text-zinc-800" title={item.subject ?? undefined}>{item.subject ?? "Not observed"}</dd>
+          </div>
+          <div className="min-w-0">
+            <dt className="text-[11px] text-zinc-500">To</dt>
+            <dd className="mt-1 truncate text-zinc-800" title={recipients}>{recipients}</dd>
+          </div>
+          <div className="min-w-0">
+            <dt className="text-[11px] text-zinc-500">ID</dt>
+            <dd className="mt-1 truncate font-mono text-xs text-zinc-600" title={item.mail_item_id}>{item.mail_item_id}</dd>
+          </div>
         </dl>
+
+        <div className="mt-5 flex flex-wrap items-center gap-2 text-xs">
+          {flagged ? <Flag aria-hidden="true" className="size-3.5 text-rose-600" /> : <ShieldCheck aria-hidden="true" className="size-3.5 text-emerald-600" />}
+          <span className={flagged ? "text-rose-700" : "text-emerald-700"}>{flagged ? "Flagged" : "Healthy"}</span>
+          <span aria-hidden="true" className="h-px w-2 bg-zinc-300" />
+          <span className="text-zinc-500">{item.protocol}</span>
+          <span aria-hidden="true" className="h-px w-2 bg-zinc-300" />
+          <span className="text-zinc-500">{formatDate(item.observed_at)}</span>
+        </div>
 
         <button
           type="button"

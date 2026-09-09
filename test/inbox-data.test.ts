@@ -11,6 +11,7 @@ test("fixture source returns the reference inbox counts and rows", async () => {
   const page = await getInboxDataSource().list({ skip: 0, limit: 12 });
 
   assert.equal(page.schema_version, "inbox-list.v1");
+  assert.equal(page.source, "fixture");
   assert.equal(page.total, 12);
   assert.deepEqual(page.counts, { all: 12, flagged: 5, healthy: 7 });
   assert.equal(page.items.length, 12);
@@ -22,6 +23,7 @@ test("fixture detail contains every reference tab and a separate analysis link",
 
   assert.ok(detail);
   assert.equal(detail.schema_version, "inbox-detail.v1");
+  assert.equal(detail.source, "fixture");
   assert.equal(detail.email.state, "available");
   assert.equal(detail.headers.state, "available");
   assert.equal(detail.content.state, "available");

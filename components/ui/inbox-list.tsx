@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  AlertTriangle,
-  Check,
-  CircleSlash2,
-  Flag,
-  Mail,
-  ShieldCheck,
-} from "lucide-react";
+import { Flag, Mail, MoreHorizontal, ShieldCheck } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { MorphingText } from "@/components/ui/morphing-text";
 import { cn } from "@/lib/utils";
@@ -15,7 +8,7 @@ import type {
   InboxFilter,
   InboxListItem,
   InboxListResponse,
-  ViewCheck,
+  InboxSource,
 } from "@/lib/inbox-data";
 
 type InboxListProps = {
@@ -23,6 +16,7 @@ type InboxListProps = {
   counts: InboxListResponse["counts"];
   filter: InboxFilter;
   selectedId: string | null;
+  source?: InboxSource;
   isLoading: boolean;
   error: string | null;
   onFilterChange: (filter: InboxFilter) => void;
@@ -36,57 +30,26 @@ const filters: Array<{ value: InboxFilter; label: string }> = [
   { value: "healthy", label: "Healthy" },
 ];
 
-const checkLabels: Array<{
-  key: keyof InboxListItem["view_checks"];
-  label: string;
-}> = [
-  { key: "headers", label: "Headers" },
-  { key: "content", label: "Content" },
-  { key: "tcp", label: "TCP" },
-  { key: "tls", label: "TLS" },
-];
-
 function formatTime(value: string | null) {
   if (!value) return "—";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "—";
 
+  const elapsed = Date.now() - date.getTime();
+  if (elapsed >= 0 && elapsed < 7 * 24 * 60 * 60 * 1000) {
+    const minutes = Math.floor(elapsed / 60_000);
+    if (minutes < 1) return "now";
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    return `${Math.floor(hours / 24)}d ago`;
+  }
+
   return new Intl.DateTimeFormat("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
+    month: "short",
+    day: "numeric",
     timeZone: "UTC",
   }).format(date);
-}
-
-function CheckChip({ check, label }: { check: ViewCheck; label: string }) {
-  const state = check.state;
-  const Icon =
-    state === "pass"
-      ? Check
-      : state === "flagged"
-        ? AlertTriangle
-        : state === "unavailable"
-          ? CircleSlash2
-          : CircleSlash2;
-  const tone =
-    state === "pass"
-      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-      : state === "flagged"
-        ? "border-rose-200 bg-rose-50 text-rose-700"
-        : "border-zinc-200 bg-zinc-50 text-zinc-600";
-
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] font-medium",
-        tone,
-      )}
-      title={`${label}: ${check.label ?? state}`}
-    >
-      <Icon aria-hidden="true" className="size-3" />
-      <span>{label}</span>
-    </span>
-  );
 }
 
 function TriageBadge({ item }: { item: InboxListItem }) {
@@ -135,6 +98,7 @@ export default function InboxList({
   counts,
   filter,
   selectedId,
+  source,
   isLoading,
   error,
   onFilterChange,
@@ -151,9 +115,16 @@ export default function InboxList({
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <h1 id="inbox-list-heading" className="text-lg font-semibold tracking-tighter text-zinc-900">
-                Inbox
-              </h1>
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 id="inbox-list-heading" className="text-lg font-semibold tracking-tighter text-zinc-900">
+                  Inbox
+                </h1>
+                {source === "fixture" ? (
+                  <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-medium tracking-tighter text-amber-700">
+                    Preview data
+                  </span>
+                ) : null}
+              </div>
             </div>
             <p className="mt-1 text-sm text-zinc-600">
               <MorphingText>{counts.all}</MorphingText> emails ·{" "}
@@ -221,57 +192,72 @@ export default function InboxList({
         ) : null}
 
         {!isLoading && !error && items.length > 0 ? (
-          <ul aria-label="Inbox messages" className="divide-y divide-zinc-200">
-            {items.map((item) => (
-              <li key={item.mail_item_id}>
-                <button
-                  type="button"
-                  aria-pressed={selectedId === item.mail_item_id}
-                  onClick={(event) => onSelect(item.mail_item_id, event.currentTarget)}
-                  className={cn(
-                    "block w-full border-l-2 px-4 py-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-sky-600",
-                    selectedId === item.mail_item_id
-                      ? "border-l-sky-600 bg-sky-50"
-                      : "border-l-transparent hover:bg-zinc-50",
-                  )}
-                >
-                  <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-2">
-                    <div className="flex min-w-0 items-center gap-2">
-                      {item.triage_state === "flagged" ? (
-                        <Flag aria-hidden="true" className="size-4 shrink-0 text-rose-600" />
-                      ) : (
-                        <Mail aria-hidden="true" className="size-4 shrink-0 text-zinc-400" />
+          <>
+            <div className="hidden grid-cols-[minmax(0,1.3fr)_8rem_minmax(0,1.5fr)_6rem_2.5rem] gap-3 border-b border-zinc-200 bg-zinc-50 px-5 py-2 text-[11px] font-medium text-zinc-500 sm:grid">
+              <span>To</span>
+              <span>Status</span>
+              <span>Subject</span>
+              <span>Received</span>
+              <span className="sr-only">Actions</span>
+            </div>
+            <ul aria-label="Inbox messages" className="divide-y divide-zinc-200">
+              {items.map((item) => {
+                const recipient = item.recipients[0]?.address ?? "Recipient unavailable";
+                return (
+                  <li key={item.mail_item_id} className="relative flex items-stretch">
+                    <button
+                      type="button"
+                      aria-pressed={selectedId === item.mail_item_id}
+                      onClick={(event) => onSelect(item.mail_item_id, event.currentTarget)}
+                      className={cn(
+                        "grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-2 border-l-2 px-4 py-4 pr-14 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-sky-600 sm:grid-cols-[minmax(0,1.3fr)_8rem_minmax(0,1.5fr)_6rem] sm:items-center sm:gap-3 sm:px-5 sm:py-3.5 sm:pr-3",
+                        selectedId === item.mail_item_id
+                          ? "border-l-sky-600 bg-sky-50"
+                          : "border-l-transparent hover:bg-zinc-50",
                       )}
-                      <span className="truncate text-xs font-medium text-zinc-700" title={item.sender.address ?? "Sender unavailable"}>
-                        {item.sender.address ?? "Sender unavailable"}
+                    >
+                      <span className="flex min-w-0 items-center gap-3">
+                        <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl border-2 border-zinc-200 bg-white text-emerald-700 shadow-[inset_0_0_0_3px_rgba(16,185,129,0.08)]">
+                          <Mail aria-hidden="true" className="size-4" />
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block truncate text-sm font-medium text-zinc-900" title={recipient}>
+                            {recipient}
+                          </span>
+                          <span className="mt-0.5 block truncate text-xs text-zinc-500" title={item.sender.address ?? "Sender unavailable"}>
+                            From {item.sender.address ?? "Sender unavailable"}
+                          </span>
+                        </span>
                       </span>
-                    </div>
-                    <time dateTime={item.observed_at ?? undefined} className="whitespace-nowrap text-[11px] text-zinc-500">
-                      {formatTime(item.observed_at)}
-                    </time>
-                    <div className="min-w-0 pl-6">
-                      <p className="truncate text-sm font-medium text-zinc-900" title={item.subject ?? "Subject unavailable"}>
-                        {item.subject ?? "Subject unavailable"}
-                      </p>
-                      <p className="mt-1 truncate text-xs text-zinc-600" title={item.preview ?? "Preview unavailable"}>
-                        {item.preview ?? "Preview unavailable"}
-                      </p>
-                    </div>
-                    <TriageBadge item={item} />
-                  </div>
-
-                  <div className="mt-3 flex flex-wrap items-center gap-1.5 pl-6">
-                    <span className="rounded border border-sky-200 bg-sky-50 px-1.5 py-0.5 text-[10px] font-medium text-sky-700">
-                      {item.protocol}
-                    </span>
-                    {checkLabels.map(({ key, label }) => (
-                      <CheckChip key={key} check={item.view_checks[key]} label={label} />
-                    ))}
-                  </div>
-                </button>
-              </li>
-            ))}
-          </ul>
+                      <TriageBadge item={item} />
+                      <span className="min-w-0 pl-12 sm:pl-0">
+                        <span className="block truncate text-sm font-medium text-zinc-900" title={item.subject ?? "Subject unavailable"}>
+                          {item.subject ?? "Subject unavailable"}
+                        </span>
+                        <span className="mt-0.5 block truncate text-xs text-zinc-500" title={item.preview ?? "Preview unavailable"}>
+                          {item.preview ?? "Preview unavailable"}
+                        </span>
+                      </span>
+                      <time dateTime={item.observed_at ?? undefined} className="whitespace-nowrap pl-12 text-xs text-zinc-500 sm:pl-0">
+                        {formatTime(item.observed_at)}
+                      </time>
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`Inspect ${item.subject ?? "message"}`}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onSelect(item.mail_item_id, event.currentTarget);
+                      }}
+                      className="absolute right-3 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-zinc-200 hover:text-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-700"
+                    >
+                      <MoreHorizontal aria-hidden="true" className="size-4" />
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
         ) : null}
       </div>
       </Card>

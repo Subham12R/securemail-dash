@@ -1,4 +1,5 @@
 export type InboxFilter = "all" | "flagged" | "healthy";
+export type InboxSource = "fixture" | "live";
 
 export type TriageState = "flagged" | "healthy" | "unavailable";
 export type ViewCheckState =
@@ -125,6 +126,7 @@ export type Section<T> = {
 
 export type InboxListResponse = {
   schema_version: "inbox-list.v1";
+  source?: InboxSource;
   total: number;
   skip: number;
   limit: number;
@@ -138,6 +140,7 @@ export type InboxListResponse = {
 
 export type InboxDetailResponse = {
   schema_version: "inbox-detail.v1";
+  source?: InboxSource;
   item: InboxListItem;
   email: Section<EmailDetails>;
   headers: Section<HeaderDetails>;
@@ -239,6 +242,7 @@ export function parseInboxListResponse(value: unknown): InboxListResponse {
   const counts = value.counts;
   if (
     value.schema_version !== "inbox-list.v1" ||
+    (value.source !== undefined && value.source !== "fixture" && value.source !== "live") ||
     !isNonNegativeInteger(value.total) ||
     !isNonNegativeInteger(value.skip) ||
     !isNonNegativeInteger(value.limit) ||
@@ -271,6 +275,7 @@ export function parseInboxDetailResponse(value: unknown): InboxDetailResponse {
   if (
     !isRecord(value) ||
     value.schema_version !== "inbox-detail.v1" ||
+    (value.source !== undefined && value.source !== "fixture" && value.source !== "live") ||
     !isInboxListItem(value.item) ||
     !isSection(value.email) ||
     !isSection(value.headers) ||
@@ -589,6 +594,7 @@ function createDetail(item: InboxListItem): InboxDetailResponse {
 
   return {
     schema_version: "inbox-detail.v1",
+    source: "fixture",
     item,
     email: available(emailDetails(item)),
     headers,
@@ -613,6 +619,7 @@ const fixtureSource: InboxDataSource = {
 
     return {
       schema_version: "inbox-list.v1",
+      source: "fixture",
       total: fixtureItems.length,
       skip: safeSkip,
       limit: safeLimit,

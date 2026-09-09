@@ -1,4 +1,4 @@
-import { getInboxDataSource } from "@/lib/inbox-data";
+import { getServerInboxDataSource } from "@/lib/inbox-external";
 
 function integerQuery(value: string | null, fallback: number) {
   const parsed = value === null ? Number.NaN : Number(value);
@@ -11,7 +11,7 @@ export async function GET(request: Request) {
   const limit = Math.min(200, Math.max(1, integerQuery(searchParams.get("limit"), 12)));
 
   try {
-    const response = await getInboxDataSource().list({ skip, limit });
+    const response = await getServerInboxDataSource().list({ skip, limit });
     return Response.json(response, {
       headers: { "cache-control": "no-store" },
     });

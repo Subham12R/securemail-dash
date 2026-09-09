@@ -208,6 +208,7 @@ export default function InboxWorkspace({ initialItemId }: InboxWorkspaceProps) {
           counts={counts}
           filter={filter}
           selectedId={selectedId}
+          source={list?.source}
           isLoading={listStatus === "loading"}
           error={listError}
           onFilterChange={changeFilter}
