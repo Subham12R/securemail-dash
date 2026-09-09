@@ -5,11 +5,13 @@ import { notifyCriticalThreat } from "@/lib/notifications";
 import {
   AlertTriangle,
   ArrowLeft,
+  Download,
   FileText,
   Mail,
   Network,
   ShieldCheck,
 } from "lucide-react";
+import { downloadForensicPdfReport } from "@/lib/pdf-report-generator";
 import Link from "next/link";
 import {
   Card,
@@ -339,13 +341,24 @@ function RecordHeader({ viewModel }: { viewModel: AnalysisDetailViewModel }) {
               <p className="mt-1 break-words text-sm text-zinc-500">{secondary}</p>
             </div>
           </div>
-          <Link
-            href="/history"
-            className="inline-flex shrink-0 items-center gap-2 rounded-md border border-zinc-300 px-3 py-2 text-xs font-medium text-zinc-700 transition-colors hover:bg-zinc-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
-          >
-            <ArrowLeft aria-hidden="true" className="size-3.5" />
-            Back to History
-          </Link>
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={() => downloadForensicPdfReport(viewModel)}
+              className="inline-flex items-center gap-2 rounded-md bg-[#00E5FF] px-3 py-2 text-xs font-semibold text-zinc-950 transition-all hover:bg-[#00cbe2] shadow-xs cursor-pointer"
+              title="Download official forensic PDF report"
+            >
+              <Download aria-hidden="true" className="size-3.5" />
+              Download PDF Report
+            </button>
+            <Link
+              href="/history"
+              className="inline-flex items-center gap-2 rounded-md border border-zinc-300 px-3 py-2 text-xs font-medium text-zinc-700 transition-colors hover:bg-zinc-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 dark-soc:border-[#1E2D56] dark-soc:text-zinc-300 dark-soc:hover:bg-[#1E2D56]"
+            >
+              <ArrowLeft aria-hidden="true" className="size-3.5" />
+              Back to History
+            </Link>
+          </div>
         </div>
 
         {isEmail && viewModel.inbox.state !== "available" ? (
