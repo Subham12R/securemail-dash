@@ -1,5 +1,6 @@
 import { ViewTransition } from "react";
 import DashboardTopbar from "@/components/ui/dashboard-topbar";
+import FooterWatermark from "@/components/ui/footer";
 import FindingsView from "@/components/ui/findings-view";
 import { getAnalysisHistory } from "@/lib/securemail-api";
 import { fetchTmpVaultEmails } from "@/lib/tmpvault-api";
@@ -23,6 +24,7 @@ export default async function FindingsPage() {
       >
         <DashboardTopbar currentPage="Findings" showRefresh />
         <FindingsView records={history.records} tmpVaultEmails={tmpVaultEmails} />
+        <FooterWatermark />
       </main>
     </ViewTransition>
   );

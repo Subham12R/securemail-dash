@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import {
   BrainCircuit as BrainCircuitIcon,
   ChartLineIcon,
+  ChevronDownIcon,
   FileText as FileTextIcon,
   HistoryIcon,
   HomeIcon,
@@ -106,6 +107,7 @@ export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [userProfile, setUserProfile] = useState<{ email: string; display_name: string } | null>(null);
 
   useEffect(() => {
@@ -120,6 +122,7 @@ export default function Sidebar() {
   }, []);
 
   const handleLogout = async () => {
+    setProfileMenuOpen(false);
     try {
       await fetch("/api/auth/logout", { method: "POST" });
     } catch {
@@ -347,33 +350,53 @@ export default function Sidebar() {
           </div>
         </nav>
 
-        <div className={`mt-auto flex w-full flex-col items-center justify-center border-t px-2 py-3 ${divider}`}>
-          
-          <div
-            className={`flex w-full items-center gap-2 rounded-md p-2 transition-colors ${
-              "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
-            } ${collapsed ? "justify-center" : "justify-start"}`}
-            title={userProfile ? `${userProfile.display_name} (${userProfile.email})` : "SecOps Analyst"}
-          >
-            <UserIcon size={18} aria-hidden="true" className="shrink-0 bg-zinc-100 rounded-full p-4 text-zinc-900" />
-            {collapsed ? null : (
-              <div className="flex flex-col overflow-hidden text-left">
-                <span className="truncate text-xs font-semibold text-zinc-900">
-                  {userProfile?.display_name || "SecOps Analyst"}
-                </span>
-                <span className="truncate text-[10px] text-zinc-500">
-                  {userProfile?.email || "analyst@company.com"}
-                </span>
-              </div>
-            )}
-          </div>
+        <div className={`relative mt-auto flex w-full flex-col border-t px-2 py-3 ${divider}`}>
+          {profileMenuOpen ? (
+            <div
+              id="profile-menu"
+              className="absolute bottom-full left-2 right-2 z-30 mb-2 rounded-xl border border-zinc-200 bg-white p-1.5 shadow-lg"
+            >
+              <Link
+                href="/settings"
+                onClick={() => setProfileMenuOpen(false)}
+                className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
+              >
+                <SettingsIcon size={16} aria-hidden="true" />
+                Account settings
+              </Link>
+              <div className="my-1 border-t border-zinc-100" />
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-500/10 hover:text-red-700"
+              >
+                <LogOutIcon size={16} aria-hidden="true" />
+                Sign out
+              </button>
+            </div>
+          ) : null}
           <button
             type="button"
-            onClick={handleLogout}
-            className={`flex w-full items-center gap-2 rounded-md p-2 text-red-600 transition-colors hover:bg-red-500/10 hover:text-red-700 ${collapsed ? "justify-center" : "justify-start"}`}
+            aria-expanded={profileMenuOpen}
+            aria-controls="profile-menu"
+            onClick={() => setProfileMenuOpen((open) => !open)}
+            className={`flex w-full items-center gap-2 rounded-xl p-2 text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900 ${collapsed ? "justify-center" : "justify-start"}`}
+            title={userProfile ? `${userProfile.display_name} (${userProfile.email})` : "SecOps Analyst"}
           >
-            <LogOutIcon size={18} aria-hidden="true" className="shrink-0" />
-            {collapsed ? null : <span className="text-sm font-medium tracking-tighter text-current">Logout</span>}
+            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-zinc-200 text-zinc-700">
+              <UserIcon size={16} aria-hidden="true" />
+            </span>
+            {collapsed ? null : (
+              <span className="min-w-0 flex-1 text-left">
+                <span className="block truncate text-xs font-semibold text-zinc-900">
+                  {userProfile?.display_name || "SecOps Analyst"}
+                </span>
+                <span className="block truncate text-[10px] text-zinc-500">
+                  {userProfile?.email || "analyst@company.com"}
+                </span>
+              </span>
+            )}
+            {collapsed ? null : <ChevronDownIcon size={16} aria-hidden="true" className={`shrink-0 transition-transform ${profileMenuOpen ? "rotate-180" : ""}`} />}
           </button>
         </div>
       </aside>

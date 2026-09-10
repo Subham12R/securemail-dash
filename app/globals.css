@@ -222,6 +222,19 @@ body {
   background-color: #52525b !important;
 }
 
+.dark-soc .bg-sky-50,
+.dark-soc .bg-sky-50\/40 {
+  background-color: #27272a !important;
+}
+
+.dark-soc .text-sky-800 {
+  color: #7dd3fc !important;
+}
+
+.dark-soc .bg-gradient-to-b.from-emerald-50\/20.to-white {
+  background-image: linear-gradient(to bottom, rgb(16 185 129 / 0.12), #202020 45%) !important;
+}
+
 .dark-soc [class*="dark-soc:bg-[#111111]"] {
   background-color: #1a1a1a !important;
 }

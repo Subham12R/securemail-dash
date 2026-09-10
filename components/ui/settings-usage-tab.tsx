@@ -26,7 +26,7 @@ export function SettingsUsageTab({
   };
 
   return (
-    <div className="space-y-8 divide-y divide-zinc-200">
+    <div className="space-y-12 divide-y divide-zinc-200">
       {sections.map((section) => (
         <div
           key={section.id}

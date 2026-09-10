@@ -1,5 +1,6 @@
 import { ViewTransition } from "react";
 import DashboardTopbar from "@/components/ui/dashboard-topbar";
+import FooterWatermark from "@/components/ui/footer";
 import HistoryTable from "@/components/ui/history-table";
 import { getAnalysisHistory } from "@/lib/securemail-api";
 
@@ -63,6 +64,7 @@ export default async function HistoryPage(props: PageProps<"/history">) {
           page={page}
           limit={PAGE_SIZE}
         />
+        <FooterWatermark />
       </main>
     </ViewTransition>
   );

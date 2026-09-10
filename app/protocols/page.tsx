@@ -1,5 +1,6 @@
 import { ViewTransition } from "react";
 import DashboardTopbar from "@/components/ui/dashboard-topbar";
+import FooterWatermark from "@/components/ui/footer";
 import ProtocolsView from "@/components/ui/protocols-view";
 import { getAnalysisHistory } from "@/lib/securemail-api";
 
@@ -19,6 +20,7 @@ export default async function ProtocolsPage() {
       >
         <DashboardTopbar currentPage="Protocols" showRefresh />
         <ProtocolsView records={history.records} />
+        <FooterWatermark />
       </main>
     </ViewTransition>
   );

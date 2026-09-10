@@ -1,6 +1,7 @@
 import { ViewTransition } from "react";
 import AnalysisWorkspace from "@/components/ui/analysis-workspace";
 import DashboardTopbar from "@/components/ui/dashboard-topbar";
+import FooterWatermark from "@/components/ui/footer";
 import {
   getAnalysisByRequestId,
   getDashboardApiData,
@@ -29,6 +30,7 @@ export default async function AnalyticsPage({ searchParams }: AnalyticsPageProps
       >
         <DashboardTopbar currentPage="All Analysis" showRefresh />
         <AnalysisWorkspace analysis={analysis} apiError={apiError} />
+        <FooterWatermark />
       </main>
     </ViewTransition>
   );

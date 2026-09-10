@@ -2,6 +2,7 @@ import { ViewTransition } from "react";
 import Link from "next/link";
 import HistoryAnalysisDetail from "@/components/ui/history-analysis-detail";
 import DashboardTopbar from "@/components/ui/dashboard-topbar";
+import FooterWatermark from "@/components/ui/footer";
 import { convertInboxDetailToAnalysisRecord } from "@/lib/inbox-converter";
 import { buildAnalysisDetailViewModel } from "@/lib/analysis-detail";
 import { findInboxDetailByRequestId } from "@/lib/inbox-lookup";
@@ -44,6 +45,7 @@ function HistoryDetailError({ message }: { message: string }) {
             Back to History
           </Link>
         </section>
+        <FooterWatermark />
       </main>
     </ViewTransition>
   );
@@ -88,6 +90,7 @@ export default async function HistoryDetailPage({
       >
         <DashboardTopbar currentPage="History detail" showRefresh />
         <HistoryAnalysisDetail viewModel={viewModel} />
+        <FooterWatermark />
       </main>
     </ViewTransition>
   );

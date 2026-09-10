@@ -1,5 +1,6 @@
 import { ViewTransition } from "react";
 import DashboardTopbar from "@/components/ui/dashboard-topbar";
+import FooterWatermark from "@/components/ui/footer";
 import IntelligenceView from "@/components/ui/intelligence-view";
 
 export const metadata = {
@@ -16,6 +17,7 @@ export default function IntelligencePage() {
       >
         <DashboardTopbar currentPage="Intelligence" showRefresh />
         <IntelligenceView />
+        <FooterWatermark />
       </main>
     </ViewTransition>
   );

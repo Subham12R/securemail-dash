@@ -1,5 +1,6 @@
 import { ViewTransition } from "react";
 import DashboardTopbar from "@/components/ui/dashboard-topbar";
+import FooterWatermark from "@/components/ui/footer";
 import TlsView from "@/components/ui/tls-view";
 import { getAnalysisHistory } from "@/lib/securemail-api";
 import { fetchTmpVaultEmails } from "@/lib/tmpvault-api";
@@ -23,6 +24,7 @@ export default async function TlsPage() {
       >
         <DashboardTopbar currentPage="TLS Analysis" showRefresh />
         <TlsView records={history.records} tmpVaultEmails={tmpVaultEmails} />
+        <FooterWatermark />
       </main>
     </ViewTransition>
   );
