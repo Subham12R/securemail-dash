@@ -1,5 +1,37 @@
 import { toast } from "sonner";
 
+export type AlertVariant = "critical" | "warning" | "success" | "info";
+
+export interface AppleSystemAlertAction {
+  label: string;
+  onClick: () => void;
+}
+
+export interface SystemAlertOptions {
+  variant?: AlertVariant;
+  appName?: string;
+  title: string;
+  description: string;
+  time?: string;
+  action?: AppleSystemAlertAction;
+  avatarSrc?: string;
+  duration?: number;
+}
+
+export function buildSystemAlertPayload(options: SystemAlertOptions) {
+  const variant = options.variant ?? "info";
+  const defaultDuration =
+    variant === "critical" || variant === "warning" ? 8000 : 5000;
+
+  return {
+    ...options,
+    variant,
+    appName: options.appName || "SecureMailScope",
+    time: options.time || "now",
+    duration: options.duration ?? defaultDuration,
+  };
+}
+
 export interface CriticalThreatNotification {
   title: string;
   description: string;
