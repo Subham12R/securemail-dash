@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { getLocalTimeZone } from "@internationalized/date";
 import { ChevronLeft, ChevronRight, Link2 } from "lucide-react";
+import { MorphingText } from "@/components/ui/morphing-text";
 import {
   Card,
   CardContent,
@@ -11,13 +12,12 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import { MorphingText } from "@/components/ui/morphing-text";
 import TableToolbar, { type TableFilter } from "@/components/ui/table-toolbar";
 import type { SelectedDateRange } from "@/components/ui/date-range-filter";
-import {
-  RichButton,
-  type RichButtonColor,
-} from "@/components/ui/rich-button";
+import AnalysisStatusText from "@/components/ui/analysis-status-text";
+import { formatAnalysisSource, historyDetailHref } from "@/lib/analysis-detail";
+import { analysisStatusLabel } from "@/lib/risk";
+import { RiskScoreMeter } from "@/components/ui/risk-score-meter";
 import type { AnalysisRecord } from "@/lib/securemail-api";
 
 function formatTimestamp(timestamp: string) {
@@ -31,69 +31,8 @@ function formatTimestamp(timestamp: string) {
   }).format(date);
 }
 
-function statusColor(status: string): RichButtonColor {
-  switch (status.toLowerCase()) {
-    case "malicious":
-    case "critical":
-      return "danger";
-    case "suspicious":
-    case "high":
-      return "warning";
-    case "benign":
-      return "primary";
-    default:
-      return "default";
-  }
-}
-
-function formatVerdict(verdict: string) {
-  return verdict.charAt(0).toUpperCase() + verdict.slice(1);
-}
-
-function formatSource(record: AnalysisRecord) {
-  if (record.is_synthetic) return "Synthetic";
-
-  const source = record.source_label?.trim().toLowerCase() ?? "";
-  const identifiers = `${record.capture_id ?? ""} ${record.session_id}`.toLowerCase();
-
-  if (source.includes("pcap") || source.includes("capture") || identifiers.includes("pcap")) {
-    return "Analysed PCAP capture";
-  }
-  if (
-    source.includes("email") ||
-    source.includes("mail") ||
-    source.includes("client") ||
-    record.client_id
-  ) {
-    return "Email client";
-  }
-
-  return "Not supplied";
-}
-
 function RiskScore({ score }: { score: number }) {
-  const percentage = Math.max(0, Math.min(100, score * 100));
-
-  return (
-    <div className="flex min-w-36 items-center gap-3">
-      <div
-        className="h-1.5 flex-1 overflow-hidden rounded-full bg-zinc-100"
-        role="progressbar"
-        aria-label={`Risk score ${percentage.toFixed(1)}%`}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={percentage}
-      >
-        <div
-          className="h-full rounded-full bg-zinc-800"
-          style={{ width: `${percentage}%` }}
-        />
-      </div>
-      <span className="w-12 text-right text-xs font-medium tabular-nums text-zinc-700">
-        <MorphingText>{`${percentage.toFixed(1)}%`}</MorphingText>
-      </span>
-    </div>
-  );
+  return <RiskScoreMeter score={score} bars={18} size="sm" showText={false} />;
 }
 
 function PaginationLink({
@@ -140,7 +79,7 @@ export default function HistoryTable({
   limit: number;
 }) {
   const [query, setQuery] = useState("");
-  const [verdict, setVerdict] = useState("All verdicts");
+  const [status, setStatus] = useState("All statuses");
   const [source, setSource] = useState("All sources");
   const [dateRange, setDateRange] = useState<SelectedDateRange | null>(null);
   const totalPages = Math.max(1, Math.ceil(total / limit));
@@ -148,16 +87,22 @@ export default function HistoryTable({
   const lastRecord = Math.min(page * limit, total);
   const filters: TableFilter[] = [
     {
-      name: "verdict",
-      label: "Verdict",
-      value: verdict,
-      options: ["All verdicts", ...Array.from(new Set(records.map((record) => formatVerdict(record.final_verdict)))).sort()],
+      name: "status",
+      label: "Status",
+      value: status,
+      options: ["All statuses", ...Array.from(new Set(records.map((record) => analysisStatusLabel(record.final_verdict)))).sort()],
     },
     {
       name: "source",
       label: "Source",
       value: source,
-      options: ["All sources", "Analysed PCAP capture", "Email client"],
+      options: [
+        "All sources",
+        "Analysed PCAP capture",
+        "Email client",
+        "Synthetic",
+        "Not supplied",
+      ],
     },
   ];
   const filteredRecords = useMemo(() => {
@@ -169,15 +114,15 @@ export default function HistoryTable({
     return records.filter((record) => {
       const identifier = `${record.client_id ?? record.session_id} ${record.request_id}`.toLowerCase();
       const matchesQuery = !normalizedQuery || identifier.includes(normalizedQuery);
-      const matchesVerdict = verdict === "All verdicts" || formatVerdict(record.final_verdict) === verdict;
-      const matchesSource = source === "All sources" || formatSource(record) === source;
+      const matchesStatus = status === "All statuses" || analysisStatusLabel(record.final_verdict) === status;
+      const matchesSource = source === "All sources" || formatAnalysisSource(record) === source;
       const recordTime = new Date(record.timestamp).getTime();
       const matchesDate = start === undefined || end === undefined || (
         Number.isFinite(recordTime) && recordTime >= start && recordTime < end + 86_400_000
       );
-      return matchesQuery && matchesVerdict && matchesSource && matchesDate;
+      return matchesQuery && matchesStatus && matchesSource && matchesDate;
     });
-  }, [dateRange, query, records, source, verdict]);
+  }, [dateRange, query, records, source, status]);
 
   return (
     <section aria-labelledby="history-heading" className="p-6">
@@ -185,7 +130,7 @@ export default function HistoryTable({
         <CardHeader>
           <h2 id="history-heading" className="font-medium tracking-tighter text-zinc-900">Analysis history</h2>
           <CardDescription>
-            Persisted analysis records from the SecureMail API
+            Status combines the backend final verdict into a single readable severity label; the numeric score remains available for context.
           </CardDescription>
         </CardHeader>
         <TableToolbar
@@ -193,7 +138,7 @@ export default function HistoryTable({
           filters={filters}
           onQueryChange={setQuery}
           onFilterChange={(name, value) => {
-            if (name === "verdict") setVerdict(value);
+            if (name === "status") setStatus(value);
             if (name === "source") setSource(value);
           }}
           onRangeChange={(nextRange) => setDateRange(nextRange)}
@@ -216,21 +161,25 @@ export default function HistoryTable({
                   <th scope="col" className="px-5 py-3">Capture / session ID</th>
                   <th scope="col" className="px-5 py-3">Request ID</th>
                   <th scope="col" className="px-5 py-3">Risk score</th>
-                  <th scope="col" className="px-5 py-3">Verdict</th>
+                  <th scope="col" className="px-5 py-3">Status</th>
                   <th scope="col" className="px-5 py-3">Source</th>
                   <th scope="col" className="px-5 py-3">
-                    <span className="sr-only">Network details</span>
+                    <span className="sr-only">Analysis details</span>
                     <Link2 aria-hidden="true" className="size-4 text-zinc-500" />
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100">
                 {filteredRecords.length > 0 ? (
-                  filteredRecords.map((record) => {
-                    const verdict = formatVerdict(record.final_verdict);
+                  filteredRecords.map((record, index) => {
+                    const detailHref = historyDetailHref(record.request_id);
 
                     return (
-                      <tr key={record.id} className="text-zinc-700">
+                      <tr
+                        key={record.id}
+                        style={{ animationDelay: `${Math.min(index, 8) * 18}ms` }}
+                        className="animate-row-reveal text-zinc-700 transition-colors duration-150 hover:bg-zinc-50/80"
+                      >
                         <td className="whitespace-nowrap px-5 py-4 text-xs text-zinc-500">
                           {formatTimestamp(record.timestamp)}
                         </td>
@@ -254,28 +203,25 @@ export default function HistoryTable({
                           <RiskScore score={record.risk_score} />
                         </td>
                         <td className="px-5 py-4">
-                          <RichButton
-                            asChild
-                            size="sm"
-                            color={statusColor(record.final_verdict)}
-                            className="pointer-events-none"
-                          >
-                            <span><MorphingText>{verdict}</MorphingText></span>
-                          </RichButton>
+                          <AnalysisStatusText verdict={record.final_verdict} />
                         </td>
                         <td className="px-5 py-4 text-xs text-zinc-600">
-                          {formatSource(record)}
+                          {formatAnalysisSource(record)}
                         </td>
                         <td className="px-5 py-4">
-                          <Link
-                            href={`/inbox?requestId=${encodeURIComponent(record.request_id)}&tab=network`}
-                            aria-label={`View network details for ${record.client_id ?? record.session_id}`}
-                            title="View network details"
-                            className="inline-flex rounded-sm text-sky-700 transition-colors hover:text-sky-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-700"
-                          >
-                            <Link2 aria-hidden="true" className="size-4" />
-                            <span className="sr-only">View network details</span>
-                          </Link>
+                          {detailHref ? (
+                            <Link
+                              href={detailHref}
+                              aria-label={`View analysis details for ${record.client_id ?? record.session_id}`}
+                              title="View analysis details"
+                              className="inline-flex rounded-sm text-sky-700 transition-all hover:text-sky-900 hover:scale-110 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-700"
+                            >
+                              <Link2 aria-hidden="true" className="size-4" />
+                              <span className="sr-only">View analysis details</span>
+                            </Link>
+                          ) : (
+                            <span role="status" className="text-xs text-zinc-400">Not available</span>
+                          )}
                         </td>
                       </tr>
                     );

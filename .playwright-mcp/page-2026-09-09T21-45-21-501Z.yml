@@ -1,0 +1,270 @@
+- generic [active] [ref=f2e1]:
+  - generic [ref=f2e2]:
+    - generic [ref=f2e3]:
+      - complementary "Sidebar" [ref=f2e4]:
+        - generic [ref=f2e5]:
+          - img "SecureMailScope" [ref=f2e6]
+          - heading "SecureMailScope" [level=1] [ref=f2e7]
+        - navigation "Primary navigation" [ref=f2e8]:
+          - generic [ref=f2e9]:
+            - link "Dashboard" [ref=f2e10] [cursor=pointer]:
+              - /url: /
+            - link "Inbox" [ref=f2e15] [cursor=pointer]:
+              - /url: /inbox
+          - generic [ref=f2e20]:
+            - paragraph [ref=f2e21]: Analysis
+            - link "All Analysis" [ref=f2e23] [cursor=pointer]:
+              - /url: /analytics
+          - generic [ref=f2e29]:
+            - link "History" [ref=f2e30] [cursor=pointer]:
+              - /url: /history
+            - link "Settings" [ref=f2e36] [cursor=pointer]:
+              - /url: /settings
+        - generic [ref=f2e41]:
+          - generic [ref=f2e42]: Profile
+          - generic [ref=f2e47]: Logout
+      - button "Collapse sidebar" [expanded] [ref=f2e52] [cursor=pointer]
+    - main "History detail page" [ref=f2e55]:
+      - generic [ref=f2e56]:
+        - navigation "Breadcrumb" [ref=f2e57]:
+          - link "Dashboard" [ref=f2e58] [cursor=pointer]:
+            - /url: /
+          - generic [ref=f2e61]: History detail
+        - button "Refresh live data" [ref=f2e63]
+      - generic [ref=f2e70]:
+        - generic [ref=f2e71]:
+          - generic [ref=f2e73]:
+            - generic [ref=f2e74]:
+              - generic [ref=f2e82]:
+                - paragraph [ref=f2e83]: Analysed PCAP capture
+                - heading "Analysed PCAP capture" [level=1] [ref=f2e84]
+                - paragraph [ref=f2e85]: SMTP analysis record
+              - link "Back to History" [ref=f2e86] [cursor=pointer]:
+                - /url: /history
+            - generic [ref=f2e89]:
+              - generic [ref=f2e90]:
+                - term [ref=f2e91]: Request ID
+                - definition [ref=f2e92]: 7b7e49be-66f6-46ec-add2-57ccc13d3b48
+              - generic [ref=f2e93]:
+                - term [ref=f2e94]: Session ID
+                - definition [ref=f2e95]: pcap-82398e69c96f0dfd:stream:374
+              - generic [ref=f2e96]:
+                - term [ref=f2e97]: Capture ID
+                - definition [ref=f2e98]: pcap-82398e69c96f0dfd
+              - generic [ref=f2e99]:
+                - term [ref=f2e100]: Protocol
+                - definition [ref=f2e101]: SMTP
+              - generic [ref=f2e102]:
+                - term [ref=f2e103]: Posture
+                - definition [ref=f2e104]: unknown
+              - generic [ref=f2e105]:
+                - term [ref=f2e106]: Risk band
+                - definition [ref=f2e107]: High
+              - generic [ref=f2e108]:
+                - term [ref=f2e109]: Observed
+                - definition [ref=f2e110]: Sep 9, 2026, 7:16 PM
+            - generic [ref=f2e111]:
+              - generic [ref=f2e112]:
+                - generic [ref=f2e115]: Final verdict
+                - generic:
+                  - generic:
+                    - generic: High
+                    - generic [aria-hidden]: H
+                    - generic [aria-hidden]: i
+                    - generic [aria-hidden]: g
+                    - generic [aria-hidden]: h
+              - generic [ref=f2e116]:
+                - generic [ref=f2e117]: Risk band
+                - generic:
+                  - generic:
+                    - generic: High
+                    - generic [aria-hidden]: H
+                    - generic [aria-hidden]: i
+                    - generic [aria-hidden]: g
+                    - generic [aria-hidden]: h
+              - generic [ref=f2e118]:
+                - progressbar "Risk score 71.1%" [ref=f2e119]
+                - generic [ref=f2e122]:
+                  - generic [ref=f2e123]: 71.1%
+                  - generic [ref=f2e125]: "7"
+                  - generic [ref=f2e127]: "1"
+                  - generic [ref=f2e129]: .
+                  - generic [ref=f2e131]: "1"
+                  - generic [ref=f2e133]: "%"
+          - region [ref=f2e134]:
+            - heading "Analysis record details" [level=2] [ref=f2e135]
+            - generic [ref=f2e136]:
+              - generic [ref=f2e137]:
+                - heading "Record summary" [level=3] [ref=f2e138]
+                - paragraph [ref=f2e139]: Persisted SecureMail analysis metadata. Model output is advisory.
+              - generic [ref=f2e141]:
+                - generic [ref=f2e142]:
+                  - term [ref=f2e143]: Capture ID
+                  - definition [ref=f2e144]: pcap-82398e69c96f0dfd
+                - generic [ref=f2e145]:
+                  - term [ref=f2e146]: Session ID
+                  - definition [ref=f2e147]: pcap-82398e69c96f0dfd:stream:374
+                - generic [ref=f2e148]:
+                  - term [ref=f2e149]: Request ID
+                  - definition [ref=f2e150]: 7b7e49be-66f6-46ec-add2-57ccc13d3b48
+                - generic [ref=f2e151]:
+                  - term [ref=f2e152]: Client ID
+                  - definition [ref=f2e153]: pcap-82398e69c96f0dfd
+                - generic [ref=f2e154]:
+                  - term [ref=f2e155]: Protocol
+                  - definition [ref=f2e156]: SMTP
+                - generic [ref=f2e157]:
+                  - term [ref=f2e158]: Posture
+                  - definition [ref=f2e159]: unknown
+                - generic [ref=f2e160]:
+                  - term [ref=f2e161]: Risk band
+                  - definition [ref=f2e162]: High
+                - generic [ref=f2e163]:
+                  - term [ref=f2e164]: Observed
+                  - definition [ref=f2e165]: Sep 9, 2026, 7:16 PM
+            - generic [ref=f2e166]:
+              - generic [ref=f2e167]:
+                - heading "Analysis summary" [level=3] [ref=f2e168]
+                - paragraph [ref=f2e169]: Human-readable interpretation of the persisted analysis output.
+              - generic [ref=f2e170]:
+                - paragraph [ref=f2e171]: SMTP analysis received a 71.1% risk score (High score band) and a backend final verdict of High. The recorded security posture is Unknown. No deterministic rule triggers were recorded. Model evaluation was returned for XGBoost and Random Forest. The strongest model signals were Handshake Success, Byte Count, Packet Count.
+                - generic [ref=f2e172]:
+                  - heading "Model evaluation" [level=4] [ref=f2e173]
+                  - paragraph [ref=f2e174]: The available model predictions and risk likelihoods, without raw bundle metadata.
+                  - list [ref=f2e176]:
+                    - listitem [ref=f2e177]:
+                      - paragraph [ref=f2e178]: XGBoost
+                      - generic [ref=f2e179]:
+                        - generic [ref=f2e180]:
+                          - term [ref=f2e181]: Prediction
+                          - definition [ref=f2e182]: High
+                        - generic [ref=f2e183]:
+                          - term [ref=f2e184]: Risk likelihood
+                          - definition [ref=f2e185]: 75.0%
+                    - listitem [ref=f2e186]:
+                      - paragraph [ref=f2e187]: Random Forest
+                      - generic [ref=f2e188]:
+                        - generic [ref=f2e189]:
+                          - term [ref=f2e190]: Prediction
+                          - definition [ref=f2e191]: High
+                        - generic [ref=f2e192]:
+                          - term [ref=f2e193]: Risk likelihood
+                          - definition [ref=f2e194]: 65.2%
+                - generic [ref=f2e195]:
+                  - heading "Key risk signals" [level=4] [ref=f2e196]
+                  - paragraph [ref=f2e197]: The strongest supported feature contributions, normalized for review.
+                  - list [ref=f2e199]:
+                    - listitem [ref=f2e200]:
+                      - generic [ref=f2e201]: Handshake Success
+                      - generic [ref=f2e202]: Raises risk · observed No · contribution +1.51
+                    - listitem [ref=f2e203]:
+                      - generic [ref=f2e204]: Byte Count
+                      - generic [ref=f2e205]: Raises risk · observed 1077 · contribution +1.37
+                    - listitem [ref=f2e206]:
+                      - generic [ref=f2e207]: Packet Count
+                      - generic [ref=f2e208]: Raises risk · observed 11 · contribution +0.78
+                    - listitem [ref=f2e209]:
+                      - generic [ref=f2e210]: Src Port
+                      - generic [ref=f2e211]: Lowers risk · observed 22666 · contribution -0.73
+                    - listitem [ref=f2e212]:
+                      - generic [ref=f2e213]: Cert Chain Valid
+                      - generic [ref=f2e214]: Raises risk · observed Not observed · contribution +0.64
+                    - listitem [ref=f2e215]:
+                      - generic [ref=f2e216]: Cert Expires In Days
+                      - generic [ref=f2e217]: Lowers risk · observed Not observed · contribution -0.27
+                    - listitem [ref=f2e218]:
+                      - generic [ref=f2e219]: Cert Key Length Bits
+                      - generic [ref=f2e220]: Lowers risk · observed Not observed · contribution -0.19
+                    - listitem [ref=f2e221]:
+                      - generic [ref=f2e222]: TLS Version
+                      - generic [ref=f2e223]: Lowers risk · observed Not observed · contribution -0.12
+            - generic [ref=f2e224]:
+              - generic [ref=f2e225]:
+                - heading "Deterministic checks" [level=3] [ref=f2e226]
+                - paragraph [ref=f2e227]: Rule results and evidence counts returned with this record.
+              - generic [ref=f2e228]:
+                - generic [ref=f2e229]:
+                  - generic [ref=f2e230]:
+                    - term [ref=f2e231]: Rule score
+                    - definition [ref=f2e232]: Not supplied
+                  - generic [ref=f2e233]:
+                    - term [ref=f2e234]: Triggered checks
+                    - definition [ref=f2e235]: "0"
+                  - generic [ref=f2e236]:
+                    - term [ref=f2e237]: Evidence references
+                    - definition [ref=f2e238]: "1"
+                - generic [ref=f2e239]:
+                  - heading "Findings" [level=4] [ref=f2e240]
+                  - paragraph [ref=f2e241]: No rule findings were recorded.
+            - generic [ref=f2e242]:
+              - generic [ref=f2e243]:
+                - heading "Data availability" [level=3] [ref=f2e244]
+                - paragraph [ref=f2e245]: Supporting values are shown only when the analysis supplied a meaningful result.
+              - paragraph [ref=f2e247]: "Not supplied: Rule score, Rule findings."
+            - status [ref=f2e248]:
+              - generic [ref=f2e252]:
+                - heading "Related Inbox evidence unavailable" [level=2] [ref=f2e253]
+                - paragraph [ref=f2e254]: No matching Inbox item was returned.
+        - complementary [ref=f2e255]:
+          - generic [ref=f2e256]:
+            - generic [ref=f2e257]:
+              - img "Secure Agent" [ref=f2e259]
+              - heading "Secure Agent" [level=2] [ref=f2e260]
+            - generic [ref=f2e261]:
+              - button "Reset conversation" [ref=f2e262]
+              - button "Collapse assistant panel" [expanded] [ref=f2e266]
+          - generic [ref=f2e270]:
+            - article "assistant message" [ref=f2e272]:
+              - img "Secure Agent" [ref=f2e275]
+              - generic [ref=f2e276]:
+                - generic [ref=f2e278]:
+                  - button "Analyzed 3 telemetry checks" [ref=f2e279]
+                  - generic:
+                    - list:
+                      - listitem:
+                        - generic: Ingested session packet telemetry
+                      - listitem:
+                        - generic:
+                          - generic: Read
+                          - generic: Evaluated deterministic RFC rules & ML risk score
+                      - listitem:
+                        - generic: Generated evidence-grounded baseline summary
+                - generic [ref=f2e287]:
+                  - paragraph [ref=f2e288]:
+                    - text: Session evaluated from
+                    - strong [ref=f2e289]: Analysed PCAP capture
+                    - text: .
+                  - list [ref=f2e290]:
+                    - listitem [ref=f2e291]:
+                      - strong [ref=f2e292]: "Session:"
+                      - code [ref=f2e293]: pcap-82398e69c96f0dfd:stream:374
+                    - listitem [ref=f2e294]:
+                      - strong [ref=f2e295]: "Verdict:"
+                      - code [ref=f2e296]: HIGH
+                      - text: (71.1% risk)
+                    - listitem [ref=f2e297]:
+                      - strong [ref=f2e298]: "Protocol:"
+                      - code [ref=f2e299]: SMTP
+                      - text: "· Posture:"
+                      - code [ref=f2e300]: unknown
+                    - listitem [ref=f2e301]:
+                      - strong [ref=f2e302]: "Findings:"
+                      - text: No deterministic rule violations flagged.
+                    - listitem [ref=f2e303]:
+                      - strong [ref=f2e304]: "Coverage:"
+                      - text: 2 telemetry fields unobserved.
+                  - paragraph [ref=f2e305]: How can I help investigate this session?
+                - generic [ref=f2e306]:
+                  - generic [ref=f2e307]: 03:15
+                  - button "Copy response" [ref=f2e308]:
+                    - generic [ref=f2e312]: Copy
+            - generic [ref=f2e313]:
+              - generic [ref=f2e314]:
+                - button "Explain the risk drivers" [ref=f2e315]
+                - button "Inspect TLS & cipher posture" [ref=f2e320]
+              - generic [ref=f2e325]:
+                - textbox "Ask about risk, TLS, or findings…" [ref=f2e326]
+                - button "Send prompt" [disabled] [ref=f2e327]
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=f2e335] [cursor=pointer]
+  - alert [ref=f2e339]

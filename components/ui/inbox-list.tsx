@@ -209,10 +209,14 @@ export default function InboxList({
               <span className="text-right">Received</span>
             </div>
             <ul aria-label="Inbox messages" className="divide-y divide-zinc-200">
-              {items.map((item) => {
+              {items.map((item, index) => {
                 const recipient = item.recipients[0]?.address ?? "Recipient unavailable";
                 return (
-                  <li key={item.mail_item_id} className="relative flex items-stretch">
+                  <li
+                    key={item.mail_item_id}
+                    style={{ animationDelay: `${Math.min(index, 8) * 16}ms` }}
+                    className="animate-row-reveal relative flex items-stretch"
+                  >
                     <button
                       type="button"
                       aria-pressed={selectedId === item.mail_item_id}
@@ -221,7 +225,7 @@ export default function InboxList({
                         "grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-2 border-l-2 px-4 py-4 pr-14 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-sky-600 sm:items-center sm:gap-3 sm:px-5 sm:py-3.5 sm:pr-14",
                         desktopGridClass,
                         selectedId === item.mail_item_id
-                          ? "border-l-sky-600 bg-sky-50"
+                          ? "border-l-sky-600 bg-sky-50 dark-soc:bg-zinc-800"
                           : "border-l-transparent hover:bg-zinc-50",
                       )}
                     >

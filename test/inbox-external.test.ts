@@ -151,7 +151,8 @@ test("treats an explicit empty live inbox as an empty list", () => {
   assert.deepEqual(response.counts, { all: 0, flagged: 0, healthy: 0 });
 });
 
-test("bounds HTML-only content and ignores invalid numeric entities", () => {
+test("keeps HTML-only content bounded for direct preview embedding", () => {
+  const html = `<p>Hello &#x110000; &amp; welcome</p>${"x".repeat(50_000)}`;
   const detail = normalizeInboxApiDetail({
     success: true,
     data: {
@@ -159,14 +160,16 @@ test("bounds HTML-only content and ignores invalid numeric entities", () => {
       email: {
         ...rawEmail.email,
         TextBody: undefined,
-        HTMLBody: `<p>Hello &#x110000; &amp; welcome</p>${"x".repeat(50_000)}`,
+        HTMLBody: html,
       },
     },
   });
 
+  assert.equal(detail.content.data?.format, "html");
+  assert.equal(detail.content.data?.html?.startsWith("<p>Hello"), true);
+  assert.equal(detail.content.data?.html?.length, 12_000);
   assert.equal(detail.content.data?.text.startsWith("Hello"), true);
   assert.equal(detail.content.data?.truncated, true);
-  assert.equal(JSON.stringify(detail).includes("110000"), false);
 });
 
 test("normalizes live detail while withholding unbounded raw message data", () => {
@@ -174,6 +177,8 @@ test("normalizes live detail while withholding unbounded raw message data", () =
 
   assert.equal(detail.source, "live");
   assert.equal(detail.email.data?.message_id, "<message@example.com>");
+  assert.equal(detail.content.data?.format, "html");
+  assert.equal(detail.content.data?.html, "<script>do not render this</script>");
   assert.equal(detail.content.data?.text, "Bounded message text");
   assert.equal(detail.network.data?.packet_count, 12);
   assert.equal(detail.network.data?.ip_reputation?.address, "203.0.113.10");
@@ -200,5 +205,4 @@ test("normalizes live detail while withholding unbounded raw message data", () =
   assert.equal(detail.headers.data?.authentication.spf, "fail");
   assert.equal(detail.analysis_ref.request_id, "request-1");
   assert.equal(JSON.stringify(detail).includes("RAW BODY MUST NOT LEAK"), false);
-  assert.equal(JSON.stringify(detail).includes("do not render this"), false);
 });

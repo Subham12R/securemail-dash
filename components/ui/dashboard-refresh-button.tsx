@@ -44,7 +44,7 @@ export default function DashboardRefreshButton() {
       className="inline-flex h-10 items-center gap-2 rounded-md border border-zinc-200 px-3 text-sm font-medium text-zinc-700 transition-colors hover:border-zinc-400 hover:text-zinc-900 disabled:cursor-wait disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
     >
       <RefreshCw aria-hidden="true" className={isRefreshing ? "size-4 animate-spin" : "size-4"} />
-      <MorphingText>{isRefreshing ? "Refreshing" : "Refresh"}</MorphingText>
+     
     </button>
   );
 }

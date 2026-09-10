@@ -1,5 +1,7 @@
+import { ViewTransition } from "react";
 import AnalysisWorkspace from "@/components/ui/analysis-workspace";
 import DashboardTopbar from "@/components/ui/dashboard-topbar";
+import FooterWatermark from "@/components/ui/footer";
 import {
   getAnalysisByRequestId,
   getDashboardApiData,
@@ -13,7 +15,7 @@ export default async function AnalyticsPage({ searchParams }: AnalyticsPageProps
   const params = await searchParams;
   const requestId = Array.isArray(params.requestId) ? params.requestId[0] : params.requestId;
   const [dashboard, selected] = await Promise.all([
-    getDashboardApiData(),
+    getDashboardApiData({ includeRiskDistribution: false }),
     requestId ? getAnalysisByRequestId(requestId) : Promise.resolve(null),
   ]);
   const selectedAnalysis = selected?.record ?? null;
@@ -21,12 +23,15 @@ export default async function AnalyticsPage({ searchParams }: AnalyticsPageProps
   const apiError = requestId ? selected?.error ?? null : dashboard.error;
 
   return (
-    <main
-      className="h-full min-h-0 min-w-0 flex-1 overflow-y-auto bg-white"
-      aria-label="All Analysis page"
-    >
-      <DashboardTopbar currentPage="All Analysis" showRefresh />
-      <AnalysisWorkspace analysis={analysis} apiError={apiError} />
-    </main>
+    <ViewTransition enter="page-enter" exit="page-exit" default="none">
+      <main
+        className="h-full min-h-0 min-w-0 flex-1 overflow-y-auto bg-white"
+        aria-label="All Analysis page"
+      >
+        <DashboardTopbar currentPage="All Analysis" showRefresh />
+        <AnalysisWorkspace analysis={analysis} apiError={apiError} />
+        <FooterWatermark />
+      </main>
+    </ViewTransition>
   );
 }

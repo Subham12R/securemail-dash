@@ -1,5 +1,7 @@
+import { ViewTransition } from "react";
 import InboxWorkspace from "@/components/ui/inbox-workspace";
 import DashboardTopbar from "@/components/ui/dashboard-topbar";
+import FooterWatermark from "@/components/ui/footer";
 import {
   getInboxFilterFromQuery,
   getInboxTabFromQuery,
@@ -26,18 +28,23 @@ export default async function InboxPage({ searchParams }: InboxPageProps) {
   const initialTab = getInboxTabFromQuery(firstQueryValue(params.tab));
 
   return (
-    <main
-      className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white"
-      aria-label="Inbox page"
-    >
-      <DashboardTopbar currentPage="Inbox" showRefresh />
-      <InboxWorkspace
-        key={`${initialFilter}:${itemId ?? ""}:${requestId ?? ""}:${initialTab}`}
-        initialItemId={itemId}
-        initialRequestId={requestId}
-        initialFilter={initialFilter}
-        initialTab={initialTab}
-      />
-    </main>
+    <ViewTransition enter="page-enter" exit="page-exit" default="none">
+      <main
+        className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-y-auto bg-white"
+        aria-label="Inbox page"
+      >
+        <DashboardTopbar currentPage="Inbox" showRefresh />
+        <div className="min-h-0 flex-1">
+          <InboxWorkspace
+            key={`${initialFilter}:${itemId ?? ""}:${requestId ?? ""}:${initialTab}`}
+            initialItemId={itemId}
+            initialRequestId={requestId}
+            initialFilter={initialFilter}
+            initialTab={initialTab}
+          />
+        </div>
+        <FooterWatermark />
+      </main>
+    </ViewTransition>
   );
 }

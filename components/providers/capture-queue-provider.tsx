@@ -21,6 +21,11 @@ import {
 } from "@/lib/capture-queue";
 import type { AttachmentUploadItem } from "@/components/motion/attachment-upload";
 import type { AnalysisRecord } from "@/lib/securemail-api";
+import {
+  notifyAnalysisComplete,
+  notifyExtractionProgress,
+} from "@/lib/notifications";
+import { toast } from "sonner";
 
 const STORAGE_KEY = "securemailscope:capture-queue:v1";
 const POLL_INTERVAL_MS = 1_500;
@@ -352,10 +357,14 @@ export function CaptureQueueProvider({ children }: { children: ReactNode }) {
       }
 
       if (job.status === "failed") {
+        const errorMsg = `Capture extraction failed${job.error_code ? ` (${job.error_code})` : ""}.`;
         updateItem(id, {
           job,
           phase: "failed",
-          error: `Capture extraction failed${job.error_code ? ` (${job.error_code})` : ""}.`,
+          error: errorMsg,
+        });
+        toast.error("Capture Extraction Failed", {
+          description: `${job.filename}: ${errorMsg}`,
         });
         return;
       }
@@ -366,6 +375,9 @@ export function CaptureQueueProvider({ children }: { children: ReactNode }) {
           sessionCount: 0,
           analyzedCount: 0,
           error: null,
+        });
+        toast.info("No Mail Sessions Found", {
+          description: `${job.filename} contains no SMTP, IMAP, or POP3 sessions.`,
         });
         return;
       }
@@ -385,6 +397,12 @@ export function CaptureQueueProvider({ children }: { children: ReactNode }) {
         sessionCount: sessionRecords.length,
         analyzedCount: alreadyAnalyzed,
         error: null,
+      });
+
+      notifyExtractionProgress({
+        filename: job.filename,
+        phase: "analyzing",
+        sessionsExtracted: sessionRecords.length,
       });
 
       let analyzedCount = alreadyAnalyzed;
@@ -422,6 +440,17 @@ export function CaptureQueueProvider({ children }: { children: ReactNode }) {
         sessionCount: sessionRecords.length,
         analyzedCount: sessionRecords.length,
         error: null,
+      });
+
+      const criticals = finalResults.filter(
+        (r) => r.final_verdict === "malicious" || (r.risk_score !== null && r.risk_score >= 0.75)
+      );
+
+      notifyAnalysisComplete({
+        filename: job.filename,
+        sessionCount: sessionRecords.length,
+        criticalCount: criticals.length,
+        latestRequestId: finalResults[0]?.request_id,
       });
     },
     [updateItem],

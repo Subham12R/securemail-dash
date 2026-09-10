@@ -2,25 +2,65 @@
 
 import { useEffect, useState } from "react";
 import {
+  BrainCircuit as BrainCircuitIcon,
   ChartLineIcon,
+  ChevronDownIcon,
+  FileText as FileTextIcon,
   HistoryIcon,
   HomeIcon,
+  LockIcon,
   LogOutIcon,
   MailIcon,
+  NetworkIcon,
   PanelLeftIcon,
   PanelRightIcon,
   SettingsIcon,
+  ShieldAlertIcon,
+  ShieldCheckIcon,
   UserIcon,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import ThemeToggle from "@/components/ui/theme-toggle";
 
-const primaryItems = [
+const overviewItems = [
   {
     name: "Dashboard",
     icon: <HomeIcon size={18} aria-hidden="true" />,
     href: "/",
+  },
+];
+
+const forensicItems = [
+  {
+    name: "Protocols",
+    icon: <NetworkIcon size={18} aria-hidden="true" />,
+    href: "/protocols",
+  },
+  {
+    name: "TLS Analysis",
+    icon: <LockIcon size={18} aria-hidden="true" />,
+    href: "/tls",
+  },
+  {
+    name: "Certificates",
+    icon: <ShieldCheckIcon size={18} aria-hidden="true" />,
+    href: "/certificates",
+  },
+  {
+    name: "Findings",
+    icon: <ShieldAlertIcon size={18} aria-hidden="true" />,
+    href: "/findings",
+    badge: "6",
+  },
+];
+
+const investigationItems = [
+  {
+    name: "All Analysis",
+    icon: <ChartLineIcon size={18} aria-hidden="true" />,
+    href: "/analytics",
   },
   {
     name: "Inbox",
@@ -32,6 +72,25 @@ const primaryItems = [
     icon: <HistoryIcon size={18} aria-hidden="true" />,
     href: "/history",
   },
+];
+
+const intelligenceItems = [
+  {
+    name: "AI Insights",
+    icon: <BrainCircuitIcon size={18} aria-hidden="true" />,
+    href: "/intelligence",
+  },
+];
+
+const outputItems = [
+  {
+    name: "Reports",
+    icon: <FileTextIcon size={18} aria-hidden="true" />,
+    href: "/reports",
+  },
+];
+
+const systemItems = [
   {
     name: "Settings",
     icon: <SettingsIcon size={18} aria-hidden="true" />,
@@ -39,23 +98,39 @@ const primaryItems = [
   },
 ];
 
-const analysisItems = [
-  {
-    name: "All Analysis",
-    icon: <ChartLineIcon size={18} aria-hidden="true" />,
-    href: "/analytics",
-  },
-];
-
 function isActivePath(pathname: string, href: string) {
-  return href === "/analytics"
-    ? pathname === href
-    : pathname === href || pathname.startsWith(`${href}/`);
+  if (href === "/") return pathname === "/";
+  return pathname === href || pathname.startsWith(`${href}/`);
 }
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [userProfile, setUserProfile] = useState<{ email: string; display_name: string } | null>(null);
+
+  useEffect(() => {
+    fetch("/api/auth/profile")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.ok && data.profile) {
+          setUserProfile(data.profile);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleLogout = async () => {
+    setProfileMenuOpen(false);
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch {
+      // Ignore network errors
+    }
+    router.push("/login");
+    router.refresh();
+  };
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 767px)");
@@ -68,13 +143,13 @@ export default function Sidebar() {
   }, []);
 
   const width = collapsed ? "w-16" : "w-64";
-  const surface = "border-zinc-200 bg-zinc-50 text-zinc-800";
+  const surface = "border-zinc-200 bg-zinc-100 text-zinc-800";
   const divider = "border-zinc-200";
   const muted = "text-zinc-600";
   const linkClasses = (active: boolean) =>
     `flex w-full items-center gap-2 rounded-md p-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 ${
       active
-        ? "bg-zinc-100 text-zinc-900"
+        ? "bg-zinc-900 text-zinc-200"
         : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
     } ${collapsed ? "justify-center" : "justify-start"}`;
 
@@ -85,31 +160,33 @@ export default function Sidebar() {
       <aside
         id="dashboard-sidebar"
         aria-label="Sidebar"
+        style={{ viewTransitionName: "app-sidebar" }}
         className={`sticky top-0 flex h-full min-h-0 w-full flex-col overflow-y-auto overflow-x-hidden border-r ${surface}`}
       >
         <div
-          className={`flex w-full items-center gap-2 border-b ${divider} text-left ${
+          className={`flex w-full items-end gap-2 border-b ${divider} text-left ${
             collapsed ? "justify-center p-4" : "px-4 py-4"
           }`}
         >
           <Image
             src="/logo-mark.png"
             alt="SecureMailScope"
-            width={32}
-            height={32}
+            width={500}
+            height={500}
             className="size-8 object-contain"
           />
           {collapsed ? null : (
-            <h1 className="truncate text-md tracking-tighter">SecureMailScope</h1>
+            <h1 className="font-medium text-md tracking-tighter text-zinc-900">SecureMailScope</h1>
           )}
         </div>
 
         <nav
           aria-label="Primary navigation"
-          className={`flex flex-1 flex-col items-start justify-start px-2 py-4 text-left ${muted}`}
+          className={`flex flex-1 flex-col items-start justify-start px-2 py-3 text-left ${muted}`}
         >
+          {/* Overview */}
           <div className="flex w-full flex-col gap-1">
-            {primaryItems.slice(0, 2).map((item) => (
+            {overviewItems.map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
@@ -124,14 +201,51 @@ export default function Sidebar() {
             ))}
           </div>
 
-          <div className="mt-6 w-full">
+          {/* Forensics Modules */}
+          <div className="mt-4 w-full">
             {collapsed ? null : (
-              <p className="mb-2 px-2 text-xs  font-semibold tracking-tighter text-zinc-600">
-                Analysis
+              <p className="mb-1.5 px-2 text-sm font-medium tracking-tighter text-zinc-500">
+                Forensics
               </p>
             )}
             <div className="flex w-full flex-col gap-1">
-              {analysisItems.map((item) => {
+              {forensicItems.map((item) => {
+                const active = isActivePath(pathname, item.href);
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    aria-current={active ? "page" : undefined}
+                    aria-label={collapsed ? item.name : undefined}
+                    title={collapsed ? item.name : undefined}
+                    className={linkClasses(active)}
+                  >
+                    {item.icon}
+                    {collapsed ? null : (
+                      <span className="flex min-w-0 flex-1 items-center justify-between gap-2 text-sm font-medium tracking-tighter text-current">
+                        <span className="truncate">{item.name}</span>
+                        {"badge" in item && item.badge && (
+                          <span className="rounded-full bg-rose-500/10 px-2 py-0.5 text-xs font-bold text-rose-600 dark-soc:bg-rose-500/20 dark-soc:text-rose-400">
+                            {item.badge}
+                          </span>
+                        )}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Capture & Evidence */}
+          <div className="mt-4 w-full">
+            {collapsed ? null : (
+              <p className="mb-1.5 px-2 text-sm font-medium tracking-tighter text-zinc-500">
+                Capture & Evidence
+              </p>
+            )}
+            <div className="flex w-full flex-col gap-1">
+              {investigationItems.map((item) => {
                 const active = isActivePath(pathname, item.href);
                 return (
                   <Link
@@ -154,38 +268,136 @@ export default function Sidebar() {
             </div>
           </div>
 
-          <div className="mt-1 flex w-full flex-col gap-1">
-            {primaryItems.slice(2).map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                aria-current={isActivePath(pathname, item.href) ? "page" : undefined}
-                aria-label={collapsed ? item.name : undefined}
-                title={collapsed ? item.name : undefined}
-                className={linkClasses(isActivePath(pathname, item.href))}
-              >
-                {item.icon}
-                {collapsed ? null : <span className="text-sm font-medium tracking-tighter text-current">{item.name}</span>}
-              </Link>
-            ))}
+          {/* Intelligence */}
+          <div className="mt-4 w-full">
+            {collapsed ? null : (
+              <p className="mb-1.5 px-2 text-sm font-medium tracking-tighter text-zinc-500">
+                Intelligence
+              </p>
+            )}
+            <div className="flex w-full flex-col gap-1">
+              {intelligenceItems.map((item) => {
+                const active = isActivePath(pathname, item.href);
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    aria-current={active ? "page" : undefined}
+                    aria-label={collapsed ? item.name : undefined}
+                    title={collapsed ? item.name : undefined}
+                    className={linkClasses(active)}
+                  >
+                    {item.icon}
+                    {collapsed ? null : (
+                      <span className="flex min-w-0 flex-1 items-center justify-between gap-2 text-sm font-medium tracking-tighter text-current">
+                        <span className="truncate">{item.name}</span>
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Output */}
+          <div className="mt-4 w-full">
+            {collapsed ? null : (
+              <p className="mb-1.5 px-2 text-sm font-medium tracking-tighter text-zinc-500">
+                Output
+              </p>
+            )}
+            <div className="flex w-full flex-col gap-1">
+              {outputItems.map((item) => {
+                const active = isActivePath(pathname, item.href);
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    aria-current={active ? "page" : undefined}
+                    aria-label={collapsed ? item.name : undefined}
+                    title={collapsed ? item.name : undefined}
+                    className={linkClasses(active)}
+                  >
+                    {item.icon}
+                    {collapsed ? null : (
+                      <span className="flex min-w-0 flex-1 items-center justify-between gap-2 text-sm font-medium tracking-tighter text-current">
+                        <span className="truncate">{item.name}</span>
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* System */}
+          <div className="mt-4 w-full">
+            <div className="flex w-full flex-col gap-1">
+              {systemItems.map((item) => (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  aria-current={isActivePath(pathname, item.href) ? "page" : undefined}
+                  aria-label={collapsed ? item.name : undefined}
+                  title={collapsed ? item.name : undefined}
+                  className={linkClasses(isActivePath(pathname, item.href))}
+                >
+                  {item.icon}
+                  {collapsed ? null : <span className="text-sm font-medium tracking-tighter text-current">{item.name}</span>}
+                </Link>
+              ))}
+            </div>
           </div>
         </nav>
 
-        <div className={`mt-auto flex w-full flex-col items-center justify-center border-t px-2 py-4 ${divider}`}>
-          <div
-            className={`flex w-full items-center gap-2 rounded-md p-2 transition-colors ${
-              "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
-            } ${collapsed ? "justify-center" : "justify-start"}`}
+        <div className={`relative mt-auto flex w-full flex-col border-t px-2 py-3 ${divider}`}>
+          {profileMenuOpen ? (
+            <div
+              id="profile-menu"
+              className="absolute bottom-full left-2 right-2 z-30 mb-2 rounded-xl border border-zinc-200 bg-white p-1.5 shadow-lg"
+            >
+              <Link
+                href="/settings"
+                onClick={() => setProfileMenuOpen(false)}
+                className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
+              >
+                <SettingsIcon size={16} aria-hidden="true" />
+                Account settings
+              </Link>
+              <div className="my-1 border-t border-zinc-100" />
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-500/10 hover:text-red-700"
+              >
+                <LogOutIcon size={16} aria-hidden="true" />
+                Sign out
+              </button>
+            </div>
+          ) : null}
+          <button
+            type="button"
+            aria-expanded={profileMenuOpen}
+            aria-controls="profile-menu"
+            onClick={() => setProfileMenuOpen((open) => !open)}
+            className={`flex w-full items-center gap-2 rounded-xl p-2 text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900 ${collapsed ? "justify-center" : "justify-start"}`}
+            title={userProfile ? `${userProfile.display_name} (${userProfile.email})` : "SecOps Analyst"}
           >
-            <UserIcon size={18} aria-hidden="true" />
-            {collapsed ? null : <span className="text-sm font-medium tracking-tighter text-current">Profile</span>}
-          </div>
-          <div
-            className={`flex w-full items-center gap-2 rounded-md p-2 text-red-600 transition-colors hover:bg-red-500/10 hover:text-red-700 ${collapsed ? "justify-center" : "justify-start"}`}
-          >
-            <LogOutIcon size={18} aria-hidden="true" />
-            {collapsed ? null : <span className="text-sm font-medium tracking-tighter text-current">Logout</span>}
-          </div>
+            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-zinc-200 text-zinc-700">
+              <UserIcon size={16} aria-hidden="true" />
+            </span>
+            {collapsed ? null : (
+              <span className="min-w-0 flex-1 text-left">
+                <span className="block truncate text-xs font-semibold text-zinc-900">
+                  {userProfile?.display_name || "SecOps Analyst"}
+                </span>
+                <span className="block truncate text-[10px] text-zinc-500">
+                  {userProfile?.email || "analyst@company.com"}
+                </span>
+              </span>
+            )}
+            {collapsed ? null : <ChevronDownIcon size={16} aria-hidden="true" className={`shrink-0 transition-transform ${profileMenuOpen ? "rotate-180" : ""}`} />}
+          </button>
         </div>
       </aside>
       <button

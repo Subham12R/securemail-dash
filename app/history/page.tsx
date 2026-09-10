@@ -1,4 +1,6 @@
+import { ViewTransition } from "react";
 import DashboardTopbar from "@/components/ui/dashboard-topbar";
+import FooterWatermark from "@/components/ui/footer";
 import HistoryTable from "@/components/ui/history-table";
 import { getAnalysisHistory } from "@/lib/securemail-api";
 
@@ -31,10 +33,11 @@ export default async function HistoryPage(props: PageProps<"/history">) {
   }
 
   return (
-    <main
-      className="h-full min-h-0 min-w-0 flex-1 overflow-y-auto bg-white"
-      aria-label="History page"
-    >
+    <ViewTransition enter="page-enter" exit="page-exit" default="none">
+      <main
+        className="h-full min-h-0 min-w-0 flex-1 overflow-y-auto bg-white"
+        aria-label="History page"
+      >
       <DashboardTopbar currentPage="History" showRefresh />
       <section aria-labelledby="history-page-heading" className="px-6 pt-6">
         <h1
@@ -55,12 +58,14 @@ export default async function HistoryPage(props: PageProps<"/history">) {
           </div>
         ) : null}
       </section>
-      <HistoryTable
-        records={history.records}
-        total={history.total}
-        page={page}
-        limit={PAGE_SIZE}
-      />
-    </main>
+        <HistoryTable
+          records={history.records}
+          total={history.total}
+          page={page}
+          limit={PAGE_SIZE}
+        />
+        <FooterWatermark />
+      </main>
+    </ViewTransition>
   );
 }

@@ -1,3 +1,4 @@
+import { riskScoreDistribution, type RiskScoreDistribution } from "@/lib/risk";
 import { LIVE_DATA_CACHE_SECONDS } from "@/lib/live-data";
 
 export const SECUREMAIL_CACHE_TAG = "securemailscope:securemail";
@@ -56,6 +57,7 @@ export type HealthResponse = {
 export type DashboardApiData = {
   stats: AnalysisStats | null;
   records: AnalysisRecord[];
+  risk_distribution: RiskScoreDistribution[] | null;
   health: HealthResponse | null;
   error: string | null;
 };
@@ -270,6 +272,17 @@ export async function getAnalysisByRequestId(
     if (!record) throw new Error("SecureMail API returned an invalid analysis record");
     return { record, error: null };
   } catch (error) {
+    try {
+      const history = await getAnalysisHistory({ skip: 0, limit: 100 });
+      const matched = history.records.find(
+        (r) => r.session_id === safeRequestId || r.request_id === safeRequestId,
+      );
+      if (matched) {
+        return { record: matched, error: null };
+      }
+    } catch {
+      // Fallback failed
+    }
     return {
       record: null,
       error: error instanceof Error ? error.message : "Unknown API error",
@@ -277,10 +290,42 @@ export async function getAnalysisByRequestId(
   }
 }
 
+const DASHBOARD_RECORD_PAGE_SIZE = 200;
+const MAX_DASHBOARD_SCORE_RECORDS = 10_000;
+
+async function getDashboardRecords(filter: string) {
+  const records: AnalysisRecord[] = [];
+  let skip = 0;
+  let total = 0;
+
+  do {
+    const parsed = parseAnalysisHistoryPage(
+      await getJson(`analyses?skip=${skip}&limit=${DASHBOARD_RECORD_PAGE_SIZE}${filter}`),
+    );
+    if (!parsed || parsed.limit < 1) {
+      throw new Error("SecureMail API returned an invalid analyses page");
+    }
+    if (parsed.total > MAX_DASHBOARD_SCORE_RECORDS) {
+      throw new Error("SecureMail API returned too many analysis records for this dashboard");
+    }
+    if (parsed.records.length === 0 && parsed.total > skip) {
+      throw new Error("SecureMail API returned an incomplete analyses page");
+    }
+
+    records.push(...parsed.records);
+    total = parsed.total;
+    skip += parsed.limit;
+  } while (skip < total);
+
+  return records;
+}
+
 export async function getDashboardApiData({
   range,
+  includeRiskDistribution = true,
 }: {
   range?: "7d" | "30d";
+  includeRiskDistribution?: boolean;
 } = {}): Promise<DashboardApiData> {
   const cacheWindowStart =
     Math.floor(Date.now() / (LIVE_DATA_CACHE_SECONDS * 1000)) *
@@ -290,18 +335,23 @@ export async function getDashboardApiData({
     ? new Date(cacheWindowStart - (range === "7d" ? 7 : 30) * 86_400_000).toISOString()
     : null;
   const filter = from ? `&from=${encodeURIComponent(from)}` : "";
+  const recordsRequest = includeRiskDistribution
+    ? getDashboardRecords(filter)
+    : getJson(`analyses?limit=5${filter}`).then(parseRecords);
   const [statsResult, recordsResult, healthResult] = await Promise.allSettled([
     getJson(`analyses/stats${from ? `?from=${encodeURIComponent(from)}` : ""}`),
-    getJson(`analyses?limit=5${filter}`),
+    recordsRequest,
     getJson("health"),
   ]);
 
   const stats =
     statsResult.status === "fulfilled" ? parseStats(statsResult.value) : null;
-  const records =
-    recordsResult.status === "fulfilled"
-      ? parseRecords(recordsResult.value)
-      : [];
+  const allRecords =
+    recordsResult.status === "fulfilled" ? recordsResult.value : [];
+  const records = allRecords.slice(0, 5);
+  const riskDistribution = includeRiskDistribution && recordsResult.status === "fulfilled"
+    ? riskScoreDistribution(allRecords)
+    : null;
   const health =
     healthResult.status === "fulfilled" ? parseHealth(healthResult.value) : null;
 
@@ -317,6 +367,7 @@ export async function getDashboardApiData({
     return {
       stats: null,
       records: [],
+      risk_distribution: riskDistribution,
       health: null,
       error: errors[0] ?? "SecureMail API returned an invalid response",
     };
@@ -325,6 +376,7 @@ export async function getDashboardApiData({
   return {
     stats,
     records,
+    risk_distribution: riskDistribution,
     health,
     error: errors.length > 0 ? "Some SecureMail API data is unavailable" : null,
   };

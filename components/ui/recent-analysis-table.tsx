@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { getLocalTimeZone } from "@internationalized/date";
 import {
   Card,
@@ -9,15 +10,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { MorphingText } from "@/components/ui/morphing-text";
+import { Link2 } from "lucide-react";
 import TableToolbar, { type TableFilter } from "@/components/ui/table-toolbar";
 import type { SelectedDateRange } from "@/components/ui/date-range-filter";
-import {
-  RichButton,
-  type RichButtonColor,
-} from "@/components/ui/rich-button";
+import AnalysisStatusText from "@/components/ui/analysis-status-text";
+import { analysisStatusLabel } from "@/lib/risk";
+import { RiskScoreMeter } from "@/components/ui/risk-score-meter";
+import { historyDetailHref } from "@/lib/analysis-detail";
+import { RichButton } from "@/components/ui/rich-button";
 
 export type RecentAnalysis = {
+  requestId: string | null;
   captureId: string;
   sessionId: string;
   date: string | null;
@@ -25,22 +28,6 @@ export type RecentAnalysis = {
   riskScore: number;
   status: string;
 };
-
-function statusColor(status: string): RichButtonColor {
-  switch (status.toLowerCase()) {
-    case "malicious":
-    case "critical":
-      return "danger";
-    case "suspicious":
-    case "high":
-      return "warning";
-    case "benign":
-    case "complete":
-      return "primary";
-    default:
-      return "default";
-  }
-}
 
 function formatTimestamp(timestamp: string) {
   const date = new Date(timestamp);
@@ -54,29 +41,7 @@ function formatTimestamp(timestamp: string) {
 }
 
 function RiskScore({ score }: { score: number }) {
-  const percentage = Math.max(0, Math.min(100, score * 100));
-  const formattedScore = `${percentage.toFixed(1)}%`;
-
-  return (
-    <div className="flex min-w-36 items-center gap-3">
-      <div
-        className="h-1.5 flex-1 overflow-hidden rounded-full bg-zinc-100"
-        role="progressbar"
-        aria-label={`Risk score ${formattedScore}`}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={percentage}
-      >
-        <div
-          className="h-full rounded-full bg-zinc-800 transition-[width] duration-300 motion-reduce:transition-none"
-          style={{ width: `${percentage}%` }}
-        />
-      </div>
-      <span className="w-12 text-right text-xs font-medium tabular-nums text-zinc-700">
-        <MorphingText>{formattedScore}</MorphingText>
-      </span>
-    </div>
-  );
+  return <RiskScoreMeter score={score} bars={18} size="sm" showText={false} />;
 }
 
 export default function RecentAnalysisTable({
@@ -91,7 +56,7 @@ export default function RecentAnalysisTable({
     name: "status",
     label: "Status",
     value: status,
-    options: ["All statuses", ...Array.from(new Set(analyses.map((analysis) => analysis.status))).sort()],
+    options: ["All statuses", ...Array.from(new Set(analyses.map((analysis) => analysisStatusLabel(analysis.status)))).sort()],
   }];
   const filteredAnalyses = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -101,7 +66,7 @@ export default function RecentAnalysisTable({
 
     return analyses.filter((analysis) => {
       const matchesQuery = !normalizedQuery || `${analysis.captureId} ${analysis.sessionId}`.toLowerCase().includes(normalizedQuery);
-      const matchesStatus = status === "All statuses" || analysis.status === status;
+      const matchesStatus = status === "All statuses" || analysisStatusLabel(analysis.status) === status;
       const recordTime = analysis.date ? new Date(analysis.date).getTime() : Number.NaN;
       const matchesDate = start === undefined || end === undefined || (
         Number.isFinite(recordTime) && recordTime >= start && recordTime < end + 86_400_000
@@ -119,7 +84,7 @@ export default function RecentAnalysisTable({
         <CardHeader>
           <CardTitle id="recent-analysis-heading">Recent analysis</CardTitle>
           <CardDescription>
-            Latest persisted records from the SecureMail API
+            Status combines the backend final verdict into a single readable severity label; the numeric score remains available for context.
           </CardDescription>
         </CardHeader>
         <TableToolbar
@@ -146,13 +111,23 @@ export default function RecentAnalysisTable({
                   <th scope="col" className="px-5 py-3">Date</th>
                   <th scope="col" className="px-5 py-3">Protocols</th>
                   <th scope="col" className="px-5 py-3">Risk score</th>
-                  <th scope="col" className="px-5 py-3">Verdict</th>
+                  <th scope="col" className="px-5 py-3">Status</th>
+                  <th scope="col" className="px-5 py-3"><span className="sr-only">Details</span><Link2 aria-hidden="true" className="size-4 text-zinc-500" /></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100">
                 {filteredAnalyses.length > 0 ? (
-                  filteredAnalyses.map((analysis) => (
-                    <tr key={analysis.sessionId} className="text-zinc-700">
+                  filteredAnalyses.map((analysis, index) => {
+                    const detailHref = analysis.requestId
+                      ? historyDetailHref(analysis.requestId)
+                      : null;
+
+                    return (
+                    <tr
+                      key={analysis.sessionId}
+                      style={{ animationDelay: `${Math.min(index, 8) * 18}ms` }}
+                      className="animate-row-reveal text-zinc-700 transition-colors duration-150 hover:bg-zinc-50/80"
+                    >
                       <th
                         scope="row"
                         className="max-w-64 whitespace-nowrap px-5 py-4 font-mono text-xs font-medium text-zinc-900"
@@ -186,20 +161,29 @@ export default function RecentAnalysisTable({
                         <RiskScore score={analysis.riskScore} />
                       </td>
                       <td className="px-5 py-4">
-                        <RichButton
-                          asChild
-                          size="sm"
-                          color={statusColor(analysis.status)}
-                          className="pointer-events-none"
-                        >
-                          <span><MorphingText>{analysis.status}</MorphingText></span>
-                        </RichButton>
+                        <AnalysisStatusText verdict={analysis.status} />
+                      </td>
+                      <td className="px-5 py-4">
+                        {detailHref ? (
+                          <Link
+                            href={detailHref}
+                            aria-label={`View analysis details for ${analysis.captureId}`}
+                            title="View analysis details"
+                            className="inline-flex rounded-sm text-sky-700 transition-colors hover:text-sky-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-700"
+                          >
+                            <Link2 aria-hidden="true" className="size-4" />
+                            <span className="sr-only">View analysis details</span>
+                          </Link>
+                        ) : (
+                          <span role="status" className="text-xs text-zinc-400">Not available</span>
+                        )}
                       </td>
                     </tr>
-                  ))
+                    );
+                  })
                 ) : (
                   <tr>
-                    <td colSpan={5} className="px-5 py-10 text-center text-sm text-zinc-500">
+                    <td colSpan={7} className="px-5 py-10 text-center text-sm text-zinc-500">
                       No analysis records match the current filters.
                     </td>
                   </tr>

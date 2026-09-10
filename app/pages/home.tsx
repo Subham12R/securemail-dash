@@ -10,22 +10,11 @@ import RecentAnalysisTable, {
   type RecentAnalysis,
 } from "@/components/ui/recent-analysis-table";
 import FooterWatermark from "@/components/ui/footer";
-import { MorphingText } from "@/components/ui/morphing-text";
 import { getDashboardApiData } from "@/lib/securemail-api";
+import { analysisStatusLabel } from "@/lib/risk";
 
-function formatNumber(value: number | null | undefined) {
-  return value === null || value === undefined ? "Unavailable" : value.toLocaleString("en-US");
-}
-
-function formatRiskScore(value: number | null | undefined) {
-  return value === null || value === undefined
-    ? "Unavailable"
-    : `${(value * 100).toFixed(1)}%`;
-}
-
-function formatVerdict(value: string) {
-  return value.charAt(0).toUpperCase() + value.slice(1);
-}
+import { ViewTransition } from "react";
+import { AnimatedNumber } from "@/components/ui/animated-number";
 
 export default async function HomePage({ range }: { range: "all" | "7d" | "30d" }) {
   const dashboard = await getDashboardApiData({
@@ -35,47 +24,53 @@ export default async function HomePage({ range }: { range: "all" | "7d" | "30d" 
   const metrics = [
     {
       label: "Sessions analysed",
-      value: formatNumber(stats?.total_analyses),
+      value: stats?.total_analyses ?? null,
+      mode: "count" as const,
       description: "Persisted analysis records",
       icon: Activity,
       iconClassName: "text-zinc-500",
     },
     {
       label: "Flagged sessions",
-      value: formatNumber(stats?.flagged_sessions),
+      value: stats?.flagged_sessions ?? null,
+      mode: "count" as const,
       description: "Rule-backed or high/critical persisted analyses",
       icon: ShieldAlert,
       iconClassName: "text-red-600",
     },
     {
       label: "Average risk score",
-      value: formatRiskScore(stats?.avg_risk_score),
+      value: stats?.avg_risk_score == null ? null : stats.avg_risk_score * 100,
+      mode: "percent" as const,
       description: "API aggregate across analyses",
       icon: Gauge,
       iconClassName: "text-amber-600",
     },
     {
       label: "Evidence archived",
-      value: formatNumber(stats?.evidence_archived),
+      value: stats?.evidence_archived ?? null,
+      mode: "count" as const,
       description: "Evidence references retained with analyses",
       icon: Archive,
       iconClassName: "text-zinc-500",
     },
   ];
   const recentAnalyses: RecentAnalysis[] = dashboard.records.map((record) => ({
+    requestId: record.request_id,
     captureId: record.capture_id ?? record.client_id ?? record.session_id,
     sessionId: record.session_id,
     date: record.timestamp,
     protocols: record.protocol ? [record.protocol] : [],
     riskScore: record.risk_score,
-    status: formatVerdict(record.final_verdict),
+    status: analysisStatusLabel(record.final_verdict),
   }));
   return (
-    <main
-      className="h-full min-h-0 min-w-0 flex-1 overflow-y-auto bg-white"
-      aria-label="Main content"
-    >
-      <DashboardTopbar currentPage="Overview" showDateRange showRefresh range={range} />
+    <ViewTransition enter="page-enter" exit="page-exit" default="none">
+      <main
+        className="h-full min-h-0 min-w-0 flex-1 overflow-y-auto bg-white"
+        aria-label="Main content"
+      >
+        <DashboardTopbar currentPage="Overview" showDateRange showRefresh range={range} />
 
       <section aria-labelledby="metrics-heading" className="space-y-4 p-6">
         <div className="flex items-center justify-between gap-4">
@@ -92,27 +87,26 @@ export default async function HomePage({ range }: { range: "all" | "7d" | "30d" 
 
 
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {metrics.map((metric) => {
+          {metrics.map((metric, index) => {
             const Icon = metric.icon;
 
             return (
               <article
                 key={metric.label}
-                className="rounded-lg border-2 border-neutral-200 bg-white p-5 shadow-[inset_0px_0px_2px_2px_rgba(0,0,0,0.05)]"
+                style={{ animationDelay: `${index * 60}ms` }}
+                className="animate-reveal group rounded-lg border-2 border-neutral-200 bg-white  p-5 shadow-[inset_0px_0px_2px_2px_rgba(0,0,0,0.05)] transition-all duration-200 motion-safe:hover:-translate-y-0.5 motion-safe:hover:shadow-md"
               >
                 <div className="flex items-start justify-between gap-4">
-                  <p className="text-sm font-medium tracking-tighter text-zinc-600">
+                  <p className="text-sm font-medium tracking-tighter text-zinc-600 transition-colors group-hover:text-zinc-900">
                     {metric.label}
                   </p>
                   <Icon
                     aria-hidden="true"
-                    className={`size-4 shrink-0 ${metric.iconClassName}`}
+                    className={`size-4 shrink-0 transition-transform duration-200 group-hover:scale-110 ${metric.iconClassName}`}
                   />
                 </div>
-                <p
-                  className={`mt-4 font-semibold tracking-tighter text-zinc-900 ${metric.value.length > 9 ? "text-xl" : "text-4xl"}`}
-                >
-                  <MorphingText>{metric.value}</MorphingText>
+                <p className="mt-4 font-semibold tracking-tighter text-zinc-900 text-4xl">
+                  <AnimatedNumber value={metric.value} mode={metric.mode} />
                 </p>
                 <p className="mt-1 text-xs tracking-tighter text-zinc-500">
                   {metric.description}
@@ -123,12 +117,17 @@ export default async function HomePage({ range }: { range: "all" | "7d" | "30d" 
         </div>
       </section>
 
-      <OverviewCharts
-        verdictDistribution={stats?.verdict_distribution ?? []}
-        postureDistribution={stats?.cryptographic_posture_distribution ?? []}
-      />
-      <RecentAnalysisTable analyses={recentAnalyses} />
-      <FooterWatermark />
-    </main>
+        <div className="animate-reveal" style={{ animationDelay: "240ms" }}>
+          <OverviewCharts
+            riskDistribution={dashboard.risk_distribution ?? []}
+            postureDistribution={stats?.cryptographic_posture_distribution ?? []}
+          />
+        </div>
+        <div className="animate-reveal" style={{ animationDelay: "300ms" }}>
+          <RecentAnalysisTable analyses={recentAnalyses} />
+        </div>
+        <FooterWatermark />
+      </main>
+    </ViewTransition>
   );
 }
