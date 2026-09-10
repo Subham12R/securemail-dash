@@ -39,7 +39,7 @@ const quickRanges: QuickRange[] = [
 ];
 
 function presetClassName(active: boolean) {
-  return `inline-flex h-8 items-center rounded px-3 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 ${active ? "bg-zinc-900 text-white" : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"}`;
+  return `inline-flex h-8 items-center rounded-full px-3 text-sm font-normal transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4cc02b] ${active ? "bg-zinc-900 text-white" : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"}`;
 }
 
 function rangeFor(days: number, currentDay: CalendarDate): RangeValue<CalendarDate> {
@@ -85,7 +85,7 @@ export default function DateRangeFilter({
   }
 
   const calendar = (
-    <Popover className="z-30 mt-2 rounded-xl border border-zinc-200 bg-white p-3 shadow-lg outline-none">
+    <Popover className="z-30 mt-2 rounded-xl border border-black/10 bg-white p-[18px] shadow-[0_18px_55px_rgba(16,24,40,0.12)] outline-none">
       <Dialog aria-label="Choose a date range" className="outline-none">
         <div className="flex gap-4">
           <div className="flex min-w-28 flex-col gap-1 border-r border-zinc-100 pr-3">
@@ -144,7 +144,7 @@ export default function DateRangeFilter({
       <DialogTrigger isOpen={isOpen} onOpenChange={setIsOpen}>
         <Button
           aria-label="Date range"
-          className="inline-flex h-10 min-w-44 items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-zinc-50 px-3 text-sm text-zinc-700 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+          className="inline-flex h-10 min-w-44 items-center justify-between gap-3 rounded-full border border-black/10 bg-white px-3 text-sm text-zinc-700 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4cc02b]"
         >
           {label}
           <ChevronDown aria-hidden="true" className="size-4" />
@@ -155,7 +155,7 @@ export default function DateRangeFilter({
   }
 
   return (
-    <nav aria-label="Analysis date range" className="flex h-10 items-center rounded-md border border-zinc-200 p-1">
+    <nav aria-label="Analysis date range" className="flex h-10 items-center rounded-full border border-black/10 bg-white p-1">
       {presets.map((option) => (
         <Link
           key={option.value}

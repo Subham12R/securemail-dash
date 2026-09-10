@@ -214,7 +214,7 @@ export default function HistoryTable({
                               href={detailHref}
                               aria-label={`View analysis details for ${record.client_id ?? record.session_id}`}
                               title="View analysis details"
-                              className="inline-flex rounded-sm text-sky-700 transition-all hover:text-sky-900 hover:scale-110 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-700"
+                              className="inline-flex rounded-sm text-zinc-700 transition-all hover:text-zinc-900 hover:scale-110 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-lime-pulse)]"
                             >
                               <Link2 aria-hidden="true" className="size-4" />
                               <span className="sr-only">View analysis details</span>

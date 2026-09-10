@@ -26,6 +26,9 @@ function createMockRecord(partial: Partial<AnalysisRecord>): AnalysisRecord {
     is_synthetic: false,
     source_label: null,
     ...partial,
+    record_count: partial.record_count ?? 1,
+    tls_details: partial.tls_details ?? null,
+    certificate_details: partial.certificate_details ?? null,
   };
 }
 

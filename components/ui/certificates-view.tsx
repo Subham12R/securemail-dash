@@ -44,7 +44,7 @@ export default function CertificatesView({ records, tmpVaultEmails = [] }: Props
           onClick={() => setActiveTab("overview")}
           className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
             activeTab === "overview"
-              ? "border-[#00E5FF] text-zinc-900 dark-soc:border-[#00E5FF] dark-soc:text-[#00E5FF]"
+              ? "border-[var(--color-lime-pulse)] text-zinc-900 dark-soc:border-[var(--color-lime-pulse)] dark-soc:text-[var(--color-lime-pulse)]"
               : "border-transparent text-zinc-500 hover:text-zinc-900 dark-soc:text-zinc-400 dark-soc:hover:text-white"
           }`}
         >
@@ -56,7 +56,7 @@ export default function CertificatesView({ records, tmpVaultEmails = [] }: Props
           onClick={() => setActiveTab("list")}
           className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
             activeTab === "list"
-              ? "border-[#00E5FF] text-zinc-900 dark-soc:border-[#00E5FF] dark-soc:text-[#00E5FF]"
+              ? "border-[var(--color-lime-pulse)] text-zinc-900 dark-soc:border-[var(--color-lime-pulse)] dark-soc:text-[var(--color-lime-pulse)]"
               : "border-transparent text-zinc-500 hover:text-zinc-900 dark-soc:text-zinc-400 dark-soc:hover:text-white"
           }`}
         >
@@ -71,7 +71,7 @@ export default function CertificatesView({ records, tmpVaultEmails = [] }: Props
           onClick={() => setActiveTab("chain")}
           className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
             activeTab === "chain"
-              ? "border-[#00E5FF] text-zinc-900 dark-soc:border-[#00E5FF] dark-soc:text-[#00E5FF]"
+              ? "border-[var(--color-lime-pulse)] text-zinc-900 dark-soc:border-[var(--color-lime-pulse)] dark-soc:text-[var(--color-lime-pulse)]"
               : "border-transparent text-zinc-500 hover:text-zinc-900 dark-soc:text-zinc-400 dark-soc:hover:text-white"
           }`}
         >
@@ -98,7 +98,7 @@ export default function CertificatesView({ records, tmpVaultEmails = [] }: Props
                 key={cert.id}
                 type="button"
                 onClick={() => setSelectedCert(cert)}
-                className="flex flex-col items-start rounded-xl border border-zinc-200 bg-white p-4 text-left shadow-xs transition-all hover:border-[#00E5FF] dark-soc:border-[#1E2D56] dark-soc:bg-[#111C38] dark-soc:hover:border-[#00E5FF]"
+                className="flex flex-col items-start rounded-xl border border-zinc-200 bg-white p-4 text-left shadow-xs transition-all hover:border-[var(--color-lime-pulse)] dark-soc:border-[#1E2D56] dark-soc:bg-[#111C38] dark-soc:hover:border-[var(--color-lime-pulse)]"
               >
                 <span className="font-mono text-xs font-bold text-zinc-900 dark-soc:text-white truncate w-full">
                   {cert.domain}
@@ -106,7 +106,7 @@ export default function CertificatesView({ records, tmpVaultEmails = [] }: Props
                 <span className="mt-1 text-[11px] text-zinc-500 dark-soc:text-zinc-400 truncate w-full">
                   {cert.issuer}
                 </span>
-                <span className="mt-3 text-xs font-semibold text-[#00E5FF]">
+                <span className="mt-3 text-xs font-semibold text-[var(--color-lime-pulse)]">
                   View Chain ({cert.chain.length} tiers) &rarr;
                 </span>
               </button>

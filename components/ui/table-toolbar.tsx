@@ -31,7 +31,7 @@ export default function TableToolbar({
   showExport = false,
 }: TableToolbarProps) {
   return (
-    <div className="flex flex-wrap gap-2 border-b border-zinc-100 p-4">
+    <div className="flex flex-wrap gap-2 border-b border-black/10 p-[18px]">
       <label className="relative min-w-56 flex-1">
         <span className="sr-only">{searchPlaceholder}</span>
         <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-400" />
@@ -39,7 +39,7 @@ export default function TableToolbar({
           type="search"
           placeholder={searchPlaceholder}
           onChange={(event) => onQueryChange(event.target.value)}
-          className="h-10 w-full rounded-xl border border-zinc-200 bg-zinc-50 pl-9 pr-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900"
+          className="h-10 w-full rounded-md border border-black/10 bg-white pl-9 pr-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-2 focus:outline-offset-2 focus:outline-[#4cc02b]"
         />
       </label>
       {showDateRange ? <DateRangeFilter variant="compact" onRangeChange={onRangeChange} /> : null}
@@ -49,7 +49,7 @@ export default function TableToolbar({
           <select
             value={filter.value}
             onChange={(event) => onFilterChange(filter.name, event.target.value)}
-            className="not-sr-only h-10 min-w-36 rounded-xl border border-zinc-200 bg-zinc-50 px-3 text-sm text-zinc-700 focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900"
+            className="not-sr-only h-10 min-w-36 rounded-md border border-black/10 bg-white px-3 text-sm text-zinc-700 focus:outline-2 focus:outline-offset-2 focus:outline-[#4cc02b]"
           >
             {filter.options.map((option) => (
               <option key={option} value={option}>{option}</option>

@@ -2,14 +2,29 @@
 
 :root {
   color-scheme: light;
-  --background: #ffffff;
-  --foreground: #171717;
-  --muted: #f4f4f5;
-  --muted-foreground: #52525b;
-  --border: #e4e4e7;
-  --ring: #18181b;
-  --destructive: #dc2626;
-  --chart-surface: #ffffff;
+  --color-linen-canvas: #edede8;
+  --color-frosted-white: #ffffff;
+  --color-warm-stone: #dbdbd2;
+  --color-pebble: #c0c0c0;
+  --color-graphite-ink: #141414;
+  --color-charcoal-body: #292929;
+  --color-slate-caption: #6f6f6e;
+  --color-ash-subheading: #8f8f8e;
+  --color-iron-nav: #353535;
+  --color-onyx-border: #000000;
+  --color-quartz: #d0d0c8;
+  --color-lime-pulse: #4cc02b;
+  --background: var(--color-linen-canvas);
+  --foreground: var(--color-charcoal-body);
+  --muted: var(--color-warm-stone);
+  --muted-foreground: var(--color-slate-caption);
+  --border: rgb(0 0 0 / 0.12);
+  --ring: var(--color-onyx-border);
+  --destructive: #b42318;
+  --chart-surface: var(--color-frosted-white);
+  --font-switzer: var(--font-geist-sans);
+  --font-system-ui: system-ui, sans-serif;
+  --shadow-xl-2: rgb(16 24 40 / 0.12) 0 18px 55px;
 }
 
 @theme inline {
@@ -20,7 +35,7 @@
   --color-border: var(--border);
   --color-ring: var(--ring);
   --color-destructive: var(--destructive);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-switzer);
   --font-mono: var(--font-geist-mono);
 }
 
@@ -28,7 +43,7 @@ html,
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-switzer), ui-sans-serif, system-ui, sans-serif;
   overscroll-behavior: none;
 }
 
@@ -172,14 +187,26 @@ body {
 /* Dark zinc theme */
 .dark-soc {
   color-scheme: dark;
-  --background: #1a1a1a;
-  --foreground: #fafafa;
-  --muted: #27272a;
-  --muted-foreground: #a1a1aa;
-  --border: #3f3f46;
+  --color-linen-canvas: #1a1a1a;
+  --color-frosted-white: #202020;
+  --color-warm-stone: #27272a;
+  --color-pebble: #3f3f46;
+  --color-graphite-ink: #fafafa;
+  --color-charcoal-body: #fafafa;
+  --color-slate-caption: #a1a1aa;
+  --color-ash-subheading: #a1a1aa;
+  --color-iron-nav: #d4d4d8;
+  --color-onyx-border: #3f3f46;
+  --color-quartz: #3f3f46;
+  --color-lime-pulse: #4cc02b;
+  --background: var(--color-linen-canvas);
+  --foreground: var(--color-charcoal-body);
+  --muted: var(--color-warm-stone);
+  --muted-foreground: var(--color-slate-caption);
+  --border: var(--color-onyx-border);
   --ring: #a1a1aa;
   --destructive: #f87171;
-  --chart-surface: #202020;
+  --chart-surface: var(--color-frosted-white);
 }
 
 .dark-soc,
@@ -231,10 +258,6 @@ body {
   color: #7dd3fc !important;
 }
 
-.dark-soc .bg-gradient-to-b.from-emerald-50\/20.to-white {
-  background-image: linear-gradient(to bottom, rgb(16 185 129 / 0.12), #202020 45%) !important;
-}
-
 .dark-soc [class*="dark-soc:bg-[#111111]"] {
   background-color: #1a1a1a !important;
 }
@@ -247,6 +270,7 @@ body {
 .dark-soc .border-zinc-200,
 .dark-soc .border-neutral-200,
 .dark-soc .border-zinc-300,
+.dark-soc .border-black\/10,
 .dark-soc [class*="dark-soc:border-[#1E2D56]"] {
   border-color: #3f3f46 !important;
 }
@@ -289,5 +313,127 @@ body {
 
 .dark-soc tr:hover {
   background-color: #27272a !important;
+}
+
+/* Gleap light surface language. Dark mode keeps its existing neutral SOC palette. */
+:root:not(.dark-soc) body.bg-white,
+:root:not(.dark-soc) .app-shell,
+:root:not(.dark-soc) .app-shell main.bg-white {
+  background-color: var(--color-linen-canvas) !important;
+}
+
+:root:not(.dark-soc) .app-shell .bg-zinc-50,
+:root:not(.dark-soc) .app-shell .bg-zinc-50\/50,
+:root:not(.dark-soc) .app-shell .bg-zinc-50\/60,
+:root:not(.dark-soc) .app-shell .bg-zinc-50\/70,
+:root:not(.dark-soc) .app-shell .bg-zinc-50\/80 {
+  background-color: #f7f7f3 !important;
+}
+
+:root:not(.dark-soc) .app-shell .bg-zinc-100 {
+  background-color: var(--color-warm-stone) !important;
+}
+
+:root:not(.dark-soc) .app-shell .bg-zinc-200,
+:root:not(.dark-soc) .app-shell .bg-zinc-200\/80 {
+  background-color: var(--color-pebble) !important;
+}
+
+:root:not(.dark-soc) .app-shell .bg-zinc-800,
+:root:not(.dark-soc) .app-shell .bg-zinc-900 {
+  background-color: var(--color-graphite-ink) !important;
+}
+
+:root:not(.dark-soc) .app-shell .text-zinc-900,
+:root:not(.dark-soc) .app-shell .text-zinc-800 {
+  color: var(--color-charcoal-body) !important;
+}
+
+:root:not(.dark-soc) .app-shell .text-zinc-700,
+:root:not(.dark-soc) .app-shell .text-zinc-600,
+:root:not(.dark-soc) .app-shell .text-zinc-500 {
+  color: var(--color-slate-caption) !important;
+}
+
+:root:not(.dark-soc) .app-shell .text-zinc-400 {
+  color: var(--color-ash-subheading) !important;
+}
+
+:root:not(.dark-soc) .app-shell .border-zinc-100,
+:root:not(.dark-soc) .app-shell .border-zinc-200,
+:root:not(.dark-soc) .app-shell .border-zinc-300,
+:root:not(.dark-soc) .app-shell .border-neutral-200,
+:root:not(.dark-soc) .app-shell .border-black\/10 {
+  border-color: rgb(0 0 0 / 0.12) !important;
+}
+
+:root:not(.dark-soc) .app-shell .hover\:bg-zinc-50:hover,
+:root:not(.dark-soc) .app-shell .hover\:bg-zinc-100:hover,
+:root:not(.dark-soc) .app-shell .hover\:bg-zinc-200:hover {
+  background-color: var(--color-warm-stone) !important;
+}
+
+:root:not(.dark-soc) .app-shell .rounded-lg {
+  border-radius: 12px;
+}
+
+:root:not(.dark-soc) .app-shell h1,
+:root:not(.dark-soc) .app-shell h2,
+:root:not(.dark-soc) .app-shell h3,
+:root:not(.dark-soc) .app-shell h4 {
+  color: var(--color-charcoal-body);
+  font-family: var(--font-switzer), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+:root:not(.dark-soc) .app-shell .border-2.border-neutral-200 {
+  border-width: 1px;
+  border-color: rgb(0 0 0 / 0.12);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.05);
+}
+
+.app-shell #dashboard-sidebar nav {
+  padding-block: 8px;
+}
+
+.app-shell #dashboard-sidebar nav > div[class*="mt-4"] {
+  margin-top: 8px;
+}
+
+.app-shell #dashboard-sidebar nav a {
+  min-height: 36px;
+  padding-block: 8px;
+}
+
+.app-shell #dashboard-sidebar nav p {
+  margin-bottom: 4px;
+}
+
+.app-shell #dashboard-sidebar > div:last-child {
+  padding-block: 8px;
+}
+
+@media (max-height: 760px) {
+  .app-shell #dashboard-sidebar nav {
+    padding-block: 4px;
+  }
+
+  .app-shell #dashboard-sidebar nav > div[class*="mt-4"] {
+    margin-top: 4px;
+  }
+
+  .app-shell #dashboard-sidebar nav a {
+    min-height: 28px;
+    padding-block: 4px;
+  }
+
+  .app-shell #dashboard-sidebar nav p {
+    margin-bottom: 0;
+  }
+
+  .app-shell #dashboard-sidebar > div:last-child {
+    padding-block: 4px;
+  }
 }
 

@@ -114,7 +114,7 @@ export default function InboxList({
     <section
       aria-labelledby="inbox-list-heading"
       aria-busy={isLoading}
-      className="flex min-h-0 min-w-0 flex-1 flex-col bg-white p-4 sm:p-6"
+      className="flex min-h-0 min-w-0 flex-1 flex-col bg-[var(--color-linen-canvas)] p-4 sm:p-6"
     >
       <header className="shrink-0 px-1 pb-4 pt-1 sm:px-0">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -153,13 +153,13 @@ export default function InboxList({
                 aria-pressed={active}
                 onClick={() => onFilterChange(option.value)}
                 className={cn(
-                  "inline-flex items-center gap-2 rounded-md border px-3 py-2 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-700",
+                  "inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-normal transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-lime-pulse)]",
                   active
                     ? option.value === "flagged"
                       ? "border-rose-300 bg-rose-50 text-rose-700"
                       : option.value === "healthy"
                         ? "border-emerald-300 bg-emerald-50 text-emerald-700"
-                        : "border-sky-500 bg-sky-50 text-sky-800"
+                        : "border-zinc-900 bg-zinc-900 text-white"
                     : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:border-zinc-400 hover:text-zinc-900",
                 )}
               >
@@ -184,7 +184,7 @@ export default function InboxList({
             <button
               type="button"
               onClick={onRetry}
-              className="mt-4 rounded-md border border-rose-300 px-3 py-2 text-xs font-medium text-rose-800 transition-colors hover:bg-rose-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-700"
+              className="mt-4 rounded-full border border-rose-300 px-3 py-2 text-sm font-normal text-rose-800 transition-colors hover:bg-rose-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-700"
             >
               Retry
             </button>
@@ -222,10 +222,10 @@ export default function InboxList({
                       aria-pressed={selectedId === item.mail_item_id}
                       onClick={(event) => onSelect(item.mail_item_id, event.currentTarget)}
                       className={cn(
-                        "grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-2 border-l-2 px-4 py-4 pr-14 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-sky-600 sm:items-center sm:gap-3 sm:px-5 sm:py-3.5 sm:pr-14",
+                        "grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-2 border-l-2 px-4 py-4 pr-14 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--color-lime-pulse)] sm:items-center sm:gap-3 sm:px-5 sm:py-3.5 sm:pr-14",
                         desktopGridClass,
                         selectedId === item.mail_item_id
-                          ? "border-l-sky-600 bg-sky-50 dark-soc:bg-zinc-800"
+                          ? "border-l-zinc-900 bg-zinc-50 dark-soc:bg-zinc-800"
                           : "border-l-transparent hover:bg-zinc-50",
                       )}
                     >
@@ -262,7 +262,7 @@ export default function InboxList({
                         event.stopPropagation();
                         onSelect(item.mail_item_id, event.currentTarget);
                       }}
-                      className="absolute right-3 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-zinc-200 hover:text-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-700"
+                      className="absolute right-3 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-zinc-200 hover:text-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-lime-pulse)]"
                     >
                       <MoreHorizontal aria-hidden="true" className="size-4" />
                     </button>

@@ -169,7 +169,7 @@ export default function RecentAnalysisTable({
                             href={detailHref}
                             aria-label={`View analysis details for ${analysis.captureId}`}
                             title="View analysis details"
-                            className="inline-flex rounded-sm text-sky-700 transition-colors hover:text-sky-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-700"
+                            className="inline-flex rounded-sm text-zinc-700 transition-colors hover:text-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-lime-pulse)]"
                           >
                             <Link2 aria-hidden="true" className="size-4" />
                             <span className="sr-only">View analysis details</span>

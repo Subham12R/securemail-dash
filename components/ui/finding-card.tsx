@@ -21,7 +21,7 @@ export default function FindingCard({ finding, currentStatus, onStatusChange }: 
       case "MEDIUM":
         return "border-amber-500/30 bg-amber-500/10 text-amber-600 dark-soc:text-amber-400";
       case "LOW":
-        return "border-blue-500/30 bg-blue-500/10 text-blue-600 dark-soc:text-blue-400";
+        return "border-black/10 bg-zinc-100 text-zinc-700";
     }
   };
 
@@ -67,7 +67,7 @@ export default function FindingCard({ finding, currentStatus, onStatusChange }: 
               <button
                 type="button"
                 onClick={() => setExpanded(!expanded)}
-                className="font-medium text-[#00E5FF] hover:underline"
+                className="font-medium text-[var(--color-lime-pulse)] hover:underline"
               >
                 {finding.affectedSessionsCount} affected sessions {expanded ? "▲" : "▼"}
               </button>
@@ -91,7 +91,7 @@ export default function FindingCard({ finding, currentStatus, onStatusChange }: 
             <button
               type="button"
               onClick={() => onStatusChange(finding.id, "ACKNOWLEDGED")}
-              className="rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-xs font-medium text-zinc-700 shadow-xs hover:bg-zinc-50 dark-soc:border-[#1E2D56] dark-soc:bg-[#0D1735] dark-soc:text-zinc-300 dark-soc:hover:bg-[#1E2D56]"
+              className="rounded-full border border-black/10 bg-white px-3 py-1 text-sm font-normal text-zinc-700 hover:bg-zinc-100 dark-soc:border-[#1E2D56] dark-soc:bg-[#0D1735] dark-soc:text-zinc-300 dark-soc:hover:bg-[#1E2D56]"
             >
               Acknowledge
             </button>
@@ -101,7 +101,7 @@ export default function FindingCard({ finding, currentStatus, onStatusChange }: 
             <button
               type="button"
               onClick={() => onStatusChange(finding.id, "RESOLVED")}
-              className="rounded-lg bg-emerald-600 px-2.5 py-1 text-xs font-medium text-white shadow-xs hover:bg-emerald-700 dark-soc:bg-emerald-600 dark-soc:hover:bg-emerald-500"
+              className="rounded-full bg-zinc-900 px-3 py-1 text-sm font-normal text-white hover:bg-zinc-800"
             >
               Resolve
             </button>
@@ -111,7 +111,7 @@ export default function FindingCard({ finding, currentStatus, onStatusChange }: 
             <button
               type="button"
               onClick={() => onStatusChange(finding.id, "OPEN")}
-              className="rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-xs font-medium text-zinc-700 shadow-xs hover:bg-zinc-50 dark-soc:border-[#1E2D56] dark-soc:bg-[#0D1735] dark-soc:text-zinc-300 dark-soc:hover:bg-[#1E2D56]"
+              className="rounded-full border border-black/10 bg-white px-3 py-1 text-sm font-normal text-zinc-700 hover:bg-zinc-100 dark-soc:border-[#1E2D56] dark-soc:bg-[#0D1735] dark-soc:text-zinc-300 dark-soc:hover:bg-[#1E2D56]"
             >
               Reopen
             </button>
@@ -130,7 +130,7 @@ export default function FindingCard({ finding, currentStatus, onStatusChange }: 
               <Link
                 key={sesId}
                 href={`/history/${sesId}`}
-                className="font-mono text-xs text-[#00E5FF] hover:underline"
+                className="font-mono text-xs text-[var(--color-lime-pulse)] hover:underline"
               >
                 {sesId} &rarr;
               </Link>

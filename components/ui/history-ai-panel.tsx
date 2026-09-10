@@ -7,24 +7,12 @@ import {
   RotateCcw,
   Copy,
   Check,
-  Sparkles,
-  Search,
-  Lock,
-  FileCode2,
-  FileText,
   PanelRightClose,
-  PanelRightOpen,
   ArrowUp,
-  ChevronDown,
 } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
-import { type AnalysisDetailViewModel } from "@/lib/analysis-detail";
-import {
-  generateInitialGreeting,
-  processAiQuery,
-  type AgentActivityStep,
-  type AiAssistantResponse,
-} from "@/lib/ai-assistant-engine";
+import { motion } from "motion/react";
+import { requestRiskInsight } from "@/lib/agent-insights";
+import type { AnalysisRecord } from "@/lib/securemail-api";
 import {
   Message,
   MessageAvatar,
@@ -33,60 +21,32 @@ import {
   MessageTyping,
   MessageBubble,
   MessageBubbleContent,
-  MessageBubbleCollapsible,
 } from "@/components/agents/message";
-import {
-  AgentActivity,
-  ThinkingShimmer,
-  type AgentActivityItem,
-} from "@/components/agents/agent-activity";
-import { SPRING_PRESS, SPRING_SWAP } from "@/lib/ease";
+import { ThinkingShimmer } from "@/components/agents/agent-activity";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-
-function toAgentActivityItems(steps: AgentActivityStep[]): AgentActivityItem[] {
-  return steps.map((step) => {
-    if (step.type === "tool") {
-      return {
-        id: step.id,
-        type: "tool" as const,
-        action: (step.action || "read") as "read",
-        target: step.label,
-      };
-    }
-    if (step.type === "trace") {
-      return {
-        id: step.id,
-        type: "trace" as const,
-        kind: "thinking" as const,
-        label: step.label,
-        detail: step.detail,
-      };
-    }
-    return {
-      id: step.id,
-      type: "step" as const,
-      label: step.label,
-      status: step.status ?? "complete",
-    };
-  });
-}
 
 interface ChatMessage {
   id: string;
   from: "user" | "assistant";
   content: string;
   timestamp: string;
-  activitySteps?: AgentActivityStep[];
-  technicalPayload?: string;
-  suggestedPrompts?: string[];
 }
 
 export type HistoryAiPanelProps = {
-  viewModel: AnalysisDetailViewModel;
+  analysis: AnalysisRecord;
   expanded: boolean;
   onToggle: () => void;
 };
+
+const DEFAULT_RISK_QUESTION = "Explain the main risk drivers and recommend next steps.";
+
+function formatInsight(status: string, answer: string | null, recommendations: readonly string[]) {
+  const response = answer ?? `The SecureMail agent returned no analysis (status: \`${status}\`).`;
+  return recommendations.length > 0
+    ? `${response}\n\n### Recommended next steps\n${recommendations.map((recommendation) => `- ${recommendation}`).join("\n")}`
+    : response;
+}
 
 function formatTime(date: Date): string {
   return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -236,36 +196,68 @@ function CopyButton({ text }: { text: string }) {
 }
 
 export default function HistoryAiPanel({
-  viewModel,
+  analysis,
   expanded,
   onToggle,
 }: HistoryAiPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [inputVal, setInputVal] = useState("");
+  const [showExpandedContent, setShowExpandedContent] = useState(expanded);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const initializedRequestRef = useRef<string | null>(null);
 
-  // Initialize or reset conversation when session changes
-  const resetConversation = useCallback(() => {
-    const greeting = generateInitialGreeting(viewModel);
-    const initialMsg: ChatMessage = {
-      id: `msg-${Date.now()}`,
-      from: "assistant",
-      content: greeting.reply,
+  const askRiskQuestion = useCallback(async (question: string) => {
+    const userMsg: ChatMessage = {
+      id: `user-${globalThis.crypto.randomUUID()}`,
+      from: "user",
+      content: question,
       timestamp: formatTime(new Date()),
-      activitySteps: greeting.activitySteps,
-      suggestedPrompts: greeting.suggestedPrompts,
     };
-    setMessages([initialMsg]);
-    if (scrollerRef.current) {
-      scrollerRef.current.scrollTop = 0;
+
+    setMessages((previous) => [...previous, userMsg]);
+    setIsGenerating(true);
+
+    try {
+      const insight = await requestRiskInsight(analysis, question);
+      setMessages((previous) => [...previous, {
+        id: `asst-${globalThis.crypto.randomUUID()}`,
+        from: "assistant",
+        content: formatInsight(insight.status, insight.answer, insight.recommendations),
+        timestamp: formatTime(new Date()),
+      }]);
+    } catch (error) {
+      setMessages((previous) => [...previous, {
+        id: `err-${globalThis.crypto.randomUUID()}`,
+        from: "assistant",
+        content: error instanceof Error ? error.message : "SecureMail agent is unavailable.",
+        timestamp: formatTime(new Date()),
+      }]);
+    } finally {
+      setIsGenerating(false);
     }
-  }, [viewModel]);
+  }, [analysis]);
+
+  const resetConversation = useCallback(() => {
+    setMessages([]);
+    if (scrollerRef.current) scrollerRef.current.scrollTop = 0;
+    void askRiskQuestion(DEFAULT_RISK_QUESTION);
+  }, [askRiskQuestion]);
 
   useEffect(() => {
-    resetConversation();
-  }, [resetConversation]);
+    if (initializedRequestRef.current === analysis.request_id) return;
+    initializedRequestRef.current = analysis.request_id;
+
+    const resetId = window.setTimeout(resetConversation, 0);
+    return () => window.clearTimeout(resetId);
+  }, [analysis.request_id, resetConversation]);
+
+  useEffect(() => {
+    const revealDelay = expanded ? 280 : 500;
+    const contentId = window.setTimeout(() => setShowExpandedContent(expanded), revealDelay);
+    return () => window.clearTimeout(contentId);
+  }, [expanded]);
 
   // Auto-scroll to bottom on new messages (only when user has engaged)
   useEffect(() => {
@@ -285,46 +277,12 @@ export default function HistoryAiPanel({
     textarea.style.height = `${Math.min(textarea.scrollHeight, 72)}px`;
   }, [inputVal]);
 
-  const handleSendPrompt = async (prompt: string) => {
+  const handleSendPrompt = (prompt: string) => {
     const trimmed = prompt.trim();
     if (!trimmed || isGenerating) return;
 
-    const userMsg: ChatMessage = {
-      id: `user-${Date.now()}`,
-      from: "user",
-      content: trimmed,
-      timestamp: formatTime(new Date()),
-    };
-
-    setMessages((prev) => [...prev, userMsg]);
     setInputVal("");
-    setIsGenerating(true);
-
-    try {
-      const response: AiAssistantResponse = await processAiQuery(trimmed, viewModel);
-
-      const assistantMsg: ChatMessage = {
-        id: `asst-${Date.now()}`,
-        from: "assistant",
-        content: response.reply,
-        timestamp: formatTime(new Date()),
-        activitySteps: response.activitySteps,
-        technicalPayload: response.technicalPayload,
-        suggestedPrompts: response.suggestedPrompts,
-      };
-
-      setMessages((prev) => [...prev, assistantMsg]);
-    } catch {
-      const errorMsg: ChatMessage = {
-        id: `err-${Date.now()}`,
-        from: "assistant",
-        content: "Error evaluating session telemetry. Please try again.",
-        timestamp: formatTime(new Date()),
-      };
-      setMessages((prev) => [...prev, errorMsg]);
-    } finally {
-      setIsGenerating(false);
-    }
+    void askRiskQuestion(trimmed);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -334,31 +292,39 @@ export default function HistoryAiPanel({
     }
   };
 
-  const lastAssistantMessage = [...messages].reverse().find((m) => m.from === "assistant");
-  const suggestedPrompts = lastAssistantMessage?.suggestedPrompts ?? [
-    "Explain the risk drivers",
-    "Inspect TLS posture",
-    "What evidence is missing?",
-  ];
+  const isClosing = !expanded && showExpandedContent;
 
   return (
     <aside
       aria-labelledby="history-ai-heading"
       className={cn(
-        "flex flex-col self-start overflow-hidden border border-zinc-200/90 bg-white shadow-xs transition-all duration-200 lg:sticky lg:top-20",
+        "flex flex-col self-start border border-zinc-200 bg-white shadow-[0_18px_40px_rgba(24,24,27,0.14)] will-change-[width,height]",
+        expanded ? "overflow-hidden" : "overflow-visible",
         expanded
-          ? "w-full rounded-2xl h-[min(460px,calc(100dvh-7.5rem))]"
-          : "w-11 rounded-xl items-center h-auto py-1.5"
+          ? "w-full rounded-2xl p-4 h-[min(720px,calc(100dvh-9rem))] lg:sticky lg:top-20"
+          : "fixed bottom-4 right-4 w-12 h-12 items-center rounded-full border-0 bg-transparent p-0 shadow-none lg:bottom-6 lg:right-6"
       )}
+      style={{
+        transitionProperty: "width, height",
+        transitionDuration: expanded ? "280ms, 220ms" : "220ms, 280ms",
+        transitionDelay: expanded ? "0ms, 280ms" : "0ms, 220ms",
+        transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)",
+      }}
     >
       {/* Panel Header */}
       <div
         className={cn(
-          "flex h-11 w-full shrink-0 items-center border-b border-zinc-100 bg-zinc-50/50 px-3",
-          expanded ? "justify-between" : "justify-center px-0"
+          "flex w-full shrink-0 items-center border-b border-zinc-200/80 bg-transparent px-2 text-zinc-900",
+          showExpandedContent && !isClosing
+            ? "h-12 justify-between"
+            : cn(
+                "h-12 w-12 justify-center rounded-full border border-zinc-300 bg-zinc-900 px-0 shadow-lg",
+                !expanded && "h-full w-full",
+                isClosing && "opacity-0"
+              )
         )}
       >
-        {expanded ? (
+        {showExpandedContent ? (
           <>
             <div className="flex min-w-0 items-center gap-2">
               <div className="grid size-6 place-items-center rounded-md bg-white border border-zinc-200/70 p-0.5 shadow-2xs">
@@ -385,7 +351,7 @@ export default function HistoryAiPanel({
                 disabled={isGenerating}
                 aria-label="Reset conversation"
                 title="Reset conversation"
-                className="inline-flex size-6.5 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 disabled:opacity-50 transition-colors"
+                className="inline-flex size-6.5 items-center justify-center rounded-md text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-50 transition-colors"
               >
                 <RotateCcw className="size-3.5" />
               </button>
@@ -396,7 +362,7 @@ export default function HistoryAiPanel({
                 aria-controls="history-ai-content"
                 aria-expanded={expanded}
                 onClick={onToggle}
-                className="inline-flex size-6.5 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 transition-colors"
+                className="inline-flex size-6.5 items-center justify-center rounded-md text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition-colors"
               >
                 <PanelRightClose className="size-3.5" />
               </button>
@@ -409,8 +375,16 @@ export default function HistoryAiPanel({
             aria-controls="history-ai-content"
             aria-expanded={expanded}
             onClick={onToggle}
-            className="grid size-8 place-items-center rounded-lg hover:bg-zinc-100 transition-colors"
+            className="group relative grid size-8 place-items-center rounded-lg hover:bg-white/10 transition-colors"
+            aria-describedby="history-ai-tooltip"
           >
+            <span
+              id="history-ai-tooltip"
+              role="tooltip"
+              className="pointer-events-none absolute right-full bottom-1/2 mr-3 translate-y-1/2 whitespace-nowrap rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-xs font-medium text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100"
+            >
+              Wanna analyse deep with AI?
+            </span>
             <Image
               src="/logo-mark.png"
               alt="Secure Agent"
@@ -423,8 +397,14 @@ export default function HistoryAiPanel({
       </div>
 
       {/* Main Conversation Body */}
-      {expanded ? (
-        <div id="history-ai-content" className="flex flex-1 min-h-0 flex-col justify-between overflow-hidden">
+      {showExpandedContent ? (
+        <div
+          id="history-ai-content"
+          className={cn(
+            "flex flex-1 min-h-0 flex-col justify-between overflow-hidden",
+            isClosing && "pointer-events-none opacity-0"
+          )}
+        >
           {/* Messages Scroll Area */}
           <div
             ref={scrollerRef}
@@ -456,19 +436,6 @@ export default function HistoryAiPanel({
                 </MessageAvatar>
 
                 <MessageContent className="gap-1">
-                  {/* Reasoning / Execution Traces */}
-                  {msg.activitySteps && msg.activitySteps.length > 0 && (
-                    <div className="mb-0.5 w-full max-w-[95%]">
-                      <AgentActivity
-                        items={toAgentActivityItems(msg.activitySteps)}
-                        status="complete"
-                        defaultOpen={false}
-                        summary={`Analyzed ${msg.activitySteps.length} telemetry checks`}
-                        className="rounded-lg border border-zinc-200/60 bg-zinc-50/70 p-1.5 text-[11px]"
-                      />
-                    </div>
-                  )}
-
                   {/* Message Bubble */}
                   <MessageBubble
                     variant={msg.from === "user" ? "solid" : "outline"}
@@ -479,29 +446,13 @@ export default function HistoryAiPanel({
                         "rounded-2xl text-xs py-2 px-3",
                         msg.from === "user"
                           ? "bg-zinc-900 text-white rounded-br-sm max-w-[85%]"
-                          : "border-zinc-200/70 bg-zinc-50/60 text-zinc-900 rounded-tl-sm max-w-[92%]"
+                          : "border-transparent bg-transparent text-zinc-900 rounded-tl-sm max-w-[92%]"
                       )}
                     >
                       {msg.from === "user" ? (
                         <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                       ) : (
                         <FormattedContent content={msg.content} />
-                      )}
-
-                      {/* Technical payload collapsible */}
-                      {msg.technicalPayload && (
-                        <div className="mt-2 border-t border-zinc-200/60 pt-1.5">
-                          <MessageBubbleCollapsible
-                            moreLabel="View payload"
-                            lessLabel="Hide payload"
-                            collapsedLines={2}
-                            triggerClassName="text-[10px] text-zinc-500 hover:text-zinc-800 h-6 px-1.5"
-                          >
-                            <pre className="mt-1 overflow-x-auto rounded-md bg-zinc-950 p-2 font-mono text-[10px] text-emerald-400 max-h-32">
-                              <code>{msg.technicalPayload}</code>
-                            </pre>
-                          </MessageBubbleCollapsible>
-                        </div>
                       )}
                     </MessageBubbleContent>
                   </MessageBubble>
@@ -545,44 +496,24 @@ export default function HistoryAiPanel({
             )}
           </div>
 
-          {/* Bottom Area: Suggestions & Composer */}
-          <div className="shrink-0 border-t border-zinc-100 bg-white px-3 py-2 space-y-1.5">
-            {/* Quick Suggestions Chips */}
-            {suggestedPrompts.length > 0 && !isGenerating && (
-              <div className="flex flex-wrap gap-1">
-                {suggestedPrompts.slice(0, 2).map((prompt, idx) => (
-                  <motion.button
-                    key={idx}
-                    type="button"
-                    whileTap={{ scale: 0.96 }}
-                    transition={SPRING_PRESS}
-                    onClick={() => handleSendPrompt(prompt)}
-                    className="inline-flex items-center gap-1 rounded-full border border-zinc-200/70 bg-zinc-50 px-2 py-0.5 text-[10.5px] font-medium text-zinc-600 transition-colors hover:border-zinc-300 hover:bg-zinc-100 hover:text-zinc-900"
-                  >
-                    <Sparkles className="size-2.5 text-zinc-400" />
-                    <span>{prompt}</span>
-                  </motion.button>
-                ))}
-              </div>
-            )}
-
+          <div className="shrink-0 border-t border-zinc-100 bg-white px-3 py-2">
             {/* Streamlined Input Composer */}
             <form
               onSubmit={(e) => {
                 e.preventDefault();
                 handleSendPrompt(inputVal);
               }}
-              className="relative flex items-center rounded-xl border border-zinc-200 bg-zinc-50/60 px-2.5 py-1.5 focus-within:border-zinc-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-zinc-950/5 transition-all"
+              className="relative flex min-h-20 flex-col items-stretch rounded-xl border border-zinc-200 bg-zinc-50/60 px-3 py-2.5 shadow-[0_1px_3px_rgba(15,23,42,0.06)] focus-within:border-zinc-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-zinc-950/5 transition-all"
             >
               <textarea
                 ref={textareaRef}
                 value={inputVal}
                 onChange={(e) => setInputVal(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask about risk, TLS, or findings…"
+                placeholder="Ask about this session’s risk…"
                 rows={1}
                 disabled={isGenerating}
-                className="scrollbar-hide flex-1 resize-none bg-transparent text-xs leading-5 text-zinc-900 outline-none placeholder:text-zinc-400 min-h-[20px] max-h-[72px]"
+                className="scrollbar-hide min-h-8 w-full resize-none bg-transparent pr-10 text-xs leading-5 text-zinc-900 outline-none placeholder:text-zinc-400 max-h-[72px]"
               />
 
               <motion.button
@@ -591,7 +522,7 @@ export default function HistoryAiPanel({
                 disabled={!inputVal.trim() || isGenerating}
                 aria-label="Send prompt"
                 className={cn(
-                  "grid size-6 shrink-0 place-items-center rounded-lg transition-colors ml-1.5",
+                  "absolute bottom-2 right-2 grid size-7 shrink-0 place-items-center rounded-lg transition-colors",
                   inputVal.trim() && !isGenerating
                     ? "bg-zinc-900 text-white hover:bg-zinc-800 shadow-2xs cursor-pointer"
                     : "bg-zinc-200/80 text-zinc-400 cursor-not-allowed"

@@ -121,7 +121,7 @@ export default function InboxDetail({
           {analysisHref ? (
             <Link
               href={analysisHref}
-              className="inline-flex shrink-0 items-center gap-2 rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-xs font-medium text-sky-700 transition-colors hover:border-sky-400 hover:bg-sky-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-700"
+              className="inline-flex shrink-0 items-center gap-2 rounded-full border border-black/10 bg-zinc-100 px-3 py-2 text-sm font-normal text-zinc-800 transition-colors hover:border-black/25 hover:bg-zinc-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-lime-pulse)]"
             >
               Open analysis
               <ExternalLink aria-hidden="true" className="size-3.5" />
@@ -160,7 +160,7 @@ export default function InboxDetail({
         <button
           type="button"
           onClick={onBack}
-          className="mt-5 inline-flex items-center gap-2 text-xs font-medium text-zinc-600 transition-colors hover:text-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-700 lg:hidden"
+          className="mt-5 inline-flex items-center gap-2 text-xs font-medium text-zinc-600 transition-colors hover:text-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-lime-pulse)] lg:hidden"
         >
           <ArrowLeft aria-hidden="true" className="size-3.5" />
           Back to messages

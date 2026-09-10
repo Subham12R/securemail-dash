@@ -25,21 +25,21 @@ export interface RichButtonProps
 
 const colorClasses: Record<RichButtonColor, string> = {
   default:
-    "border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900 hover:shadow-xs",
+    "border-black/10 bg-zinc-100 text-zinc-800 hover:bg-zinc-200 hover:text-zinc-900",
   primary:
-    "border-green-600 bg-green-600 text-white hover:bg-green-700 hover:shadow-[0_6px_16px_-4px_rgb(22_163_74/0.45)]",
+    "border-zinc-900 bg-zinc-900 text-white hover:bg-zinc-800",
   danger:
-    "border-red-200 bg-red-500 text-white hover:bg-red-600 hover:shadow-[0_6px_16px_-4px_rgb(239_68_68/0.45)]",
+    "border-zinc-900 bg-zinc-900 text-white hover:bg-zinc-800",
   warning:
-    "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 hover:text-amber-800 hover:shadow-[0_6px_16px_-6px_rgb(217_119_6/0.4)]",
+    "border-zinc-300 bg-zinc-100 text-zinc-800 hover:bg-zinc-200 hover:text-zinc-900",
   info:
-    "border-blue-900 bg-blue-900 text-white hover:bg-blue-950 hover:shadow-[0_6px_16px_-4px_rgb(30_58_138/0.4)]",
+    "border-zinc-300 bg-zinc-200 text-zinc-800 hover:bg-zinc-300 hover:text-zinc-900",
 };
 
 const sizeClasses: Record<RichButtonSize, string> = {
-  default: "h-9 px-3",
-  sm: "h-8 px-2.5 text-xs",
-  lg: "h-10 px-4",
+  default: "h-9 px-4",
+  sm: "h-8 px-3 text-xs",
+  lg: "h-10 px-5",
   icon: "size-9",
 };
 
@@ -56,7 +56,7 @@ export const RichButton = forwardRef<HTMLButtonElement, RichButtonProps>(
     ref,
   ) {
     const classes = [
-      "inline-flex items-center justify-center gap-2 rounded-md border text-sm font-medium transition-[background-color,border-color,color,transform,box-shadow] duration-150 ease-out motion-safe:hover:-translate-y-px motion-safe:active:translate-y-0 motion-safe:active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 disabled:pointer-events-none disabled:opacity-50",
+      "inline-flex items-center justify-center gap-2 rounded-full border text-sm font-normal transition-[background-color,border-color,color,transform] duration-150 ease-out motion-safe:active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 disabled:pointer-events-none disabled:opacity-50",
       colorClasses[color],
       sizeClasses[size],
       className,

@@ -104,7 +104,7 @@ function DataList({
 function PanelHeading({ icon: Icon, title }: { icon: typeof Mail; title: string }) {
   return (
     <div className="mb-4 flex items-center gap-2">
-      <Icon aria-hidden="true" className="size-4 text-sky-600" />
+      <Icon aria-hidden="true" className="size-4 text-zinc-700" />
       <h3 className="text-sm font-semibold text-zinc-900">{title}</h3>
     </div>
   );
@@ -430,8 +430,8 @@ export default function InboxDetailPanels({
                 onClick={() => setActiveTab(key)}
                 onKeyDown={handleTabKeyDown}
                 className={cn(
-                  "inline-flex items-center gap-2 border-b-2 px-3 py-3 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-sky-700",
-                  active ? "border-sky-600 text-zinc-900" : "border-transparent text-zinc-600 hover:border-zinc-400 hover:text-zinc-900",
+                  "inline-flex items-center gap-2 border-b-2 px-3 py-3 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--color-lime-pulse)]",
+                  active ? "border-[var(--color-lime-pulse)] text-zinc-900" : "border-transparent text-zinc-600 hover:border-zinc-400 hover:text-zinc-900",
                 )}
               >
                 <Icon aria-hidden="true" className="size-3.5" />
@@ -446,7 +446,7 @@ export default function InboxDetailPanels({
         role="tabpanel"
         aria-labelledby={`${idPrefix}-tab-${activeTab}`}
         tabIndex={0}
-        className="p-6 focus-visible:outline-2 focus-visible:outline-sky-700"
+        className="p-6 focus-visible:outline-2 focus-visible:outline-[var(--color-lime-pulse)]"
       >
         {renderPanel(activeTab, detail)}
       </div>

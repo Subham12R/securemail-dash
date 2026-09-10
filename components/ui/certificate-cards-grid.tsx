@@ -11,7 +11,7 @@ export default function CertificateCardsGrid({ certificates, onSelectCertificate
       {certificates.map((cert) => (
         <div
           key={cert.id}
-          className="flex flex-col justify-between rounded-xl border border-zinc-200 bg-white p-5 shadow-xs transition-all hover:border-zinc-300 dark-soc:border-[#1E2D56] dark-soc:bg-[#111C38] dark-soc:hover:border-[#00E5FF]/40"
+          className="flex flex-col justify-between rounded-xl border border-zinc-200 bg-white p-5 shadow-xs transition-all hover:border-zinc-300 dark-soc:border-[#1E2D56] dark-soc:bg-[#111C38] dark-soc:hover:border-[var(--color-lime-pulse)]/40"
         >
           <div>
             {/* Top row: Domain & Badge */}
@@ -83,7 +83,7 @@ export default function CertificateCardsGrid({ certificates, onSelectCertificate
             <button
               type="button"
               onClick={() => onSelectCertificate(cert)}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#00E5FF] hover:underline"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--color-lime-pulse)] hover:underline"
             >
               Inspect Trust Chain &rarr;
             </button>

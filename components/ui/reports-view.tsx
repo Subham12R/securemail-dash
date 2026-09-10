@@ -94,18 +94,7 @@ export default function ReportsView() {
     }
   };
 
-  const getFormatBadge = (format: string) => {
-    switch (format) {
-      case "PDF":
-        return "bg-red-500/10 text-red-600 border-red-500/20";
-      case "JSON":
-        return "bg-blue-500/10 text-blue-600 border-blue-500/20";
-      case "HTML":
-        return "bg-emerald-500/10 text-emerald-600 border-emerald-500/20";
-      default:
-        return "bg-zinc-100 text-zinc-700 border-zinc-200";
-    }
-  };
+  const getFormatBadge = () => "bg-zinc-100 text-zinc-700 border-black/10";
 
   return (
     <div className="space-y-6 p-6">
@@ -113,7 +102,7 @@ export default function ReportsView() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-zinc-900 dark-soc:text-white">
-            <FileText className="h-6 w-6 text-[#00E5FF]" />
+            <FileText className="h-6 w-6 text-[var(--color-lime-pulse)]" />
             <h1 className="text-2xl font-bold tracking-tight">Reports</h1>
           </div>
           <p className="mt-1 text-sm text-zinc-500 dark-soc:text-zinc-400">
@@ -125,7 +114,7 @@ export default function ReportsView() {
           type="button"
           onClick={handleGeneratePdf}
           disabled={isGenerating}
-          className="inline-flex items-center gap-2 rounded-lg bg-[#00E5FF] px-4 py-2.5 text-sm font-semibold text-zinc-900 shadow-sm transition-all hover:bg-[#00cce6] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00E5FF] disabled:opacity-60"
+          className="inline-flex items-center gap-2 rounded-full bg-zinc-900 px-4 py-2.5 text-sm font-normal text-white transition-colors hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-lime-pulse)] disabled:opacity-60"
         >
           {isGenerating ? (
             <>
@@ -158,7 +147,7 @@ export default function ReportsView() {
           <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark-soc:text-zinc-400">
             Ready For Download
           </span>
-          <div className="mt-2 text-3xl font-bold text-emerald-500">
+          <div className="mt-2 text-3xl font-bold text-zinc-900 dark-soc:text-white">
             {reports.filter((r) => r.status === "READY").length}
           </div>
         </div>
@@ -219,9 +208,7 @@ export default function ReportsView() {
                   </td>
                   <td className="px-4 py-4 text-center">
                     <span
-                      className={`inline-block rounded border px-2 py-0.5 text-[10px] font-bold ${getFormatBadge(
-                        report.format,
-                      )}`}
+                      className={`inline-block rounded border px-2 py-0.5 text-[10px] font-bold ${getFormatBadge()}`}
                     >
                       {report.format}
                     </span>

@@ -26,6 +26,7 @@ import { MorphingText } from "@/components/ui/morphing-text";
 import { RichButton, type RichButtonColor } from "@/components/ui/rich-button";
 import { RiskScoreMeter } from "@/components/ui/risk-score-meter";
 import { riskBandForScore } from "@/lib/risk";
+import type { AnalysisRecord } from "@/lib/securemail-api";
 import {
   analysisFieldLabel,
   type AnalysisDetailViewModel,
@@ -330,7 +331,7 @@ function RecordHeader({ viewModel }: { viewModel: AnalysisDetailViewModel }) {
       <div className="flex flex-col gap-5">
         <div className="flex items-start justify-between gap-4">
           <div className="flex min-w-0 items-start gap-3">
-            <span className="inline-flex size-12 shrink-0 items-center justify-center rounded-xl border-2 border-zinc-200 bg-white text-sky-700">
+            <span className="inline-flex size-12 shrink-0 items-center justify-center rounded-xl border border-black/10 bg-white text-zinc-700">
               <Icon aria-hidden="true" className="size-6" />
             </span>
             <div className="min-w-0">
@@ -345,7 +346,7 @@ function RecordHeader({ viewModel }: { viewModel: AnalysisDetailViewModel }) {
             <button
               type="button"
               onClick={() => downloadForensicPdfReport(viewModel)}
-              className="inline-flex items-center gap-2 rounded-md bg-[#00E5FF] px-3 py-2 text-xs font-semibold text-zinc-950 transition-all hover:bg-[#00cbe2] shadow-xs cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-full bg-zinc-900 px-4 py-2 text-sm font-normal text-white transition-colors hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-lime-pulse)] cursor-pointer"
               title="Download official forensic PDF report"
             >
               <Download aria-hidden="true" className="size-3.5" />
@@ -498,8 +499,10 @@ function PcapRecordView({ viewModel }: { viewModel: AnalysisDetailViewModel }) {
 }
 
 export default function HistoryAnalysisDetail({
+  analysis,
   viewModel,
 }: {
+  analysis: AnalysisRecord;
   viewModel: AnalysisDetailViewModel;
 }) {
   const [assistantOpen, setAssistantOpen] = useState(true);
@@ -523,8 +526,8 @@ export default function HistoryAnalysisDetail({
       <div
         className={`mx-auto grid w-full max-w-[1280px] min-h-0 items-start gap-4 lg:gap-5 ${
           assistantOpen
-            ? "lg:grid-cols-[minmax(0,1fr)_20.5rem]"
-            : "lg:grid-cols-[minmax(0,1fr)_3rem]"
+            ? "lg:grid-cols-[minmax(0,1fr)_24rem]"
+            : "lg:grid-cols-1"
         }`}
       >
         <div className="min-w-0 space-y-4">
@@ -536,7 +539,7 @@ export default function HistoryAnalysisDetail({
           )}
         </div>
         <HistoryAiPanel
-          viewModel={viewModel}
+          analysis={analysis}
           expanded={assistantOpen}
           onToggle={() => setAssistantOpen((value) => !value)}
         />

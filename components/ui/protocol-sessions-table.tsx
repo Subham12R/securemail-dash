@@ -92,7 +92,7 @@ export default function ProtocolSessionsTable({
               placeholder="Search session or request ID..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="h-9 w-64 rounded-md border border-zinc-200 bg-white pl-8 pr-3 text-xs text-zinc-800 placeholder:text-zinc-400 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+              className="h-9 w-64 rounded-md border border-zinc-200 bg-white pl-8 pr-3 text-xs text-zinc-800 placeholder:text-zinc-400 focus:border-[var(--color-lime-pulse)] focus:outline-none focus:ring-1 focus:ring-[var(--color-lime-pulse)]"
             />
           </div>
         </div>
@@ -147,7 +147,7 @@ export default function ProtocolSessionsTable({
                       {detailHref ? (
                         <Link
                           href={detailHref}
-                          className="inline-flex items-center gap-1 text-xs font-medium text-sky-700 transition-colors hover:text-sky-900 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-700"
+                          className="inline-flex items-center gap-1 text-xs font-medium text-zinc-700 transition-colors hover:text-zinc-900 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-lime-pulse)]"
                         >
                           <span>Details</span>
                           <ChevronRight aria-hidden="true" className="size-3.5" />

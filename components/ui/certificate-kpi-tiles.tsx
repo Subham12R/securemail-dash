@@ -5,7 +5,7 @@ export default function CertificateKpiTiles({ summary }: { summary: Certificates
     <section className="grid grid-cols-2 gap-3 sm:grid-cols-4" aria-label="Certificate validation metrics">
       {/* Valid */}
       <div className="flex items-center gap-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-xs dark-soc:border-[#1E2D56] dark-soc:bg-[#111C38]">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark-soc:bg-emerald-950/60 dark-soc:text-emerald-400">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-700">
           <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
             <path
               fillRule="evenodd"
@@ -18,7 +18,7 @@ export default function CertificateKpiTiles({ summary }: { summary: Certificates
           <div className="text-xs font-semibold tracking-wider text-zinc-500 uppercase dark-soc:text-zinc-400">
             Valid
           </div>
-          <div className="text-2xl font-bold tracking-tight text-emerald-600 dark-soc:text-emerald-400">
+          <div className="text-2xl font-bold tracking-tight text-zinc-900 dark-soc:text-white">
             {summary.validCount}
           </div>
         </div>
@@ -26,7 +26,7 @@ export default function CertificateKpiTiles({ summary }: { summary: Certificates
 
       {/* Expired */}
       <div className="flex items-center gap-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-xs dark-soc:border-[#1E2D56] dark-soc:bg-[#111C38]">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-600 dark-soc:bg-rose-950/60 dark-soc:text-rose-400">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-700">
           <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
             <path
               fillRule="evenodd"
@@ -39,7 +39,7 @@ export default function CertificateKpiTiles({ summary }: { summary: Certificates
           <div className="text-xs font-semibold tracking-wider text-zinc-500 uppercase dark-soc:text-zinc-400">
             Expired
           </div>
-          <div className="text-2xl font-bold tracking-tight text-rose-600 dark-soc:text-rose-400">
+          <div className="text-2xl font-bold tracking-tight text-zinc-900 dark-soc:text-white">
             {summary.expiredCount}
           </div>
         </div>
@@ -47,7 +47,7 @@ export default function CertificateKpiTiles({ summary }: { summary: Certificates
 
       {/* Expiring Soon */}
       <div className="flex items-center gap-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-xs dark-soc:border-[#1E2D56] dark-soc:bg-[#111C38]">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600 dark-soc:bg-amber-950/60 dark-soc:text-amber-400">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-700">
           <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
             <path
               fillRule="evenodd"
@@ -60,7 +60,7 @@ export default function CertificateKpiTiles({ summary }: { summary: Certificates
           <div className="text-xs font-semibold tracking-wider text-zinc-500 uppercase dark-soc:text-zinc-400">
             Expiring Soon
           </div>
-          <div className="text-2xl font-bold tracking-tight text-amber-600 dark-soc:text-amber-400">
+          <div className="text-2xl font-bold tracking-tight text-zinc-900 dark-soc:text-white">
             {summary.expiringSoonCount}
           </div>
         </div>

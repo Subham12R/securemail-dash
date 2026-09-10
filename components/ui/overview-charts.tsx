@@ -33,37 +33,36 @@ import {
 import type { PostureCount } from "@/lib/securemail-api";
 import type { RiskScoreDistribution } from "@/lib/risk";
 
-const DEEP_BLUE = "#1e3a8a";
+const GRAPHITE = "var(--color-graphite-ink)";
+const CHARCOAL = "var(--color-charcoal-body)";
+const STONE = "var(--color-warm-stone)";
+const PEBBLE = "var(--color-pebble)";
+const LIME = "var(--color-lime-pulse)";
 
 const riskColors: Record<string, string> = {
-  informational: DEEP_BLUE,
-  low: "#22c55e",
-  medium: "#f59e0b",
-  high: "#f97316",
-  critical: "#dc2626",
+  informational: PEBBLE,
+  low: LIME,
+  medium: STONE,
+  high: CHARCOAL,
+  critical: GRAPHITE,
 };
 
 const postureColors: Record<string, string> = {
-  secure: "#22c55e",
-  modern: "#22c55e",
-  benign: "#22c55e",
-  adequate: "#38bdf8",
-  review: "#f59e0b",
-  needs_review: "#f59e0b",
-  deprecated: "#f97316",
-  weak: "#ef4444",
-  at_risk: "#ef4444",
-  risky: "#ef4444",
-  handshake_failed: "#dc2626",
-  unknown: DEEP_BLUE,
+  secure: LIME,
+  modern: LIME,
+  benign: LIME,
+  adequate: PEBBLE,
+  review: STONE,
+  needs_review: STONE,
+  deprecated: CHARCOAL,
+  weak: GRAPHITE,
+  at_risk: GRAPHITE,
+  risky: GRAPHITE,
+  handshake_failed: GRAPHITE,
+  unknown: PEBBLE,
 };
 
-const fallbackColors = [
-  "#38bdf8",
-  "#a855f7",
-  "#14b8a6",
-  "#ec4899",
-];
+const fallbackColors = [PEBBLE, STONE, CHARCOAL, GRAPHITE];
 
 const chartConfig = {
   count: {
@@ -137,7 +136,7 @@ export default function OverviewCharts({
               <ChartContainer
                 config={chartConfig}
                 role="img"
-                aria-label="Colorful bar chart showing analysis risk score distribution"
+                aria-label="Risk score distribution bar chart"
                 className="aspect-video max-h-[280px]"
               >
                 <BarChart accessibilityLayer data={riskData}>
@@ -217,7 +216,7 @@ export default function OverviewCharts({
                 <ChartContainer
                   config={chartConfig}
                   role="img"
-                  aria-label="Colorful donut chart showing cryptographic posture"
+                  aria-label="Cryptographic posture donut chart"
                   className="size-full"
                 >
                   <PieChart>

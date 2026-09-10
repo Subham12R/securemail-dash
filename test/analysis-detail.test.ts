@@ -31,6 +31,9 @@ function record(overrides: Partial<AnalysisRecord> = {}): AnalysisRecord {
     is_synthetic: false,
     source_label: "Analysed PCAP capture",
     ...overrides,
+    record_count: overrides.record_count ?? 1,
+    tls_details: overrides.tls_details ?? null,
+    certificate_details: overrides.certificate_details ?? null,
   };
 }
 

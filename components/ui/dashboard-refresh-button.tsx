@@ -3,7 +3,6 @@
 import { RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { MorphingText } from "@/components/ui/morphing-text";
 import { LIVE_DATA_REFRESH_EVENT } from "@/lib/live-data";
 
 export default function DashboardRefreshButton() {
@@ -41,10 +40,9 @@ export default function DashboardRefreshButton() {
       aria-busy={isRefreshing}
       aria-label={refreshError ? "Refresh failed" : "Refresh live data"}
       title={refreshError ? "Refresh failed" : "Refresh live data"}
-      className="inline-flex h-10 items-center gap-2 rounded-md border border-zinc-200 px-3 text-sm font-medium text-zinc-700 transition-colors hover:border-zinc-400 hover:text-zinc-900 disabled:cursor-wait disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+      className="inline-flex h-10 items-center gap-2 rounded-full border border-black/10 bg-white px-3 text-sm font-normal text-zinc-700 transition-colors hover:border-black/30 hover:bg-zinc-100 hover:text-zinc-900 disabled:cursor-wait disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
     >
       <RefreshCw aria-hidden="true" className={isRefreshing ? "size-4 animate-spin" : "size-4"} />
-     
     </button>
   );
 }

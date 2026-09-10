@@ -53,11 +53,11 @@ export function SettingsBillingTab() {
 
           <div className="flex items-center gap-2">
             <span className="text-xs text-zinc-500 font-medium">Billed:</span>
-            <div className="inline-flex rounded-lg border border-zinc-200 p-0.5 bg-zinc-50 text-xs">
+            <div className="inline-flex rounded-full border border-black/10 bg-zinc-50 p-0.5 text-xs">
               <button
                 type="button"
                 onClick={() => setInterval("monthly")}
-                className={`rounded-md px-2.5 py-1 font-medium transition-colors cursor-pointer ${
+                className={`rounded-full px-2.5 py-1 font-medium transition-colors cursor-pointer ${
                   interval === "monthly"
                     ? "bg-white text-zinc-900 shadow-xs"
                     : "text-zinc-600 hover:text-zinc-900"
@@ -68,7 +68,7 @@ export function SettingsBillingTab() {
               <button
                 type="button"
                 onClick={() => setInterval("annual")}
-                className={`rounded-md px-2.5 py-1 font-medium transition-colors cursor-pointer ${
+                className={`rounded-full px-2.5 py-1 font-medium transition-colors cursor-pointer ${
                   interval === "annual"
                     ? "bg-white text-zinc-900 shadow-xs"
                     : "text-zinc-600 hover:text-zinc-900"
@@ -106,7 +106,7 @@ export function SettingsBillingTab() {
                   isCurrent
                     ? "border-zinc-900 bg-white shadow-sm"
                     : isPro
-                    ? "border-emerald-600/70 bg-gradient-to-b from-emerald-50/20 to-white shadow-xs"
+                    ? "border-[var(--color-lime-pulse)]/60 bg-white shadow-xs"
                     : "border-neutral-200 bg-white shadow-[inset_0px_0px_2px_2px_rgba(0,0,0,0.05)]"
                 }`}
               >
@@ -147,7 +147,7 @@ export function SettingsBillingTab() {
                   {/* Feature Checklist */}
                   <div className="mt-6 space-y-2.5 border-t border-zinc-100 pt-5">
                     <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                      What's included:
+                      What&apos;s included:
                     </p>
                     <ul className="space-y-2 text-xs text-zinc-600">
                       {tier.features.map((feature, idx) => (
@@ -165,7 +165,7 @@ export function SettingsBillingTab() {
                     type="button"
                     disabled={isCurrent || isUpgrading}
                     onClick={() => handleUpgrade(tier.id)}
-                    className={`w-full rounded-md py-2 text-xs font-semibold transition-all cursor-pointer ${
+                    className={`w-full rounded-full py-2 text-xs font-semibold transition-all cursor-pointer ${
                       isCurrent
                         ? "border border-zinc-200 bg-zinc-100 text-zinc-400 cursor-default"
                         : isPro

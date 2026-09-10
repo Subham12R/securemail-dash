@@ -36,7 +36,7 @@ export default function TlsVersionChart({ versions, keyExchanges }: Props) {
                   className={`h-full rounded-full transition-all duration-500 ${
                     ver.isDeprecated
                       ? "bg-rose-500 dark-soc:bg-rose-400"
-                      : "bg-[#00E5FF] dark-soc:bg-[#00E5FF]"
+                      : "bg-[var(--color-lime-pulse)] dark-soc:bg-[var(--color-lime-pulse)]"
                   }`}
                   style={{ width: `${Math.max(ver.percentage, 4)}%` }}
                 />

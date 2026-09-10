@@ -65,6 +65,7 @@ export function convertInboxDetailToAnalysisRecord(
     protocol: item.protocol || "SMTP",
     posture: tls?.version_status === "current" ? "modern" : "adequate",
     timestamp: item.observed_at || new Date().toISOString(),
+    record_count: 1,
     evidence_ref_count: (network?.evidence_refs?.length || 1) + triggerDetails.length,
     risk_score: riskScore,
     final_verdict: riskClass,
@@ -110,6 +111,8 @@ export function convertInboxDetailToAnalysisRecord(
       ],
     },
     model_bundle: { version: "ml-bundle.v2" },
+    tls_details: null,
+    certificate_details: null,
     is_synthetic: false,
     source_label: "Live Inbound Mail Stream",
   };

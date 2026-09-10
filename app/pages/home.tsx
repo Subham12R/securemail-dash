@@ -80,8 +80,8 @@ export default async function HomePage({ range }: { range: "all" | "7d" | "30d" 
 
       <section aria-labelledby="metrics-heading" className="space-y-4 p-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tighter text-zinc-900">Welcome back, <span className="text-amber-500 italic">{user.display_name}</span></h1>
-          <p className="text-2xl font-bold tracking-tighter text-zinc-400">Here's a quick overview of your analysis activity. Don't worry we got you covered.</p>
+          <h1 className="text-3xl font-normal tracking-tight text-zinc-900">Welcome back, <span className="text-zinc-900">{user.display_name}</span></h1>
+          <p className="mt-2 max-w-2xl text-base font-normal leading-7 text-zinc-500">Here&apos;s a quick overview of your analysis activity. Don&apos;t worry we got you covered.</p>
         </div>
         <div className="flex items-center justify-between gap-4">
           <div>
@@ -104,10 +104,10 @@ export default async function HomePage({ range }: { range: "all" | "7d" | "30d" 
               <article
                 key={metric.label}
                 style={{ animationDelay: `${index * 60}ms` }}
-                className="animate-reveal group rounded-lg border-2 border-neutral-200 bg-white  p-5 shadow-[inset_0px_0px_2px_2px_rgba(0,0,0,0.05)] transition-all duration-200 motion-safe:hover:-translate-y-0.5 motion-safe:hover:shadow-md"
+                className="animate-reveal group rounded-xl border border-black/10 bg-white p-[18px] shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-[transform,box-shadow] duration-200 motion-safe:hover:-translate-y-0.5 motion-safe:hover:shadow-md"
               >
                 <div className="flex items-start justify-between gap-4">
-                  <p className="text-sm font-medium tracking-tighter text-zinc-600 transition-colors group-hover:text-zinc-900">
+                  <p className="text-sm font-normal tracking-tight text-zinc-600 transition-colors group-hover:text-zinc-900">
                     {metric.label}
                   </p>
                   <Icon
@@ -115,7 +115,7 @@ export default async function HomePage({ range }: { range: "all" | "7d" | "30d" 
                     className={`size-4 shrink-0 transition-transform duration-200 group-hover:scale-110 ${metric.iconClassName}`}
                   />
                 </div>
-                <p className="mt-4 font-semibold tracking-tighter text-zinc-900 text-4xl">
+                <p className="mt-4 text-4xl font-normal tracking-tight text-zinc-900">
                   <AnimatedNumber value={metric.value} mode={metric.mode} />
                 </p>
                 <p className="mt-1 text-xs tracking-tighter text-zinc-500">

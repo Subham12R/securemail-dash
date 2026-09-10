@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { CipherSuiteItem } from "@/lib/tls-data";
 
 function getRatingBadge(rating: CipherSuiteItem["rating"]) {
@@ -6,7 +5,7 @@ function getRatingBadge(rating: CipherSuiteItem["rating"]) {
     case "Strong":
       return "bg-emerald-100 text-emerald-800 dark-soc:bg-emerald-950/60 dark-soc:text-emerald-300 border-emerald-300 dark-soc:border-emerald-700/50";
     case "Adequate":
-      return "bg-blue-100 text-blue-800 dark-soc:bg-blue-950/60 dark-soc:text-blue-300 border-blue-300 dark-soc:border-blue-700/50";
+      return "bg-zinc-100 text-zinc-700 border-black/10";
     case "Weak":
       return "bg-amber-100 text-amber-800 dark-soc:bg-amber-950/60 dark-soc:text-amber-300 border-amber-300 dark-soc:border-amber-700/50";
     case "Deprecated":

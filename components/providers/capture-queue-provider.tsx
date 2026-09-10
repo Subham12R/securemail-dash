@@ -208,6 +208,9 @@ function parseAnalysisRecord(value: unknown): AnalysisRecord | null {
     protocol: typeof row.protocol === "string" ? row.protocol : null,
     posture: typeof row.posture === "string" ? row.posture : null,
     timestamp: row.timestamp,
+    record_count: typeof row.record_count === "number" && row.record_count >= 0
+      ? Math.floor(row.record_count)
+      : 0,
     evidence_ref_count:
       typeof row.evidence_ref_count === "number" ? row.evidence_ref_count : 0,
     risk_score: row.risk_score,
@@ -219,6 +222,8 @@ function parseAnalysisRecord(value: unknown): AnalysisRecord | null {
     ml_scores: objectValue(row.ml_scores) ?? {},
     explanations: objectValue(row.explanations) ?? {},
     model_bundle: objectValue(row.model_bundle) ?? {},
+    tls_details: row.tls_details ?? null,
+    certificate_details: row.certificate_details ?? null,
     is_synthetic: row.is_synthetic === true,
     source_label: typeof row.source_label === "string" ? row.source_label : null,
   };

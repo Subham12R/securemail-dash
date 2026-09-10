@@ -12,8 +12,6 @@ import {
   LogOutIcon,
   MailIcon,
   NetworkIcon,
-  PanelLeftIcon,
-  PanelRightIcon,
   SettingsIcon,
   ShieldAlertIcon,
   ShieldCheckIcon,
@@ -22,7 +20,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import ThemeToggle from "@/components/ui/theme-toggle";
+import { useSidebar } from "@/components/providers/sidebar-provider";
 
 const overviewItems = [
   {
@@ -106,7 +104,7 @@ function isActivePath(pathname: string, href: string) {
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const [collapsed, setCollapsed] = useState(false);
+  const { collapsed, setSidebarCollapsed } = useSidebar();
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [userProfile, setUserProfile] = useState<{ email: string; display_name: string } | null>(null);
 
@@ -134,22 +132,22 @@ export default function Sidebar() {
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 767px)");
-    const updateForViewport = () => setCollapsed(mediaQuery.matches);
+    const updateForViewport = () => setSidebarCollapsed(mediaQuery.matches);
 
     updateForViewport();
     mediaQuery.addEventListener("change", updateForViewport);
 
     return () => mediaQuery.removeEventListener("change", updateForViewport);
-  }, []);
+  }, [setSidebarCollapsed]);
 
   const width = collapsed ? "w-16" : "w-64";
-  const surface = "border-zinc-200 bg-zinc-100 text-zinc-800";
-  const divider = "border-zinc-200";
+  const surface = "border-black/10 bg-white text-zinc-800";
+  const divider = "border-black/10";
   const muted = "text-zinc-600";
   const linkClasses = (active: boolean) =>
-    `flex w-full items-center gap-2 rounded-md p-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 ${
+    `flex w-full items-center gap-2 rounded-full px-3 py-2.5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 ${
       active
-        ? "bg-zinc-900 text-zinc-200"
+        ? "bg-zinc-900 text-white"
         : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
     } ${collapsed ? "justify-center" : "justify-start"}`;
 
@@ -165,7 +163,7 @@ export default function Sidebar() {
       >
         <div
           className={`flex w-full items-end gap-2 border-b ${divider} text-left ${
-            collapsed ? "justify-center p-4" : "px-4 py-4"
+            collapsed ? "justify-center p-4" : "items-center px-5 py-4"
           }`}
         >
           <Image
@@ -176,13 +174,13 @@ export default function Sidebar() {
             className="size-8 object-contain"
           />
           {collapsed ? null : (
-            <h1 className="font-medium text-md tracking-tighter text-zinc-900">SecureMailScope</h1>
+            <h1 className="font-normal text-base tracking-tight text-zinc-900">SecureMailScope</h1>
           )}
         </div>
 
         <nav
           aria-label="Primary navigation"
-          className={`flex flex-1 flex-col items-start justify-start px-2 py-3 text-left ${muted}`}
+          className={`flex flex-1 flex-col items-start justify-start px-3 py-5 text-left ${muted}`}
         >
           {/* Overview */}
           <div className="flex w-full flex-col gap-1">
@@ -400,23 +398,6 @@ export default function Sidebar() {
           </button>
         </div>
       </aside>
-      <button
-        type="button"
-        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        aria-controls="dashboard-sidebar"
-        aria-expanded={!collapsed}
-        title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        onClick={() => setCollapsed((value) => !value)}
-        className={`absolute left-full top-3 z-50 ml-2 inline-flex size-9 cursor-pointer items-center justify-center rounded-md transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 ${
-          "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 focus-visible:outline-zinc-900"
-        }`}
-      >
-        {collapsed ? (
-          <PanelLeftIcon size={18} aria-hidden="true" />
-        ) : (
-          <PanelRightIcon size={18} aria-hidden="true" />
-        )}
-      </button>
     </div>
   );
 }

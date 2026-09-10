@@ -119,7 +119,7 @@ export default function FindingsView({ records, tmpVaultEmails = [] }: Props) {
             placeholder="Search findings..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-lg border border-zinc-200 bg-white px-3.5 py-2 text-sm text-zinc-900 placeholder-zinc-400 shadow-xs focus:border-[#00E5FF] focus:outline-hidden dark-soc:border-[#1E2D56] dark-soc:bg-[#111C38] dark-soc:text-white dark-soc:placeholder-zinc-500"
+            className="w-full rounded-lg border border-zinc-200 bg-white px-3.5 py-2 text-sm text-zinc-900 placeholder-zinc-400 shadow-xs focus:border-[var(--color-lime-pulse)] focus:outline-hidden dark-soc:border-[#1E2D56] dark-soc:bg-[#111C38] dark-soc:text-white dark-soc:placeholder-zinc-500"
           />
         </div>
       </div>
@@ -139,7 +139,7 @@ export default function FindingsView({ records, tmpVaultEmails = [] }: Props) {
           onClick={() => setSelectedSeverity("ALL")}
           className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
             selectedSeverity === "ALL"
-              ? "border-[#00E5FF] text-zinc-900 dark-soc:border-[#00E5FF] dark-soc:text-[#00E5FF]"
+              ? "border-[var(--color-lime-pulse)] text-zinc-900 dark-soc:border-[var(--color-lime-pulse)] dark-soc:text-[var(--color-lime-pulse)]"
               : "border-transparent text-zinc-500 hover:text-zinc-900 dark-soc:text-zinc-400 dark-soc:hover:text-white"
           }`}
         >
@@ -154,7 +154,7 @@ export default function FindingsView({ records, tmpVaultEmails = [] }: Props) {
           onClick={() => setSelectedSeverity("CRITICAL")}
           className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
             selectedSeverity === "CRITICAL"
-              ? "border-[#00E5FF] text-zinc-900 dark-soc:border-[#00E5FF] dark-soc:text-[#00E5FF]"
+              ? "border-[var(--color-lime-pulse)] text-zinc-900 dark-soc:border-[var(--color-lime-pulse)] dark-soc:text-[var(--color-lime-pulse)]"
               : "border-transparent text-zinc-500 hover:text-zinc-900 dark-soc:text-zinc-400 dark-soc:hover:text-white"
           }`}
         >
@@ -169,7 +169,7 @@ export default function FindingsView({ records, tmpVaultEmails = [] }: Props) {
           onClick={() => setSelectedSeverity("HIGH")}
           className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
             selectedSeverity === "HIGH"
-              ? "border-[#00E5FF] text-zinc-900 dark-soc:border-[#00E5FF] dark-soc:text-[#00E5FF]"
+              ? "border-[var(--color-lime-pulse)] text-zinc-900 dark-soc:border-[var(--color-lime-pulse)] dark-soc:text-[var(--color-lime-pulse)]"
               : "border-transparent text-zinc-500 hover:text-zinc-900 dark-soc:text-zinc-400 dark-soc:hover:text-white"
           }`}
         >
@@ -184,7 +184,7 @@ export default function FindingsView({ records, tmpVaultEmails = [] }: Props) {
           onClick={() => setSelectedSeverity("MEDIUM")}
           className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
             selectedSeverity === "MEDIUM"
-              ? "border-[#00E5FF] text-zinc-900 dark-soc:border-[#00E5FF] dark-soc:text-[#00E5FF]"
+              ? "border-[var(--color-lime-pulse)] text-zinc-900 dark-soc:border-[var(--color-lime-pulse)] dark-soc:text-[var(--color-lime-pulse)]"
               : "border-transparent text-zinc-500 hover:text-zinc-900 dark-soc:text-zinc-400 dark-soc:hover:text-white"
           }`}
         >
@@ -199,7 +199,7 @@ export default function FindingsView({ records, tmpVaultEmails = [] }: Props) {
           onClick={() => setSelectedSeverity("LOW")}
           className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
             selectedSeverity === "LOW"
-              ? "border-[#00E5FF] text-zinc-900 dark-soc:border-[#00E5FF] dark-soc:text-[#00E5FF]"
+              ? "border-[var(--color-lime-pulse)] text-zinc-900 dark-soc:border-[var(--color-lime-pulse)] dark-soc:text-[var(--color-lime-pulse)]"
               : "border-transparent text-zinc-500 hover:text-zinc-900 dark-soc:text-zinc-400 dark-soc:hover:text-white"
           }`}
         >

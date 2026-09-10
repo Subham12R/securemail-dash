@@ -17,7 +17,7 @@ export default function TlsKpiCards({ summary }: { summary: TlsAnalysisSummary }
           Forward Secrecy
         </div>
         <div className="mt-2 flex items-baseline gap-2">
-          <span className="text-3xl font-bold tracking-tight text-rose-600 dark-soc:text-rose-400">
+          <span className="text-3xl font-bold tracking-tight text-zinc-900 dark-soc:text-white">
             {summary.pfsCount}
           </span>
           <span className="text-xs font-medium text-zinc-500 dark-soc:text-zinc-400">
@@ -30,7 +30,7 @@ export default function TlsKpiCards({ summary }: { summary: TlsAnalysisSummary }
         <div className="text-xs font-semibold tracking-wider text-zinc-500 uppercase dark-soc:text-zinc-400">
           Strong Ciphers
         </div>
-        <div className="mt-2 text-3xl font-bold tracking-tight text-emerald-600 dark-soc:text-emerald-400">
+        <div className="mt-2 text-3xl font-bold tracking-tight text-zinc-900 dark-soc:text-white">
           {summary.strongCiphersCount}
         </div>
       </div>
@@ -39,7 +39,7 @@ export default function TlsKpiCards({ summary }: { summary: TlsAnalysisSummary }
         <div className="text-xs font-semibold tracking-wider text-zinc-500 uppercase dark-soc:text-zinc-400">
           Weak Ciphers
         </div>
-        <div className="mt-2 text-3xl font-bold tracking-tight text-rose-600 dark-soc:text-rose-400">
+        <div className="mt-2 text-3xl font-bold tracking-tight text-zinc-900 dark-soc:text-white">
           {summary.weakCiphersCount}
         </div>
       </div>

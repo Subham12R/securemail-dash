@@ -17,11 +17,11 @@ export default function ProtocolCardsGrid({
   const getIcon = (proto: string) => {
     switch (proto) {
       case "SMTP":
-        return <Send className="size-5 text-sky-500" aria-hidden="true" />;
+        return <Send className="size-5 text-zinc-700" aria-hidden="true" />;
       case "IMAP":
-        return <Inbox className="size-5 text-emerald-500" aria-hidden="true" />;
+        return <Inbox className="size-5 text-zinc-700" aria-hidden="true" />;
       default:
-        return <Mail className="size-5 text-amber-500" aria-hidden="true" />;
+        return <Mail className="size-5 text-zinc-700" aria-hidden="true" />;
     }
   };
 
@@ -35,7 +35,7 @@ export default function ProtocolCardsGrid({
             key={summary.protocol}
             className={`flex flex-col justify-between rounded-xl border p-5 transition-all duration-200 shadow-[inset_0px_0px_2px_2px_rgba(0,0,0,0.03)] ${
               isSelected
-                ? "border-sky-500 bg-sky-50/40 ring-1 ring-sky-500"
+                ? "border-zinc-900 bg-zinc-50 ring-1 ring-zinc-900"
                 : "border-zinc-200 bg-white hover:border-zinc-300"
             }`}
           >
@@ -101,7 +101,7 @@ export default function ProtocolCardsGrid({
               onClick={() => onSelectProtocol(isSelected ? null : summary.protocol)}
               className={`mt-5 flex w-full items-center justify-center gap-1.5 rounded-lg border py-2 text-xs font-medium transition-colors ${
                 isSelected
-                  ? "border-sky-600 bg-sky-600 text-white hover:bg-sky-700"
+                  ? "border-zinc-900 bg-zinc-900 text-white hover:bg-zinc-800"
                   : "border-zinc-200 bg-zinc-50 text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900"
               }`}
             >

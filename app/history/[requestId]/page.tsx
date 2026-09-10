@@ -89,7 +89,7 @@ export default async function HistoryDetailPage({
         aria-label="History detail page"
       >
         <DashboardTopbar currentPage="History detail" showRefresh />
-        <HistoryAnalysisDetail viewModel={viewModel} />
+        <HistoryAnalysisDetail analysis={record} viewModel={viewModel} />
         <FooterWatermark />
       </main>
     </ViewTransition>

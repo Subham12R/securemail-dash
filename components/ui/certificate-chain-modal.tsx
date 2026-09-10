@@ -19,13 +19,13 @@ export default function CertificateChainModal({ certificate, onClose }: Props) {
       aria-labelledby="chain-modal-title"
     >
       <div
-        className="w-full max-w-2xl overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl dark-soc:border-[#1E2D56] dark-soc:bg-[#111C38]"
+        className="flex max-h-[calc(100dvh-2rem)] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-black/10 bg-white shadow-[0_18px_55px_rgba(16,24,40,0.12)] dark-soc:border-[#1E2D56] dark-soc:bg-[#111C38]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-zinc-200 px-6 py-4 dark-soc:border-[#1E2D56]">
           <div>
-            <h3 id="chain-modal-title" className="text-lg font-bold text-zinc-900 dark-soc:text-white">
+            <h3 id="chain-modal-title" className="text-2xl font-normal tracking-tight text-zinc-900 dark-soc:text-white">
               Certificate Chain of Trust
             </h3>
             <p className="font-mono text-xs text-zinc-500 dark-soc:text-zinc-400">
@@ -35,10 +35,10 @@ export default function CertificateChainModal({ certificate, onClose }: Props) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark-soc:hover:bg-[#1E2D56] dark-soc:hover:text-white"
+            className="inline-flex size-9 items-center justify-center rounded-full border border-black/10 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-lime-pulse)] dark-soc:hover:bg-[#1E2D56] dark-soc:hover:text-white"
             aria-label="Close modal"
           >
-            <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <svg className="size-5" viewBox="0 0 20 20" fill="currentColor">
               <path
                 fillRule="evenodd"
                 d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
@@ -49,7 +49,7 @@ export default function CertificateChainModal({ certificate, onClose }: Props) {
         </div>
 
         {/* Chain Tree Content */}
-        <div className="space-y-4 p-6">
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-[18px]">
           {certificate.chain.map((node, index) => (
             <div key={node.subject} className="relative">
               {/* Connector line */}
@@ -57,7 +57,7 @@ export default function CertificateChainModal({ certificate, onClose }: Props) {
                 <div className="absolute top-12 left-5 -bottom-4 w-0.5 bg-zinc-200 dark-soc:bg-[#1E2D56]" />
               )}
 
-              <div className="flex items-start gap-3 rounded-xl border border-zinc-200 bg-zinc-50/70 p-4 dark-soc:border-[#1E2D56] dark-soc:bg-[#0D1735]">
+              <div className="flex items-start gap-3 rounded-xl border border-black/10 bg-zinc-50/70 p-[18px] dark-soc:border-[#1E2D56] dark-soc:bg-[#0D1735]">
                 {/* Node icon */}
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white shadow-xs dark-soc:bg-[#111C38]">
                   {node.valid ? (
@@ -114,11 +114,11 @@ export default function CertificateChainModal({ certificate, onClose }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end border-t border-zinc-200 bg-zinc-50 px-6 py-3 dark-soc:border-[#1E2D56] dark-soc:bg-[#0D1735]">
+        <div className="flex shrink-0 justify-end border-t border-black/10 bg-zinc-50 px-[18px] py-3 dark-soc:border-[#1E2D56] dark-soc:bg-[#0D1735]">
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg bg-zinc-900 px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-zinc-800 dark-soc:bg-[#1E2D56] dark-soc:hover:bg-[#2A3F75]"
+            className="rounded-full bg-zinc-900 px-5 py-2 text-sm font-normal text-white hover:bg-zinc-800 dark-soc:bg-[#1E2D56] dark-soc:hover:bg-[#2A3F75]"
           >
             Done
           </button>

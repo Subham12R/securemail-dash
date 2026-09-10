@@ -33,6 +33,7 @@ export type AnalysisRecord = {
   protocol: string | null;
   posture: string | null;
   timestamp: string;
+  record_count: number;
   evidence_ref_count: number;
   risk_score: number;
   final_verdict: string;
@@ -42,6 +43,8 @@ export type AnalysisRecord = {
   ml_scores: Record<string, unknown>;
   explanations: Record<string, unknown>;
   model_bundle: Record<string, unknown>;
+  tls_details: unknown | null;
+  certificate_details: unknown | null;
   is_synthetic: boolean;
   source_label: string | null;
 };
@@ -133,6 +136,9 @@ function parseAnalysisRecord(value: unknown): AnalysisRecord | null {
     protocol: typeof value.protocol === "string" ? value.protocol : null,
     posture: typeof value.posture === "string" ? value.posture : null,
     timestamp: value.timestamp,
+    record_count: typeof value.record_count === "number" && value.record_count >= 0
+      ? Math.floor(value.record_count)
+      : 0,
     evidence_ref_count:
       typeof value.evidence_ref_count === "number" ? value.evidence_ref_count : 0,
     risk_score: value.risk_score,
@@ -144,6 +150,8 @@ function parseAnalysisRecord(value: unknown): AnalysisRecord | null {
     ml_scores: isObject(value.ml_scores) ? value.ml_scores : {},
     explanations: isObject(value.explanations) ? value.explanations : {},
     model_bundle: isObject(value.model_bundle) ? value.model_bundle : {},
+    tls_details: value.tls_details ?? null,
+    certificate_details: value.certificate_details ?? null,
     is_synthetic: value.is_synthetic === true,
     source_label: typeof value.source_label === "string" ? value.source_label : null,
   };

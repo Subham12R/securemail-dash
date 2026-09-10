@@ -43,7 +43,7 @@ export default function TlsView({ records, tmpVaultEmails = [] }: Props) {
           onClick={() => setActiveTab("versions")}
           className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
             activeTab === "versions"
-              ? "border-[#00E5FF] text-zinc-900 dark-soc:border-[#00E5FF] dark-soc:text-[#00E5FF]"
+              ? "border-[var(--color-lime-pulse)] text-zinc-900 dark-soc:border-[var(--color-lime-pulse)] dark-soc:text-[var(--color-lime-pulse)]"
               : "border-transparent text-zinc-500 hover:text-zinc-900 dark-soc:text-zinc-400 dark-soc:hover:text-white"
           }`}
         >
@@ -58,7 +58,7 @@ export default function TlsView({ records, tmpVaultEmails = [] }: Props) {
           onClick={() => setActiveTab("ciphers")}
           className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
             activeTab === "ciphers"
-              ? "border-[#00E5FF] text-zinc-900 dark-soc:border-[#00E5FF] dark-soc:text-[#00E5FF]"
+              ? "border-[var(--color-lime-pulse)] text-zinc-900 dark-soc:border-[var(--color-lime-pulse)] dark-soc:text-[var(--color-lime-pulse)]"
               : "border-transparent text-zinc-500 hover:text-zinc-900 dark-soc:text-zinc-400 dark-soc:hover:text-white"
           }`}
         >
@@ -73,7 +73,7 @@ export default function TlsView({ records, tmpVaultEmails = [] }: Props) {
           onClick={() => setActiveTab("assessment")}
           className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
             activeTab === "assessment"
-              ? "border-[#00E5FF] text-zinc-900 dark-soc:border-[#00E5FF] dark-soc:text-[#00E5FF]"
+              ? "border-[var(--color-lime-pulse)] text-zinc-900 dark-soc:border-[var(--color-lime-pulse)] dark-soc:text-[var(--color-lime-pulse)]"
               : "border-transparent text-zinc-500 hover:text-zinc-900 dark-soc:text-zinc-400 dark-soc:hover:text-white"
           }`}
         >
