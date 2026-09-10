@@ -1,4 +1,6 @@
+import React from "react";
 import { toast } from "sonner";
+import { AppleSystemAlertBanner } from "@/components/notifications/apple-system-alert";
 
 export type AlertVariant = "critical" | "warning" | "success" | "info";
 

@@ -80,8 +80,8 @@ export default async function HomePage({ range }: { range: "all" | "7d" | "30d" 
 
       <section aria-labelledby="metrics-heading" className="space-y-4 p-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tighter text-zinc-900">Welcome back, {user.display_name}!</h1>
-          <p className="text-sm tracking-tighter text-zinc-500">Here's a quick overview of your activity.</p>
+          <h1 className="text-3xl font-bold tracking-tighter text-zinc-900">Welcome back, <span className="text-amber-500 italic">{user.display_name}</span></h1>
+          <p className="text-2xl font-bold tracking-tighter text-zinc-400">Here's a quick overview of your analysis activity. Don't worry we got you covered.</p>
         </div>
         <div className="flex items-center justify-between gap-4">
           <div>

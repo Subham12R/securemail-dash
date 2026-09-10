@@ -283,19 +283,7 @@ export default function LoginForm() {
       </form>
 
       {/* Enterprise Account Quick Fill */}
-      <div className="mt-6 border-t border-zinc-200 pt-4 text-center">
-        <button
-          type="button"
-          onClick={() => handleFillDemo("0day@company.com", "0day@SIH26")}
-          disabled={isSubmitting}
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-zinc-600 hover:text-zinc-900 transition-colors"
-        >
-          <span>Fill credentials:</span>
-          <code className="rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-[11px] text-zinc-800 border border-zinc-200">
-            0day@company.com
-          </code>
-        </button>
-      </div>
+    
     </div>
   );
 }
