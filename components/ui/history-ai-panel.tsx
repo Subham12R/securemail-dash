@@ -9,9 +9,14 @@ import {
   Check,
   PanelRightClose,
   ArrowUp,
+  Circle,
+  CheckCircle2,
 } from "lucide-react";
 import { motion } from "motion/react";
-import { requestRiskInsight } from "@/lib/agent-insights";
+import {
+  requestRiskInsight,
+  type AgentActiveStep,
+} from "@/lib/agent-insights";
 import type { AnalysisRecord } from "@/lib/securemail-api";
 import {
   Message,
@@ -50,6 +55,17 @@ function formatInsight(status: string, answer: string | null, recommendations: r
 
 function formatTime(date: Date): string {
   return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function stepStatusLabel(status: AgentActiveStep["status"]): string {
+  switch (status) {
+    case "completed":
+      return "Completed";
+    case "pending":
+      return "Pending";
+    default:
+      return "In progress";
+  }
 }
 
 function parseMarkdownSnippet(text: string): ReactNode {
@@ -201,6 +217,10 @@ export default function HistoryAiPanel({
   onToggle,
 }: HistoryAiPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [activeStep, setActiveStep] = useState<AgentActiveStep | null>(null);
+  const [memoryRevision, setMemoryRevision] = useState<number | null>(null);
+  const [memoryPersisted, setMemoryPersisted] = useState<boolean | null>(null);
+  const [lastInsightStatus, setLastInsightStatus] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [inputVal, setInputVal] = useState("");
   const [showExpandedContent, setShowExpandedContent] = useState(expanded);
@@ -221,6 +241,10 @@ export default function HistoryAiPanel({
 
     try {
       const insight = await requestRiskInsight(analysis, question);
+      setActiveStep(insight.activeStep);
+      setMemoryRevision(insight.memoryRevision);
+      setMemoryPersisted(insight.memoryPersisted);
+      setLastInsightStatus(insight.status);
       setMessages((previous) => [...previous, {
         id: `asst-${globalThis.crypto.randomUUID()}`,
         from: "assistant",
@@ -228,6 +252,9 @@ export default function HistoryAiPanel({
         timestamp: formatTime(new Date()),
       }]);
     } catch (error) {
+      setLastInsightStatus("error");
+      setMemoryRevision(null);
+      setMemoryPersisted(null);
       setMessages((previous) => [...previous, {
         id: `err-${globalThis.crypto.randomUUID()}`,
         from: "assistant",
@@ -241,6 +268,10 @@ export default function HistoryAiPanel({
 
   const resetConversation = useCallback(() => {
     setMessages([]);
+    setActiveStep(null);
+    setMemoryRevision(null);
+    setMemoryPersisted(null);
+    setLastInsightStatus(null);
     if (scrollerRef.current) scrollerRef.current.scrollTop = 0;
     void askRiskQuestion(DEFAULT_RISK_QUESTION);
   }, [askRiskQuestion]);
@@ -248,9 +279,7 @@ export default function HistoryAiPanel({
   useEffect(() => {
     if (initializedRequestRef.current === analysis.request_id) return;
     initializedRequestRef.current = analysis.request_id;
-
-    const resetId = window.setTimeout(resetConversation, 0);
-    return () => window.clearTimeout(resetId);
+    resetConversation();
   }, [analysis.request_id, resetConversation]);
 
   useEffect(() => {
@@ -330,7 +359,7 @@ export default function HistoryAiPanel({
               <div className="grid size-6 place-items-center rounded-md bg-white border border-zinc-200/70 p-0.5 shadow-2xs">
                 <Image
                   src="/logo-mark.png"
-                  alt="Secure Agent"
+                  alt="SecureMailScope Agent"
                   width={20}
                   height={20}
                   className="size-4 object-contain"
@@ -340,7 +369,7 @@ export default function HistoryAiPanel({
                 id="history-ai-heading"
                 className="text-xs font-semibold text-zinc-900"
               >
-                Secure Agent
+                SecureMailScope Agent
               </h2>
             </div>
 
@@ -371,7 +400,7 @@ export default function HistoryAiPanel({
         ) : (
           <button
             type="button"
-            aria-label="Expand Secure Agent"
+            aria-label="Expand SecureMailScope Agent"
             aria-controls="history-ai-content"
             aria-expanded={expanded}
             onClick={onToggle}
@@ -383,11 +412,11 @@ export default function HistoryAiPanel({
               role="tooltip"
               className="pointer-events-none absolute right-full bottom-1/2 mr-3 translate-y-1/2 whitespace-nowrap rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-xs font-medium text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100"
             >
-              Wanna analyse deep with AI?
+              Open SecureMailScope Agent
             </span>
             <Image
               src="/logo-mark.png"
-              alt="Secure Agent"
+              alt="SecureMailScope Agent"
               width={20}
               height={20}
               className="size-4.5 object-contain"
@@ -408,6 +437,8 @@ export default function HistoryAiPanel({
           {/* Messages Scroll Area */}
           <div
             ref={scrollerRef}
+            aria-live="polite"
+            aria-busy={isGenerating}
             className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 py-3 space-y-3"
           >
             {messages.map((msg) => (
@@ -422,7 +453,7 @@ export default function HistoryAiPanel({
                     <div className="grid size-full place-items-center bg-white border border-zinc-200/70 rounded-full p-0.5 shadow-2xs">
                       <Image
                         src="/logo-mark.png"
-                        alt="Secure Agent"
+                        alt="SecureMailScope Agent"
                         width={16}
                         height={16}
                         className="size-3.5 object-contain"
@@ -475,7 +506,7 @@ export default function HistoryAiPanel({
                   <div className="grid size-full place-items-center bg-white border border-zinc-200/70 rounded-full p-0.5 shadow-2xs">
                     <Image
                       src="/logo-mark.png"
-                      alt="Secure Agent"
+                      alt="SecureMailScope Agent"
                       width={16}
                       height={16}
                       className="size-3.5 object-contain"
@@ -485,15 +516,66 @@ export default function HistoryAiPanel({
                 <MessageContent>
                   <div className="rounded-xl border border-zinc-200/70 bg-zinc-50/60 px-2.5 py-1.5 shadow-2xs">
                     <div className="flex items-center gap-1.5 text-xs text-zinc-600">
-                      <MessageTyping label="Thinking" />
+                      <MessageTyping label="SecureMailScope Agent is thinking" />
                       <ThinkingShimmer duration={1.6}>
-                        Analyzing telemetry…
+                        Reviewing analysis evidence…
                       </ThinkingShimmer>
                     </div>
                   </div>
                 </MessageContent>
               </Message>
             )}
+
+            {activeStep ? (
+              <section
+                aria-labelledby="history-ai-step-heading"
+                className="rounded-xl border border-zinc-200 bg-zinc-50/70 px-3 py-2.5"
+              >
+                <div className="flex items-start gap-2.5">
+                  <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border border-zinc-300 bg-white text-zinc-600">
+                    {activeStep.status === "completed" ? (
+                      <CheckCircle2 aria-hidden="true" className="size-3.5 text-emerald-600" />
+                    ) : (
+                      <Circle aria-hidden="true" className="size-3.5" />
+                    )}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
+                      <h3 id="history-ai-step-heading" className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+                        Current verification step
+                      </h3>
+                      <span className="text-[10px] font-medium text-zinc-500">
+                        {stepStatusLabel(activeStep.status)}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs font-medium leading-5 text-zinc-900">
+                      {activeStep.title}
+                    </p>
+                    {activeStep.evidence.length > 0 ? (
+                      <p className="mt-1 break-words text-[10px] leading-4 text-zinc-500">
+                        Evidence: {activeStep.evidence.join(", ")}
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+              </section>
+            ) : null}
+
+            {lastInsightStatus && lastInsightStatus !== "complete" ? (
+              <p role="status" className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] leading-4 text-amber-800">
+                SecureMailScope Agent status: {lastInsightStatus}. Try again or reset the conversation.
+              </p>
+            ) : null}
+
+            {memoryPersisted !== null ? (
+              <p role="status" className="text-[10px] text-zinc-400">
+                {memoryPersisted
+                  ? `Conversation memory saved · turn ${memoryRevision ?? 0}`
+                  : lastInsightStatus === "complete"
+                    ? "Answer returned, but conversation memory could not be saved."
+                    : "Conversation memory is unavailable for this response."}
+              </p>
+            ) : null}
           </div>
 
           <div className="shrink-0 border-t border-zinc-100 bg-white px-3 py-2">
@@ -510,6 +592,7 @@ export default function HistoryAiPanel({
                 value={inputVal}
                 onChange={(e) => setInputVal(e.target.value)}
                 onKeyDown={handleKeyDown}
+                aria-label="Ask SecureMailScope Agent about this analysis"
                 placeholder="Ask about this session’s risk…"
                 rows={1}
                 disabled={isGenerating}

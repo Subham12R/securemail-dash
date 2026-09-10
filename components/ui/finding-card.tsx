@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { FindingItem, FindingStatus } from "@/lib/findings-data";
+import { Card } from "@/components/ui/card";
 
 type Props = {
   finding: FindingItem;
@@ -37,7 +38,7 @@ export default function FindingCard({ finding, currentStatus, onStatusChange }: 
   };
 
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-xs transition-colors dark-soc:border-[#1E2D56] dark-soc:bg-[#111C38]">
+    <Card className="p-5 transition-[transform,box-shadow] duration-200 motion-safe:hover:-translate-y-0.5 motion-safe:hover:shadow-md">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex items-start gap-3.5">
           {/* Severity tag */}
@@ -138,6 +139,6 @@ export default function FindingCard({ finding, currentStatus, onStatusChange }: 
           </div>
         </div>
       )}
-    </div>
+    </Card>
   );
 }

@@ -11,6 +11,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
+  MetricCard,
 } from "@/components/ui/card";
 import { MorphingText } from "@/components/ui/morphing-text";
 import { getQueueProgress, type CaptureQueueItem } from "@/lib/capture-queue";
@@ -333,27 +334,27 @@ export default function AnalysisWorkspace({
         ) : null}
 
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          <Card>
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between text-zinc-500"><span className="text-sm">Ensemble risk</span><Gauge aria-hidden="true" className="size-4" /></div>
-              <p className="mt-4 text-3xl font-semibold tracking-tighter text-zinc-900"><MorphingText>{formatPercentage(currentAnalysis?.risk_score ?? null)}</MorphingText></p>
-              <p className="mt-1 text-xs text-zinc-500">{formattedRiskBand ?? "Unavailable"} score band · {verdict ?? "Unavailable"} backend verdict</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between text-zinc-500"><span className="text-sm">XGBoost</span><ShieldAlert aria-hidden="true" className="size-4" /></div>
-              <p className="mt-4 text-3xl font-semibold tracking-tighter text-zinc-900"><MorphingText>{formatPercentage(xgboostScore)}</MorphingText></p>
-              <p className="mt-1 text-xs text-zinc-500">API model score when persisted</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between text-zinc-500"><span className="text-sm">Random Forest</span><Gauge aria-hidden="true" className="size-4" /></div>
-              <p className="mt-4 text-3xl font-semibold tracking-tighter text-zinc-900"><MorphingText>{formatPercentage(randomForestScore)}</MorphingText></p>
-              <p className="mt-1 text-xs text-zinc-500">API model score when persisted</p>
-            </CardContent>
-          </Card>
+          <MetricCard
+            label="Ensemble risk"
+            value={<MorphingText>{formatPercentage(currentAnalysis?.risk_score ?? null)}</MorphingText>}
+            description={`${formattedRiskBand ?? "Unavailable"} score band · ${verdict ?? "Unavailable"} backend verdict`}
+            icon={Gauge}
+            iconClassName="text-zinc-500"
+          />
+          <MetricCard
+            label="XGBoost"
+            value={<MorphingText>{formatPercentage(xgboostScore)}</MorphingText>}
+            description="API model score when persisted"
+            icon={ShieldAlert}
+            iconClassName="text-zinc-500"
+          />
+          <MetricCard
+            label="Random Forest"
+            value={<MorphingText>{formatPercentage(randomForestScore)}</MorphingText>}
+            description="API model score when persisted"
+            icon={Gauge}
+            iconClassName="text-zinc-500"
+          />
         </div>
       </section>
 

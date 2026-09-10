@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getLocalTimeZone } from "@internationalized/date";
 import {
   Card,
@@ -44,6 +45,8 @@ function RiskScore({ score }: { score: number }) {
   return <RiskScoreMeter score={score} bars={18} size="sm" showText={false} />;
 }
 
+const PAGE_SIZE = 5;
+
 export default function RecentAnalysisTable({
   analyses,
 }: {
@@ -52,6 +55,7 @@ export default function RecentAnalysisTable({
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("All statuses");
   const [dateRange, setDateRange] = useState<SelectedDateRange | null>(null);
+  const [page, setPage] = useState(1);
   const filters: TableFilter[] = [{
     name: "status",
     label: "Status",
@@ -75,6 +79,13 @@ export default function RecentAnalysisTable({
     });
   }, [analyses, dateRange, query, status]);
 
+  const pageCount = Math.max(1, Math.ceil(filteredAnalyses.length / PAGE_SIZE));
+  const visiblePage = Math.min(page, pageCount);
+  const paginatedAnalyses = filteredAnalyses.slice(
+    (visiblePage - 1) * PAGE_SIZE,
+    visiblePage * PAGE_SIZE,
+  );
+
   return (
     <section
       aria-labelledby="recent-analysis-heading"
@@ -90,9 +101,18 @@ export default function RecentAnalysisTable({
         <TableToolbar
           searchPlaceholder="Search analysis"
           filters={filters}
-          onQueryChange={setQuery}
-          onFilterChange={(_, value) => setStatus(value)}
-          onRangeChange={(nextRange) => setDateRange(nextRange)}
+          onQueryChange={(value) => {
+            setQuery(value);
+            setPage(1);
+          }}
+          onFilterChange={(_, value) => {
+            setStatus(value);
+            setPage(1);
+          }}
+          onRangeChange={(nextRange) => {
+            setDateRange(nextRange);
+            setPage(1);
+          }}
         />
         <CardContent className="p-0">
           <div
@@ -116,15 +136,15 @@ export default function RecentAnalysisTable({
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100">
-                {filteredAnalyses.length > 0 ? (
-                  filteredAnalyses.map((analysis, index) => {
+                {paginatedAnalyses.length > 0 ? (
+                  paginatedAnalyses.map((analysis, index) => {
                     const detailHref = analysis.requestId
                       ? historyDetailHref(analysis.requestId)
                       : null;
 
                     return (
                     <tr
-                      key={analysis.sessionId}
+                      key={analysis.requestId ?? `${analysis.sessionId}-${index}`}
                       style={{ animationDelay: `${Math.min(index, 8) * 18}ms` }}
                       className="animate-row-reveal text-zinc-700 transition-colors duration-150 hover:bg-zinc-50/80"
                     >
@@ -192,6 +212,34 @@ export default function RecentAnalysisTable({
             </table>
           </div>
         </CardContent>
+        {filteredAnalyses.length > 0 ? (
+          <div className="flex items-center justify-between gap-3 border-t border-black/10 px-[18px] py-3 text-xs text-zinc-500">
+            <span aria-live="polite">
+              Showing {(visiblePage - 1) * PAGE_SIZE + 1}–{Math.min(visiblePage * PAGE_SIZE, filteredAnalyses.length)} of {filteredAnalyses.length}
+            </span>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setPage((current) => Math.max(1, current - 1))}
+                disabled={visiblePage === 1}
+                aria-label="Previous page"
+                className="inline-flex size-8 items-center justify-center rounded-md border border-black/10 text-zinc-700 transition-colors hover:bg-zinc-100 disabled:pointer-events-none disabled:opacity-40"
+              >
+                <ChevronLeft aria-hidden="true" className="size-4" />
+              </button>
+              <span className="min-w-16 text-center tabular-nums">Page {visiblePage} of {pageCount}</span>
+              <button
+                type="button"
+                onClick={() => setPage((current) => Math.min(pageCount, current + 1))}
+                disabled={visiblePage === pageCount}
+                aria-label="Next page"
+                className="inline-flex size-8 items-center justify-center rounded-md border border-black/10 text-zinc-700 transition-colors hover:bg-zinc-100 disabled:pointer-events-none disabled:opacity-40"
+              >
+                <ChevronRight aria-hidden="true" className="size-4" />
+              </button>
+            </div>
+          </div>
+        ) : null}
       </Card>
     </section>
   );

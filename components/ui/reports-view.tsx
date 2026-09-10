@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Download, FileText, Loader2, Plus } from "lucide-react";
+import { Download, FileText, Files, Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { getAvailableReports, type ForensicReportItem } from "@/lib/reports-data";
 import { generateForensicPdfReport } from "@/lib/pdf-report-generator";
+import { MetricCard } from "@/components/ui/card";
 import type { AnalysisDetailViewModel } from "@/lib/analysis-detail";
 
 export default function ReportsView() {
@@ -132,35 +133,9 @@ export default function ReportsView() {
 
       {/* 3 Top KPI Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {/* Total Reports */}
-        <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark-soc:border-[#1E2D56] dark-soc:bg-[#111C38]">
-          <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark-soc:text-zinc-400">
-            Total Reports
-          </span>
-          <div className="mt-2 text-3xl font-bold text-zinc-900 dark-soc:text-white">
-            {reports.length}
-          </div>
-        </div>
-
-        {/* Ready For Download */}
-        <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark-soc:border-[#1E2D56] dark-soc:bg-[#111C38]">
-          <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark-soc:text-zinc-400">
-            Ready For Download
-          </span>
-          <div className="mt-2 text-3xl font-bold text-zinc-900 dark-soc:text-white">
-            {reports.filter((r) => r.status === "READY").length}
-          </div>
-        </div>
-
-        {/* Formats Available */}
-        <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark-soc:border-[#1E2D56] dark-soc:bg-[#111C38]">
-          <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark-soc:text-zinc-400">
-            Formats Available
-          </span>
-          <div className="mt-2 text-xl font-bold text-zinc-800 dark-soc:text-zinc-200">
-            PDF, JSON, HTML
-          </div>
-        </div>
+        <MetricCard label="Total Reports" value={reports.length} icon={FileText} iconClassName="text-zinc-500" />
+        <MetricCard label="Ready For Download" value={reports.filter((r) => r.status === "READY").length} icon={Download} iconClassName="text-[var(--color-lime-pulse)]" />
+        <MetricCard label="Formats Available" value="PDF, JSON, HTML" valueClassName="text-2xl sm:text-3xl" icon={Files} iconClassName="text-zinc-500" />
       </div>
 
       {/* Reports Table Container */}

@@ -26,10 +26,7 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
-import {
-  BarChartSkeleton,
-  PieChartSkeleton,
-} from "@/components/ui/loading-skeleton";
+import { BarChartSkeleton, PieChartSkeleton } from "@/components/ui/loading-skeleton";
 import type { PostureCount } from "@/lib/securemail-api";
 import type { RiskScoreDistribution } from "@/lib/risk";
 
@@ -93,6 +90,7 @@ export default function OverviewCharts({
   postureDistribution: readonly PostureCount[];
 }) {
   const [hoveredRisk, setHoveredRisk] = useState<string | null>(null);
+  const [hoveredPosture, setHoveredPosture] = useState<string | null>(null);
   const [activePostureIndex, setActivePostureIndex] = useState<number | null>(null);
 
   const riskData = riskDistribution.map((entry, index) => ({
@@ -139,7 +137,7 @@ export default function OverviewCharts({
                 aria-label="Risk score distribution bar chart"
                 className="aspect-video max-h-[280px]"
               >
-                <BarChart accessibilityLayer data={riskData}>
+                <BarChart accessibilityLayer data={riskData} margin={{ top: 8, right: 8, bottom: 40, left: 8 }}>
                   <CartesianGrid vertical={false} />
                   <XAxis
                     dataKey="risk"
@@ -164,7 +162,7 @@ export default function OverviewCharts({
                         key={entry.risk}
                         fill={entry.fill}
                         opacity={hoveredRisk && hoveredRisk !== entry.risk ? 0.35 : 1}
-                        className="transition-opacity duration-200 cursor-pointer"
+                        className="cursor-pointer transition-opacity duration-200"
                         onMouseEnter={() => setHoveredRisk(entry.risk)}
                         onMouseLeave={() => setHoveredRisk(null)}
                       />
@@ -181,7 +179,7 @@ export default function OverviewCharts({
               </div>
             )}
           </CardContent>
-          <CardFooter className="flex-wrap gap-x-4 gap-y-2 text-xs text-zinc-600">
+          <CardFooter className="flex flex-row flex-wrap items-center gap-x-4 gap-y-2 text-xs text-zinc-600">
             {riskData.length > 0
               ? riskData.map((entry) => (
                   <div
@@ -228,7 +226,7 @@ export default function OverviewCharts({
                       data={postureData}
                       dataKey="count"
                       nameKey="posture"
-                      innerRadius={68}
+                      innerRadius={55}
                       stroke="var(--chart-surface)"
                       strokeWidth={3}
                       isAnimationActive={true}
@@ -236,19 +234,11 @@ export default function OverviewCharts({
                       animationEasing="ease-out"
                       onMouseEnter={(_, index) => setActivePostureIndex(index)}
                       onMouseLeave={() => setActivePostureIndex(null)}
-                      shape={({
-                        index,
-                        outerRadius = 0,
-                        ...props
-                      }: PieSectorShapeProps) => (
+                      shape={({ index, outerRadius = 0, ...props }: PieSectorShapeProps) => (
                         <Sector
                           {...props}
-                          outerRadius={
-                            index === activePostureIndex
-                              ? outerRadius + 8
-                              : outerRadius
-                          }
-                          className="transition-[outerRadius] duration-300 ease-out cursor-pointer"
+                          outerRadius={index === activePostureIndex ? outerRadius + 8 : outerRadius}
+                          className="cursor-pointer transition-[outerRadius] duration-300 ease-out"
                         />
                       )}
                     >
@@ -256,8 +246,13 @@ export default function OverviewCharts({
                         <Cell
                           key={entry.posture}
                           fill={entry.fill}
-                          opacity={activePostureIndex !== null && activePostureIndex !== index ? 0.45 : 1}
-                          className="transition-opacity duration-200"
+                          opacity={
+                            (activePostureIndex !== null && activePostureIndex !== index) ||
+                            (hoveredPosture !== null && hoveredPosture !== entry.posture)
+                              ? 0.45
+                              : 1
+                          }
+                          className="cursor-pointer transition-opacity duration-200"
                         />
                       ))}
                     </Pie>
@@ -291,10 +286,23 @@ export default function OverviewCharts({
               </div>
             )}
           </CardContent>
-          <CardFooter className="flex-wrap justify-center gap-x-4 gap-y-2 text-xs text-zinc-600">
+          <CardFooter className="flex flex-row flex-nowrap justify-center gap-x-4 overflow-x-auto text-xs text-zinc-600">
             {postureData.length > 0
               ? postureData.map((entry) => (
-                  <div key={entry.posture} className="flex items-center gap-1.5">
+                  <div
+                    key={entry.posture}
+                    className={`flex cursor-pointer items-center gap-1.5 transition-opacity duration-150 ${
+                      hoveredPosture && hoveredPosture !== entry.posture ? "opacity-40" : "opacity-100"
+                    }`}
+                    onMouseEnter={() => {
+                      setHoveredPosture(entry.posture);
+                      setActivePostureIndex(postureData.findIndex((item) => item.posture === entry.posture));
+                    }}
+                    onMouseLeave={() => {
+                      setHoveredPosture(null);
+                      setActivePostureIndex(null);
+                    }}
+                  >
                     <span
                       aria-hidden="true"
                       className="size-2 rounded-full"

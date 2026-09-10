@@ -1,7 +1,8 @@
 "use client";
 
-import { AlertTriangle, BrainCircuit, Info, Shield } from "lucide-react";
+import { AlertTriangle, BrainCircuit, Flag, Info, Shield } from "lucide-react";
 import { getIntelligenceSummary } from "@/lib/intelligence-data";
+import { MetricCard } from "@/components/ui/card";
 
 export default function IntelligenceView() {
   const summary = getIntelligenceSummary();
@@ -47,47 +48,33 @@ export default function IntelligenceView() {
 
       {/* 4 Top KPI Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {/* Risk Classification */}
-        <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark-soc:border-[#1E2D56] dark-soc:bg-[#111C38]">
-          <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark-soc:text-zinc-400">
-            Risk Classification
-          </span>
-          <div className="mt-2 text-2xl font-bold text-zinc-900 dark-soc:text-white">
-            {summary.riskClassification}
-          </div>
-        </div>
-
-        {/* Model Confidence */}
-        <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark-soc:border-[#1E2D56] dark-soc:bg-[#111C38]">
-          <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark-soc:text-zinc-400">
-            Model Confidence
-          </span>
-          <div className="mt-2 text-2xl font-bold text-zinc-900 dark-soc:text-white">
-            {summary.modelConfidence}%
-          </div>
-        </div>
-
-        {/* Anomalous Sessions */}
-        <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark-soc:border-[#1E2D56] dark-soc:bg-[#111C38]">
-          <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark-soc:text-zinc-400">
-            Anomalous Sessions
-          </span>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-zinc-900 dark-soc:text-white">{summary.anomalousSessions}</span>
-            <span className="text-xs text-zinc-500">out of {summary.totalSessions}</span>
-          </div>
-        </div>
-
-        {/* Priority Items */}
-        <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark-soc:border-[#1E2D56] dark-soc:bg-[#111C38]">
-          <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark-soc:text-zinc-400">
-            Priority Items
-          </span>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-zinc-900 dark-soc:text-white">{summary.priorityItems}</span>
-            <span className="text-xs text-zinc-500">requires attention</span>
-          </div>
-        </div>
+        <MetricCard
+          label="Risk Classification"
+          value={summary.riskClassification}
+          valueClassName="text-2xl sm:text-3xl"
+          icon={Shield}
+          iconClassName="text-amber-600"
+        />
+        <MetricCard
+          label="Model Confidence"
+          value={`${summary.modelConfidence}%`}
+          icon={BrainCircuit}
+          iconClassName="text-[var(--color-lime-pulse)]"
+        />
+        <MetricCard
+          label="Anomalous Sessions"
+          value={summary.anomalousSessions}
+          description={`out of ${summary.totalSessions}`}
+          icon={AlertTriangle}
+          iconClassName="text-amber-600"
+        />
+        <MetricCard
+          label="Priority Items"
+          value={summary.priorityItems}
+          description="requires attention"
+          icon={Flag}
+          iconClassName="text-rose-600"
+        />
       </div>
 
       {/* Assessment Cards List */}

@@ -11,13 +11,13 @@ export default function CertificateCardsGrid({ certificates, onSelectCertificate
       {certificates.map((cert) => (
         <div
           key={cert.id}
-          className="flex flex-col justify-between rounded-xl border border-zinc-200 bg-white p-5 shadow-xs transition-all hover:border-zinc-300 dark-soc:border-[#1E2D56] dark-soc:bg-[#111C38] dark-soc:hover:border-[var(--color-lime-pulse)]/40"
+          className="group flex flex-col justify-between rounded-xl border border-black/10 bg-white p-[18px] shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-[transform,box-shadow] duration-200 motion-safe:hover:-translate-y-0.5 motion-safe:hover:shadow-md hover:border-zinc-300 dark-soc:hover:border-[var(--color-lime-pulse)]/40"
         >
           <div>
             {/* Top row: Domain & Badge */}
             <div className="flex items-start justify-between gap-2">
               <div>
-                <h3 className="font-mono text-base font-bold text-zinc-900 dark-soc:text-white">
+                <h3 className="font-mono text-base !font-bold text-zinc-900 dark-soc:text-white">
                   {cert.domain}
                 </h3>
                 <p className="mt-0.5 text-xs text-zinc-500 dark-soc:text-zinc-400">

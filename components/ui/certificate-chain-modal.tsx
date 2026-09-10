@@ -96,7 +96,7 @@ export default function CertificateChainModal({ certificate, onClose }: Props) {
                     </span>
                   </div>
 
-                  <h4 className="mt-1 font-mono text-sm font-semibold text-zinc-900 dark-soc:text-white truncate">
+                  <h4 className="mt-1 font-mono text-sm !font-semibold text-zinc-900 dark-soc:text-white truncate">
                     {node.subject}
                   </h4>
                   <p className="text-xs text-zinc-500 dark-soc:text-zinc-400 truncate">

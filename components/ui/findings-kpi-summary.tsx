@@ -1,3 +1,6 @@
+import { AlertTriangle, CheckCircle2, Clock3, ShieldAlert } from "lucide-react";
+import { MetricCard } from "@/components/ui/card";
+
 type Props = {
   openCount: number;
   highCriticalCount: number;
@@ -12,42 +15,11 @@ export default function FindingsKpiSummary({
   resolvedCount,
 }: Props) {
   return (
-    <section className="grid grid-cols-2 gap-3 sm:grid-cols-4" aria-label="Security findings summary">
-      <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-xs dark-soc:border-[#1E2D56] dark-soc:bg-[#111C38]">
-        <div className="text-xs font-semibold tracking-wider text-zinc-500 uppercase dark-soc:text-zinc-400">
-          Open Findings
-        </div>
-        <div className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-rose-600 dark-soc:text-rose-400">
-          {openCount}
-        </div>
-      </div>
-
-      <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-xs dark-soc:border-[#1E2D56] dark-soc:bg-[#111C38]">
-        <div className="text-xs font-semibold tracking-wider text-zinc-500 uppercase dark-soc:text-zinc-400">
-          High / Critical
-        </div>
-        <div className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-rose-600 dark-soc:text-rose-400">
-          {highCriticalCount}
-        </div>
-      </div>
-
-      <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-xs dark-soc:border-[#1E2D56] dark-soc:bg-[#111C38]">
-        <div className="text-xs font-semibold tracking-wider text-zinc-500 uppercase dark-soc:text-zinc-400">
-          Acknowledged
-        </div>
-        <div className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-zinc-700 dark-soc:text-zinc-200">
-          {acknowledgedCount}
-        </div>
-      </div>
-
-      <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-xs dark-soc:border-[#1E2D56] dark-soc:bg-[#111C38]">
-        <div className="text-xs font-semibold tracking-wider text-zinc-500 uppercase dark-soc:text-zinc-400">
-          Resolved
-        </div>
-        <div className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-emerald-600 dark-soc:text-emerald-400">
-          {resolvedCount}
-        </div>
-      </div>
+    <section className="grid grid-cols-2 gap-4 sm:grid-cols-4" aria-label="Security findings summary">
+      <MetricCard label="Open Findings" value={openCount} icon={AlertTriangle} iconClassName="text-rose-600" />
+      <MetricCard label="High / Critical" value={highCriticalCount} icon={ShieldAlert} iconClassName="text-rose-600" />
+      <MetricCard label="Acknowledged" value={acknowledgedCount} icon={Clock3} iconClassName="text-zinc-500" />
+      <MetricCard label="Resolved" value={resolvedCount} icon={CheckCircle2} iconClassName="text-[var(--color-lime-pulse)]" />
     </section>
   );
 }

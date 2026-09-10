@@ -17,10 +17,24 @@ export type AgentInsightRequest = {
   question: string;
 };
 
+export type AgentStepStatus = "pending" | "in_progress" | "completed";
+
+export type AgentActiveStep = {
+  id: string;
+  title: string;
+  status: AgentStepStatus;
+  evidence: string[];
+};
+
 export type AgentInsight = {
   status: string;
   answer: string | null;
   recommendations: string[];
+  threadId: string | null;
+  memoryRevision: number;
+  memoryPersisted: boolean | null;
+  activeStep: AgentActiveStep | null;
+  diagnostics: JsonObject;
 };
 
 type JsonObject = Record<string, unknown>;
@@ -31,6 +45,25 @@ function isObject(value: unknown): value is JsonObject {
 
 function isSection(value: unknown): value is AgentInsightSection {
   return typeof value === "string" && AGENT_INSIGHT_SECTIONS.includes(value as AgentInsightSection);
+}
+
+const AGENT_STEP_STATUSES = ["pending", "in_progress", "completed"] as const;
+
+function parseActiveStep(value: unknown): AgentActiveStep | null {
+  if (value === null) return null;
+  if (!isObject(value) || typeof value.id !== "string" || typeof value.title !== "string") {
+    return null;
+  }
+  if (!AGENT_STEP_STATUSES.includes(value.status as AgentStepStatus)) return null;
+
+  return {
+    id: value.id,
+    title: value.title,
+    status: value.status as AgentStepStatus,
+    evidence: Array.isArray(value.evidence)
+      ? value.evidence.filter((item): item is string => typeof item === "string").slice(0, 12)
+      : [],
+  };
 }
 
 function isSupportedAnalysis(value: unknown) {
@@ -88,6 +121,9 @@ export function parseAgentInsightResponse(value: unknown): AgentInsight | null {
     return null;
   }
 
+  const activeStep = value.active_step === undefined ? null : parseActiveStep(value.active_step);
+  if (value.active_step !== undefined && value.active_step !== null && activeStep === null) return null;
+
   return {
     status: value.status,
     answer: typeof value.answer === "string" ? value.answer.trim() || null : null,
@@ -96,6 +132,13 @@ export function parseAgentInsightResponse(value: unknown): AgentInsight | null {
       .map((recommendation) => recommendation.trim())
       .filter(Boolean)
       .slice(0, 12),
+    threadId: typeof value.thread_id === "string" ? value.thread_id : null,
+    memoryRevision: typeof value.memory_revision === "number" && Number.isSafeInteger(value.memory_revision)
+      ? value.memory_revision
+      : 0,
+    memoryPersisted: typeof value.memory_persisted === "boolean" ? value.memory_persisted : null,
+    activeStep,
+    diagnostics: isObject(value.diagnostics) ? value.diagnostics : {},
   };
 }
 

@@ -356,7 +356,7 @@ export async function getDashboardApiData({
     statsResult.status === "fulfilled" ? parseStats(statsResult.value) : null;
   const allRecords =
     recordsResult.status === "fulfilled" ? recordsResult.value : [];
-  const records = allRecords.slice(0, 5);
+  const records = allRecords;
   const riskDistribution = includeRiskDistribution && recordsResult.status === "fulfilled"
     ? riskScoreDistribution(allRecords)
     : null;

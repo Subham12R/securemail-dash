@@ -15,6 +15,7 @@ import { analysisStatusLabel } from "@/lib/risk";
 
 import { ViewTransition } from "react";
 import { AnimatedNumber } from "@/components/ui/animated-number";
+import { MetricCard } from "@/components/ui/card";
 import { getCurrentUser } from "@/lib/auth-server";
 import { redirect } from "next/navigation";
 
@@ -101,27 +102,16 @@ export default async function HomePage({ range }: { range: "all" | "7d" | "30d" 
             const Icon = metric.icon;
 
             return (
-              <article
+              <MetricCard
                 key={metric.label}
+                label={metric.label}
+                value={<AnimatedNumber value={metric.value} mode={metric.mode} />}
+                description={metric.description}
+                icon={Icon}
+                iconClassName={`transition-transform duration-200 group-hover:scale-110 ${metric.iconClassName}`}
                 style={{ animationDelay: `${index * 60}ms` }}
-                className="animate-reveal group rounded-xl border border-black/10 bg-white p-[18px] shadow-[0_4px_16px_rgba(0,0,0,0.05)] transition-[transform,box-shadow] duration-200 motion-safe:hover:-translate-y-0.5 motion-safe:hover:shadow-md"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <p className="text-sm font-normal tracking-tight text-zinc-600 transition-colors group-hover:text-zinc-900">
-                    {metric.label}
-                  </p>
-                  <Icon
-                    aria-hidden="true"
-                    className={`size-4 shrink-0 transition-transform duration-200 group-hover:scale-110 ${metric.iconClassName}`}
-                  />
-                </div>
-                <p className="mt-4 text-4xl font-normal tracking-tight text-zinc-900">
-                  <AnimatedNumber value={metric.value} mode={metric.mode} />
-                </p>
-                <p className="mt-1 text-xs tracking-tighter text-zinc-500">
-                  {metric.description}
-                </p>
-              </article>
+                className="animate-reveal"
+              />
             );
           })}
         </div>

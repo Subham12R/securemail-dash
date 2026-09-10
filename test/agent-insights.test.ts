@@ -71,9 +71,18 @@ test("parseAgentInsightResponse preserves real answers and recommendations", () 
     section: "risk",
     answer: "Certificate validation failed.",
     recommendations: ["Replace the certificate."],
-    evidence: [],
+    evidence: ["finding:TLS-001"],
     provider: "securemail",
     model: "risk-agent",
+    thread_id: "req-secops-10",
+    memory_revision: 1,
+    memory_persisted: true,
+    active_step: {
+      id: "verify-chain",
+      title: "Verify the certificate chain",
+      status: "in_progress",
+      evidence: ["finding:TLS-001"],
+    },
     diagnostics: {},
   });
 
@@ -81,6 +90,16 @@ test("parseAgentInsightResponse preserves real answers and recommendations", () 
     status: "complete",
     answer: "Certificate validation failed.",
     recommendations: ["Replace the certificate."],
+    threadId: "req-secops-10",
+    memoryRevision: 1,
+    memoryPersisted: true,
+    activeStep: {
+      id: "verify-chain",
+      title: "Verify the certificate chain",
+      status: "in_progress",
+      evidence: ["finding:TLS-001"],
+    },
+    diagnostics: {},
   });
 });
 
@@ -95,6 +114,10 @@ test("parseAgentInsightResponse preserves an explicit degraded response", () => 
     evidence: [],
     provider: null,
     model: null,
+    thread_id: "req-secops-10",
+    memory_revision: 0,
+    memory_persisted: false,
+    active_step: null,
     diagnostics: { reason: "provider unavailable" },
   });
 
@@ -102,5 +125,10 @@ test("parseAgentInsightResponse preserves an explicit degraded response", () => 
     status: "unavailable",
     answer: null,
     recommendations: [],
+    threadId: "req-secops-10",
+    memoryRevision: 0,
+    memoryPersisted: false,
+    activeStep: null,
+    diagnostics: { reason: "provider unavailable" },
   });
 });
