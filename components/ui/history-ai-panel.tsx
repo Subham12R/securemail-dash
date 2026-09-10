@@ -61,8 +61,13 @@ function stepStatusLabel(status: AgentActiveStep["status"]): string {
   switch (status) {
     case "completed":
       return "Completed";
+    case "proposed":
+      return "Proposed";
+    case "waiting_for_result":
+      return "Waiting for result";
     case "pending":
       return "Pending";
+    case "in_progress":
     default:
       return "In progress";
   }
@@ -327,7 +332,7 @@ export default function HistoryAiPanel({
     <aside
       aria-labelledby="history-ai-heading"
       className={cn(
-        "flex flex-col self-start border border-zinc-200 bg-white shadow-[0_18px_40px_rgba(24,24,27,0.14)] will-change-[width,height]",
+        "flex flex-col self-start border border-zinc-200 bg-white shadow-[0_18px_40px_rgba(24,24,27,0.14)] dark-soc:border-zinc-700 dark-soc:bg-[#1a1a1a] dark-soc:shadow-[0_18px_40px_rgba(0,0,0,0.35)] will-change-[width,height]",
         expanded ? "overflow-hidden" : "overflow-visible",
         expanded
           ? "w-full rounded-2xl p-4 h-[min(720px,calc(100dvh-9rem))] lg:sticky lg:top-20"
@@ -343,7 +348,7 @@ export default function HistoryAiPanel({
       {/* Panel Header */}
       <div
         className={cn(
-          "flex w-full shrink-0 items-center border-b border-zinc-200/80 bg-transparent px-2 text-zinc-900",
+          "flex w-full shrink-0 items-center border-b border-zinc-200/80 bg-transparent px-2 text-zinc-900 dark-soc:border-zinc-700 dark-soc:text-zinc-100",
           showExpandedContent && !isClosing
             ? "h-12 justify-between"
             : cn(
@@ -562,7 +567,7 @@ export default function HistoryAiPanel({
             ) : null}
 
             {lastInsightStatus && lastInsightStatus !== "complete" ? (
-              <p role="status" className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] leading-4 text-amber-800">
+              <p role="status" className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] leading-4 text-amber-800 dark-soc:border-amber-800 dark-soc:bg-amber-950/40 dark-soc:text-amber-200">
                 SecureMailScope Agent status: {lastInsightStatus}. Try again or reset the conversation.
               </p>
             ) : null}
@@ -578,14 +583,14 @@ export default function HistoryAiPanel({
             ) : null}
           </div>
 
-          <div className="shrink-0 border-t border-zinc-100 bg-white px-3 py-2">
+          <div className="shrink-0 border-t border-zinc-100 bg-white px-3 py-2 dark-soc:border-zinc-700 dark-soc:bg-[#1a1a1a]">
             {/* Streamlined Input Composer */}
             <form
               onSubmit={(e) => {
                 e.preventDefault();
                 handleSendPrompt(inputVal);
               }}
-              className="relative flex min-h-20 flex-col items-stretch rounded-xl border border-zinc-200 bg-zinc-50/60 px-3 py-2.5 shadow-[0_1px_3px_rgba(15,23,42,0.06)] focus-within:border-zinc-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-zinc-950/5 transition-all"
+              className="relative flex min-h-20 flex-col items-stretch rounded-xl border border-zinc-200 bg-zinc-50/60 px-3 py-2.5 shadow-[0_1px_3px_rgba(15,23,42,0.06)] focus-within:border-zinc-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-zinc-950/5 transition-all dark-soc:border-zinc-700 dark-soc:bg-zinc-800 dark-soc:focus-within:border-zinc-500 dark-soc:focus-within:bg-zinc-800 dark-soc:focus-within:ring-zinc-100/10"
             >
               <textarea
                 ref={textareaRef}
@@ -596,7 +601,7 @@ export default function HistoryAiPanel({
                 placeholder="Ask about this session’s risk…"
                 rows={1}
                 disabled={isGenerating}
-                className="scrollbar-hide min-h-8 w-full resize-none bg-transparent pr-10 text-xs leading-5 text-zinc-900 outline-none placeholder:text-zinc-400 max-h-[72px]"
+                className="scrollbar-hide min-h-8 w-full resize-none bg-transparent pr-10 text-xs leading-5 text-zinc-900 outline-none placeholder:text-zinc-400 max-h-[72px] dark-soc:text-zinc-100 dark-soc:placeholder:text-zinc-500"
               />
 
               <motion.button
@@ -607,8 +612,8 @@ export default function HistoryAiPanel({
                 className={cn(
                   "absolute bottom-2 right-2 grid size-7 shrink-0 place-items-center rounded-lg transition-colors",
                   inputVal.trim() && !isGenerating
-                    ? "bg-zinc-900 text-white hover:bg-zinc-800 shadow-2xs cursor-pointer"
-                    : "bg-zinc-200/80 text-zinc-400 cursor-not-allowed"
+                    ? "bg-zinc-900 text-white hover:bg-zinc-800 shadow-2xs cursor-pointer dark-soc:bg-zinc-700 dark-soc:hover:bg-zinc-600"
+                    : "bg-zinc-200/80 text-zinc-400 cursor-not-allowed dark-soc:bg-zinc-700 dark-soc:text-zinc-500"
                 )}
               >
                 <ArrowUp className="size-3.5" />

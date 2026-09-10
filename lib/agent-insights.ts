@@ -17,7 +17,12 @@ export type AgentInsightRequest = {
   question: string;
 };
 
-export type AgentStepStatus = "pending" | "in_progress" | "completed";
+export type AgentStepStatus =
+  | "proposed"
+  | "in_progress"
+  | "waiting_for_result"
+  | "completed"
+  | "pending";
 
 export type AgentActiveStep = {
   id: string;
@@ -47,19 +52,27 @@ function isSection(value: unknown): value is AgentInsightSection {
   return typeof value === "string" && AGENT_INSIGHT_SECTIONS.includes(value as AgentInsightSection);
 }
 
-const AGENT_STEP_STATUSES = ["pending", "in_progress", "completed"] as const;
+const AGENT_STEP_STATUSES = [
+  "proposed",
+  "in_progress",
+  "waiting_for_result",
+  "completed",
+  "pending",
+] as const;
 
 function parseActiveStep(value: unknown): AgentActiveStep | null {
   if (value === null) return null;
   if (!isObject(value) || typeof value.id !== "string" || typeof value.title !== "string") {
     return null;
   }
-  if (!AGENT_STEP_STATUSES.includes(value.status as AgentStepStatus)) return null;
+  const status: AgentStepStatus = AGENT_STEP_STATUSES.includes(value.status as AgentStepStatus)
+    ? (value.status as AgentStepStatus)
+    : "in_progress";
 
   return {
     id: value.id,
     title: value.title,
-    status: value.status as AgentStepStatus,
+    status,
     evidence: Array.isArray(value.evidence)
       ? value.evidence.filter((item): item is string => typeof item === "string").slice(0, 12)
       : [],

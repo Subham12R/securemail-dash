@@ -132,3 +132,59 @@ test("parseAgentInsightResponse preserves an explicit degraded response", () => 
     diagnostics: { reason: "provider unavailable" },
   });
 });
+
+test("parseAgentInsightResponse parses active step with proposed status", () => {
+  const insight = parseAgentInsightResponse({
+    schema_version: "agent-insight-response.v1",
+    request_id: "req-secops-10",
+    status: "complete",
+    section: "risk",
+    answer: "Initial risk overview.",
+    recommendations: ["Inspect certificate."],
+    evidence: ["finding:TLS-001"],
+    provider: "gemini",
+    model: "gemini-3.5-flash-lite",
+    thread_id: "req-secops-10",
+    memory_revision: 1,
+    memory_persisted: true,
+    active_step: {
+      id: "step-1",
+      title: "Review email authentication headers",
+      status: "proposed",
+      evidence: ["finding:TLS-001"],
+    },
+    diagnostics: {},
+  });
+
+  assert.notEqual(insight, null);
+  assert.equal(insight?.activeStep?.status, "proposed");
+  assert.equal(insight?.activeStep?.title, "Review email authentication headers");
+});
+
+test("parseAgentInsightResponse parses active step with waiting_for_result status", () => {
+  const insight = parseAgentInsightResponse({
+    schema_version: "agent-insight-response.v1",
+    request_id: "req-secops-10",
+    status: "complete",
+    section: "risk",
+    answer: "Awaiting test result.",
+    recommendations: [],
+    evidence: [],
+    provider: "gemini",
+    model: "gemini-3.5-flash-lite",
+    thread_id: "req-secops-10",
+    memory_revision: 2,
+    memory_persisted: true,
+    active_step: {
+      id: "step-2",
+      title: "Run verification script",
+      status: "waiting_for_result",
+      evidence: [],
+    },
+    diagnostics: {},
+  });
+
+  assert.notEqual(insight, null);
+  assert.equal(insight?.activeStep?.status, "waiting_for_result");
+});
+
