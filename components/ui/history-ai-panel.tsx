@@ -476,7 +476,7 @@ export default function HistoryAiPanel({
                       className={cn(
                         "rounded-2xl text-xs py-2 px-3",
                         msg.from === "user"
-                          ? "bg-zinc-900 text-white rounded-br-sm max-w-[85%]"
+                          ? "bg-zinc-900 dark-soc:bg-zinc-800 text-white rounded-br-sm max-w-[85%]"
                           : "border-transparent bg-transparent text-zinc-900 rounded-tl-sm max-w-[92%]"
                       )}
                     >
