@@ -15,6 +15,8 @@ import { analysisStatusLabel } from "@/lib/risk";
 
 import { ViewTransition } from "react";
 import { AnimatedNumber } from "@/components/ui/animated-number";
+import { getCurrentUser } from "@/lib/auth-server";
+import { redirect } from "next/navigation";
 
 export default async function HomePage({ range }: { range: "all" | "7d" | "30d" }) {
   const dashboard = await getDashboardApiData({
@@ -64,6 +66,10 @@ export default async function HomePage({ range }: { range: "all" | "7d" | "30d" 
     riskScore: record.risk_score,
     status: analysisStatusLabel(record.final_verdict),
   }));
+  const user = await getCurrentUser();
+  if (!user) {
+    redirect("/login");
+  }
   return (
     <ViewTransition enter="page-enter" exit="page-exit" default="none">
       <main
@@ -73,6 +79,10 @@ export default async function HomePage({ range }: { range: "all" | "7d" | "30d" 
         <DashboardTopbar currentPage="Overview" showDateRange showRefresh range={range} />
 
       <section aria-labelledby="metrics-heading" className="space-y-4 p-6">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tighter text-zinc-900">Welcome back, {user.display_name}!</h1>
+          <p className="text-sm tracking-tighter text-zinc-500">Here's a quick overview of your activity.</p>
+        </div>
         <div className="flex items-center justify-between gap-4">
           <div>
             <h1
