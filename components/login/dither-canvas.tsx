@@ -73,8 +73,10 @@ export default function DitherCanvas() {
     const render = (now: number) => {
       const time = isReducedMotion ? 0 : (now - startTime) * 0.001;
 
-      // Base background: clean soft light slate
-      ctx.fillStyle = "#f8fafc";
+      const isDark = document.documentElement.classList.contains("dark-soc");
+
+      // Match the active app theme so the canvas does not flash a light panel in dark mode.
+      ctx.fillStyle = isDark ? "#1a1a1a" : "#f8fafc";
       ctx.fillRect(0, 0, width, height);
 
       const mouse = mouseRef.current;
@@ -82,7 +84,7 @@ export default function DitherCanvas() {
       const mouseY = mouse?.y;
 
       // Dither dot color: soft slate
-      ctx.fillStyle = "rgba(71, 85, 105, 0.22)";
+      ctx.fillStyle = isDark ? "rgba(161, 161, 170, 0.2)" : "rgba(71, 85, 105, 0.22)";
 
       const cols = Math.ceil(width / step);
       const rows = Math.ceil(height / step);
