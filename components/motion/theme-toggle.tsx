@@ -40,8 +40,14 @@ html[data-beui-vt="rect"]::view-transition-old(root) {
   mix-blend-mode: normal;
 }
 html[data-beui-vt="rect"]::view-transition-new(root) {
+  position: relative;
+  z-index: 9999;
   mix-blend-mode: normal;
   animation: beui-rect-reveal 400ms ease-out;
+}
+html[data-beui-vt="rect"]::view-transition-group(app-sidebar),
+html[data-beui-vt="rect"]::view-transition-group(app-topbar) {
+  z-index: 0;
 }
 html[data-beui-vt="circle"]::view-transition-old(root),
 html[data-beui-vt="circle-blur"]::view-transition-old(root) {
