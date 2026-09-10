@@ -51,10 +51,10 @@ export default function CertificateChainModal({ certificate, onClose }: Props) {
         {/* Chain Tree Content */}
         <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-[18px]">
           {certificate.chain.map((node, index) => (
-            <div key={node.subject} className="relative">
+            <div key={`${node.subject}-${index}`} className="relative">
               {/* Connector line */}
               {index < certificate.chain.length - 1 && (
-                <div className="absolute top-12 left-5 -bottom-4 w-0.5 bg-zinc-200 dark-soc:bg-[#1E2D56]" />
+                <div className="absolute top-12 left-[37px] -bottom-4 w-0.5 bg-zinc-200 dark-soc:bg-[#1E2D56]" />
               )}
 
               <div className="flex items-start gap-3 rounded-xl border border-black/10 bg-zinc-50/70 p-[18px] dark-soc:border-[#1E2D56] dark-soc:bg-[#0D1735]">
