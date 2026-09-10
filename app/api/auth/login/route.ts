@@ -41,11 +41,11 @@ export async function POST(request: Request) {
 
         const data = await upstream.json().catch(() => null);
 
-        // If upstream failed due to enterprise domain rejection on remote VPS, fallback to local backend candidate
+        // Fall back only when the configured upstream is unavailable; policy errors are actionable.
         if (
           !upstream.ok &&
           candidates.length > 1 &&
-          (data?.detail === "enterprise_email_required" || upstream.status === 404 || upstream.status >= 500)
+          (upstream.status === 404 || upstream.status >= 500)
         ) {
           lastStatus = upstream.status;
           lastErrorMessage = formatAuthError(data?.detail || data?.message);
