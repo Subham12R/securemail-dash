@@ -30,7 +30,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex h-screen w-full flex-col overflow-hidden bg-white">
         <ThemeProvider>
           <AppShell>{children}</AppShell>
-          <Toaster position="top-right" richColors closeButton />
+          <Toaster position="top-right" />
         </ThemeProvider>
       </body>
     </html>

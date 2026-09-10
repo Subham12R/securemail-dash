@@ -176,3 +176,16 @@ export function AppleSystemAlertBanner({
 }
 
 AppleSystemAlertBanner.displayName = "AppleSystemAlertBanner";
+
+import { registerSystemAlertRenderer } from "@/lib/notifications";
+
+if (typeof window !== "undefined") {
+  registerSystemAlertRenderer((props) => <AppleSystemAlertBanner {...props} />);
+}
+
+export function NotificationBridge() {
+  React.useEffect(() => {
+    registerSystemAlertRenderer((props) => <AppleSystemAlertBanner {...props} />);
+  }, []);
+  return null;
+}
